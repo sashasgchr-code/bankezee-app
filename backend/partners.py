@@ -59,10 +59,27 @@ async def register_partner(partner_data: PartnerRegistration):
     
     await db.partners.insert_one(partner_doc)
     
-    return {
-        "message": "Partner registered successfully",
+    user_doc = {
+        "id": partner_id,
+        "email": f"partner_{partner_id[:8]}@bankezee.com",
+        "password": "",
+        "full_name": partner_data.name,
+        "phone": partner_data.mobile,
+        "role": "partner",
+        "city": partner_data.city,
+        "is_active": True,
+        "is_approved": True,
         "partner_id": partner_id,
-        "referral_code": referral_code
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.users.insert_one(user_doc)
+    
+    return {
+        "message": "Partner registered successfully. You can now login with OTP using your mobile number.",
+        "partner_id": partner_id,
+        "referral_code": referral_code,
+        "login_instructions": "Use OTP login with your mobile number to access your dashboard"
     }
 
 @router.get("/")

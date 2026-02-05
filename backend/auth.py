@@ -10,6 +10,11 @@ import logging
 from typing import Optional, List
 from twilio.rest import Client
 from functools import wraps
+from dotenv import load_dotenv
+from pathlib import Path
+
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
 
 logger = logging.getLogger(__name__)
 

@@ -22,7 +22,7 @@ const CRMPage = () => {
 
   const fetchLeads = async () => {
     try {
-      const params = statusFilter ? `?status=${statusFilter}` : '';
+      const params = statusFilter && statusFilter !== 'all' ? `?status=${statusFilter}` : '';
       const response = await api.get(`/leads${params}`);
       setLeads(response.data);
     } catch (error) {

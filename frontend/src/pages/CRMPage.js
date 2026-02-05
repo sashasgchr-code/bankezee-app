@@ -100,12 +100,12 @@ const CRMPage = () => {
                 />
               </div>
               
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select value={statusFilter || undefined} onValueChange={setStatusFilter}>
                 <SelectTrigger className="h-12 bg-slate-50 border-slate-200" data-testid="status-filter">
                   <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Statuses</SelectItem>
+                  <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="new">New</SelectItem>
                   <SelectItem value="contacted">Contacted</SelectItem>
                   <SelectItem value="documents_collected">Documents Collected</SelectItem>

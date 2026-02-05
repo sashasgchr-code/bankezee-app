@@ -68,11 +68,14 @@ const LoginPage = () => {
           navigate('/admin/dashboard');
         } else if (role === 'sales_agent') {
           navigate('/agent/dashboard');
+        } else if (role === 'partner') {
+          const partnerId = response.data.user.partner_id || response.data.user.id;
+          navigate(`/partner/dashboard/${partnerId}`);
         } else {
           navigate('/');
         }
       } else {
-        toast.error('Invalid OTP');
+        toast.error(response.data.message || 'Invalid OTP or phone number not registered');
       }
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Verification failed');

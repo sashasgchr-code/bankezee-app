@@ -1,12 +1,17 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
+from dotenv import load_dotenv
+from pathlib import Path
 import os
 import qrcode
 import io
 import base64
 import logging
 from fastapi.responses import StreamingResponse
+
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +27,7 @@ async def generate_qr(partner_id: str):
     if not partner:
         raise HTTPException(status_code=404, detail="Partner not found")
     
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    frontend_url = os.getenv("FRONTEND_URL", os.getenv("REACT_APP_BACKEND_URL", "http://localhost:3000").replace('/api', ''))
     qr_url = f"{frontend_url}/lead-form?ref={partner['referral_code']}"
     
     qr = qrcode.QRCode(
@@ -48,7 +53,7 @@ async def get_qr_data(partner_id: str):
     if not partner:
         raise HTTPException(status_code=404, detail="Partner not found")
     
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    frontend_url = os.getenv("FRONTEND_URL", os.getenv("REACT_APP_BACKEND_URL", "http://localhost:3000").replace('/api', ''))
     qr_url = f"{frontend_url}/lead-form?ref={partner['referral_code']}"
     
     qr = qrcode.QRCode(

@@ -115,7 +115,7 @@ const LeadFormPage = () => {
               <div>
                 <Label htmlFor="employment_type">Employment Type *</Label>
                 <Select
-                  value={formData.employment_type}
+                  value={formData.employment_type || undefined}
                   onValueChange={(value) => setFormData({ ...formData, employment_type: value })}
                   required
                 >
@@ -132,7 +132,7 @@ const LeadFormPage = () => {
               <div>
                 <Label htmlFor="requirement">Loan Requirement *</Label>
                 <Select
-                  value={formData.requirement}
+                  value={formData.requirement || undefined}
                   onValueChange={(value) => setFormData({ ...formData, requirement: value })}
                   required
                 >

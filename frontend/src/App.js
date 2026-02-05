@@ -1,50 +1,88 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import '@/App.css';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/LoginPage';
+import LeadFormPage from './pages/LeadFormPage';
+import AgentRegistration from './pages/AgentRegistration';
+import PartnerRegistration from './pages/PartnerRegistration';
+import AdminDashboard from './pages/AdminDashboard';
+import AgentDashboard from './pages/AgentDashboard';
+import PartnerDashboard from './pages/PartnerDashboard';
+import CRMPage from './pages/CRMPage';
+import LeadDetailPage from './pages/LeadDetailPage';
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
+function ProtectedRoute({ children, allowedRoles }) {
+  const token = localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
 
-  return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+}
 
 function App() {
   return (
     <div className="App">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/lead-form" element={<LeadFormPage />} />
+          <Route path="/agent-registration" element={<AgentRegistration />} />
+          <Route path="/partner-registration" element={<PartnerRegistration />} />
+          
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'operations']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/agent/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['sales_agent']}>
+                <AgentDashboard />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/partner/dashboard/:partnerId"
+            element={
+              <ProtectedRoute>
+                <PartnerDashboard />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/crm"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'operations', 'sales_agent']}>
+                <CRMPage />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/crm/lead/:leadId"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'operations', 'sales_agent']}>
+                <LeadDetailPage />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </div>

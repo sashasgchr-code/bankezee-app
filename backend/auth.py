@@ -177,31 +177,31 @@ async def send_otp(request: OTPRequest):
 async def verify_otp(request: OTPVerification):
     if not twilio_client or not os.getenv("TWILIO_VERIFY_SERVICE"):
         if request.code == "123456":
-            user_doc = await db.users.find_one({"phone": request.phone}, {"_id": 0})
+            user_doc = await db.users.find_one({\"phone\": request.phone}, {\"_id\": 0})
             if user_doc:
-                token = create_access_token({"sub": user_doc["id"], "role": user_doc["role"]})
-                user_response = {k: v for k, v in user_doc.items() if k != "password"}
-                return {"valid": True, "token": token, "user": user_response}
-            return {"valid": True, "message": "OTP verified (mocked)"}
-        return {"valid": False, "message": "Invalid OTP"}
+                token = create_access_token({\"sub\": user_doc[\"id\"], \"role\": user_doc[\"role\"]})
+                user_response = {k: v for k, v in user_doc.items() if k != \"password\"}
+                return {\"valid\": True, \"token\": token, \"user\": user_response}
+            return {\"valid\": False, \"message\": \"Phone number not registered\"}
+        return {\"valid\": False, \"message\": \"Invalid OTP\"}
     
     try:
-        check = twilio_client.verify.services(os.getenv("TWILIO_VERIFY_SERVICE")).verification_checks.create(
+        check = twilio_client.verify.services(os.getenv(\"TWILIO_VERIFY_SERVICE\")).verification_checks.create(
             to=request.phone,
             code=request.code
         )
         
-        if check.status == "approved":
-            user_doc = await db.users.find_one({"phone": request.phone}, {"_id": 0})
+        if check.status == \"approved\":
+            user_doc = await db.users.find_one({\"phone\": request.phone}, {\"_id\": 0})
             if user_doc:
-                token = create_access_token({"sub": user_doc["id"], "role": user_doc["role"]})
-                user_response = {k: v for k, v in user_doc.items() if k != "password"}
-                return {"valid": True, "token": token, "user": user_response}
+                token = create_access_token({\"sub\": user_doc[\"id\"], \"role\": user_doc[\"role\"]})
+                user_response = {k: v for k, v in user_doc.items() if k != \"password\"}
+                return {\"valid\": True, \"token\": token, \"user\": user_response}
         
-        return {"valid": check.status == "approved"}
+        return {\"valid\": check.status == \"approved\"}
     except Exception as e:
-        logger.error(f"Failed to verify OTP: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"Failed to verify OTP: {str(e)}")
+        logger.error(f\"Failed to verify OTP: {str(e)}\")
+        raise HTTPException(status_code=400, detail=f\"Failed to verify OTP: {str(e)}\")
 
 @router.get("/me")
 async def get_me(current_user: User = Depends(get_current_user)):

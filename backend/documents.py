@@ -1,17 +1,17 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Query
 from fastapi.responses import StreamingResponse
 from motor.motor_asyncio import AsyncIOMotorClient
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
-from google_auth_oauthlib.flow import Flow
-from google.oauth2.credentials import Credentials
-from google.auth.transport.requests import Request as GoogleRequest
+from dotenv import load_dotenv
+from pathlib import Path
 import os
 import io
 import tempfile
 import logging
 from datetime import datetime, timezone
 from auth import get_current_user, User
+
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
 
 logger = logging.getLogger(__name__)
 

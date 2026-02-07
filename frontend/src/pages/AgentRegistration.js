@@ -16,20 +16,43 @@ const AgentRegistration = () => {
     phone: '',
     email: '',
     city: '',
-    password: ''
+    password: '',
+    id_proof: null,
+    pan_number: '',
+    bank_name: '',
+    account_number: '',
+    ifsc_code: '',
+    account_holder_name: ''
   });
+
+  const handleFileChange = (e) => {
+    setFormData({ ...formData, id_proof: e.target.files[0] });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     
     try {
-      await api.post('/auth/register', {
-        ...formData,
-        role: 'sales_agent'
-      });
-      toast.success('Registration successful! Awaiting admin approval.');
-      setTimeout(() => navigate('/login'), 2000);
+      const registrationData = {
+        full_name: formData.full_name,
+        phone: formData.phone,
+        email: formData.email,
+        city: formData.city,
+        password: formData.password,
+        role: 'sales_agent',
+        pan_number: formData.pan_number,
+        bank_details: {
+          bank_name: formData.bank_name,
+          account_number: formData.account_number,
+          ifsc_code: formData.ifsc_code,
+          account_holder_name: formData.account_holder_name
+        }
+      };
+      
+      await api.post('/auth/register', registrationData);
+      toast.success('Registration successful! Awaiting admin approval. You can login after approval.');
+      setTimeout(() => navigate('/login'), 3000);
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Registration failed');
     } finally {

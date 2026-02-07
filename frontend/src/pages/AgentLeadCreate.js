@@ -38,12 +38,11 @@ const AgentLeadCreate = () => {
 
   const fetchAgent = async () => {
     try {
-      const response = await api.get(`/agents?email=${user.email}`);
-      if (response.data && response.data.length > 0) {
-        setAgent(response.data[0]);
-      }
+      const response = await api.get(`/agents/by-user/${user.id}`);
+      setAgent(response.data);
     } catch (error) {
       console.error('Failed to fetch agent:', error);
+      toast.error('Agent profile not found');
     }
   };
 

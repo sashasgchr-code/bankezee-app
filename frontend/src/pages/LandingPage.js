@@ -120,11 +120,11 @@ const LandingPage = () => {
           </div>
           <div className="md:col-span-7">
             <h3 className="text-4xl md:text-5xl font-bold tracking-tight mb-6" style={{ fontFamily: 'Manrope, sans-serif' }}>
-              Partner With Us
+              Join as Agent
             </h3>
             <p className="text-lg leading-relaxed text-slate-600 mb-6">
-              Join our network of sales agents, freelance partners, and retail partners.
-              Earn competitive commissions on every successful case.
+              Join our network of sales agents and start earning competitive commissions.
+              Get your own QR code, generate leads, and track your earnings in real-time.
             </p>
             <ul className="space-y-4 mb-8">
               <li className="flex items-start gap-3">

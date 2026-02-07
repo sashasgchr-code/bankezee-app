@@ -34,9 +34,13 @@ const LeadFormPage = () => {
       };
       
       if (referralCode) {
-        const partnerResponse = await api.get(`/partners?referral_code=${referralCode}`);
-        if (partnerResponse.data && partnerResponse.data.length > 0) {
-          leadData.source_id = partnerResponse.data[0].id;
+        try {
+          const partnerResponse = await api.get(`/partners/by-code/${referralCode}`);
+          if (partnerResponse.data) {
+            leadData.source_id = partnerResponse.data.id;
+          }
+        } catch (error) {
+          console.warn('Partner not found for referral code:', referralCode);
         }
       }
       

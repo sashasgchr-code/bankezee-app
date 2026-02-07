@@ -20,34 +20,30 @@ const AgentDashboard = () => {
 
   const fetchAgentData = async () => {
     try {
-      // Get agent by email
-      const agentResponse = await api.get(`/agents?email=${user.email}`);
+      // Get agent by user ID
+      const agentResponse = await api.get(`/agents/by-user/${user.id}`);
       console.log('Agent response:', agentResponse.data);
       
-      if (agentResponse.data && agentResponse.data.length > 0) {
-        const agentData = agentResponse.data[0];
-        setAgent(agentData);
-        
-        // Fetch QR code data
-        try {
-          const qrResponse = await api.get(`/qr/data/${agentData.id}`);
-          setQrData(qrResponse.data);
-        } catch (qrError) {
-          console.error('QR code fetch failed:', qrError);
-          toast.error('Failed to load QR code');
-        }
-        
-        // Fetch all leads created by this agent
-        const leadsResponse = await api.get('/leads');
-        console.log('Leads response:', leadsResponse.data);
-        const agentLeads = leadsResponse.data.filter(l => l.source_id === agentData.id);
-        setLeads(agentLeads || []);
-      } else {
-        toast.error('Agent profile not found. Please contact admin.');
+      const agentData = agentResponse.data;
+      setAgent(agentData);
+      
+      // Fetch QR code data
+      try {
+        const qrResponse = await api.get(`/qr/data/${agentData.id}`);
+        console.log('QR response:', qrResponse.data);
+        setQrData(qrResponse.data);
+      } catch (qrError) {
+        console.error('QR code fetch failed:', qrError);
       }
+      
+      // Fetch all leads created by this agent
+      const leadsResponse = await api.get('/leads');
+      console.log('Leads response:', leadsResponse.data);
+      const agentLeads = leadsResponse.data.filter(l => l.source_id === agentData.id);
+      setLeads(agentLeads || []);
     } catch (error) {
       console.error('Failed to load agent data:', error);
-      toast.error('Failed to load dashboard');
+      toast.error('Agent profile not found. Please register as an agent first.');
     } finally {
       setLoading(false);
     }

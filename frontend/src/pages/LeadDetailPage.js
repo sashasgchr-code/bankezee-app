@@ -75,6 +75,18 @@ const LeadDetailPage = () => {
     }
   };
 
+  const handleAssignLead = async () => {
+    if (!selectedAssignee) return;
+    
+    try {
+      await api.put(`/crm/${leadId}/assign`, { assigned_to: selectedAssignee });
+      toast.success('Lead assigned successfully');
+      fetchLead();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to assign lead');
+    }
+  };
+
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;

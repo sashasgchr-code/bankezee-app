@@ -141,3 +141,59 @@ async def get_lead_activities(
         raise HTTPException(status_code=404, detail="Lead not found")
     
     return lead.get("activities", [])
+
+
+@router.put("/{lead_id}/assign")
+async def assign_lead(
+    lead_id: str,
+    assignment: LeadAssignment,
+    current_user: User = Depends(get_current_user)
+):
+    """Assign a lead to an operations team member"""
+    if current_user.role not in ["admin", "operations"]:
+        raise HTTPException(status_code=403, detail="Only admin or operations can assign leads")
+    
+    # Verify the assignee exists and is an operations team member
+    assignee = await db.users.find_one({"id": assignment.assigned_to}, {"_id": 0})
+    if not assignee:
+        raise HTTPException(status_code=404, detail="Assignee not found")
+    if assignee.get("role") != "operations":
+        raise HTTPException(status_code=400, detail="Can only assign to operations team members")
+    
+    lead = await db.leads.find_one({"id": lead_id}, {"_id": 0})
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    
+    result = await db.leads.update_one(
+        {"id": lead_id},
+        {
+            "$set": {
+                "assigned_to": assignment.assigned_to,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            },
+            "$push": {
+                "activities": {
+                    "type": "assignment",
+                    "message": f"Lead assigned to {assignee.get('full_name', 'Operations Team')}",
+                    "by": current_user.id,
+                    "by_name": current_user.full_name,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        }
+    )
+    
+    return {"message": f"Lead assigned to {assignee.get('full_name')}", "assigned_to": assignment.assigned_to}
+
+@router.get("/operations-team")
+async def get_operations_team(current_user: User = Depends(get_current_user)):
+    """Get list of operations team members for assignment dropdown"""
+    if current_user.role not in ["admin", "operations"]:
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    ops_team = await db.users.find(
+        {"role": "operations", "is_active": True, "is_approved": True},
+        {"_id": 0, "id": 1, "full_name": 1, "email": 1}
+    ).to_list(100)
+    
+    return ops_team

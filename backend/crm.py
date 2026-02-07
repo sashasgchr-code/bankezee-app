@@ -31,6 +31,9 @@ class LeadUpdate(BaseModel):
     ticket_size: Optional[float] = None
     bank_name: Optional[str] = None
 
+class LeadAssignment(BaseModel):
+    assigned_to: str
+
 @router.put("/{lead_id}/status")
 async def update_lead_status(
     lead_id: str,

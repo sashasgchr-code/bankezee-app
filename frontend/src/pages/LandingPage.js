@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, TrendingDown, DollarSign, Home, CreditCard, Users, BarChart3 } from 'lucide-react';
+import { ArrowRight, TrendingDown, DollarSign, Home, CreditCard, Users } from 'lucide-react';
 
 const LandingPage = () => {
   const navigate = useNavigate();

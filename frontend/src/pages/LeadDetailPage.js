@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { ArrowLeft, FileText, Upload } from 'lucide-react';
+import { ArrowLeft, FileText, Upload, UserCheck } from 'lucide-react';
 
 const LeadDetailPage = () => {
   const { leadId } = useParams();
@@ -18,9 +18,15 @@ const LeadDetailPage = () => {
   const [note, setNote] = useState('');
   const [newStatus, setNewStatus] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [opsTeam, setOpsTeam] = useState([]);
+  const [selectedAssignee, setSelectedAssignee] = useState('');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
     fetchLead();
+    if (['admin', 'operations'].includes(user.role)) {
+      fetchOpsTeam();
+    }
   }, [leadId]);
 
   const fetchLead = async () => {

@@ -186,28 +186,34 @@ const PartnerDashboard = () => {
             </Card>
           )}
 
-          <Card data-testid="recent-leads-card">
+          <Card className="md:col-span-2" data-testid="all-leads-card">
             <CardHeader>
-              <CardTitle>Recent Leads</CardTitle>
-              <CardDescription>Leads generated through your referral</CardDescription>
+              <CardTitle>All Your Leads ({dashboard?.all_leads?.length || dashboard?.recent_leads?.length || 0})</CardTitle>
+              <CardDescription>Leads you have entered with current status</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {dashboard?.recent_leads?.length > 0 ? (
-                  dashboard.recent_leads.map((lead) => (
+                {(dashboard?.all_leads || dashboard?.recent_leads || []).length > 0 ? (
+                  (dashboard?.all_leads || dashboard?.recent_leads || []).map((lead) => (
                     <div key={lead.id} className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
                       <div>
                         <p className="font-medium text-sm">{lead.full_name}</p>
-                        <p className="text-xs text-slate-500">{lead.requirement}</p>
+                        <p className="text-xs text-slate-500">{lead.mobile} | {lead.requirement}</p>
+                        <p className="text-xs text-slate-400 mt-1">Created: {new Date(lead.created_at).toLocaleDateString()}</p>
                       </div>
-                      <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full capitalize">
+                      <span className={`text-xs px-2 py-1 rounded-full capitalize ${
+                        lead.status === 'disbursed' ? 'bg-green-100 text-green-800' :
+                        lead.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                        lead.status === 'approved' ? 'bg-blue-100 text-blue-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
                         {lead.status.replace('_', ' ')}
                       </span>
                     </div>
                   ))
                 ) : (
                   <div className="text-center py-8 text-slate-500 text-sm">
-                    No leads generated yet
+                    No leads generated yet. Start by creating a lead or sharing your QR code!
                   </div>
                 )}
               </div>

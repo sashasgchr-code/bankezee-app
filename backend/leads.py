@@ -27,8 +27,10 @@ class LeadCreate(BaseModel):
     city: str
     employment_type: str
     requirement: str
+    email: Optional[str] = None
     source: Optional[str] = "digital"
     source_id: Optional[str] = None
+    additional_data: Optional[dict] = None
 
 @router.post("/create")
 async def create_lead(lead_data: LeadCreate):

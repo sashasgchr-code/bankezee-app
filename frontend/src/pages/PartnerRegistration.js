@@ -127,16 +127,97 @@ const PartnerRegistration = () => {
                 />
               </div>
 
-              <div>
-                <Label htmlFor="upi_id">UPI ID</Label>
-                <Input
-                  id="upi_id"
-                  placeholder="yourname@upi"
-                  value={formData.upi_id}
-                  onChange={(e) => setFormData({ ...formData, upi_id: e.target.value })}
-                  data-testid="partner-upi-input"
-                  className="h-12 bg-slate-50 border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg transition-all"
-                />
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">KYC Details</h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="pan_number">PAN Number *</Label>
+                    <Input
+                      id="pan_number"
+                      placeholder="ABCDE1234F"
+                      value={formData.pan_number}
+                      onChange={(e) => setFormData({ ...formData, pan_number: e.target.value.toUpperCase() })}
+                      required
+                      maxLength={10}
+                      data-testid="partner-pan-input"
+                      className="h-12 bg-slate-50 border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="id_proof">ID Proof (Aadhar/Passport/Driving License)</Label>
+                    <Input
+                      id="id_proof"
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={handleFileChange}
+                      data-testid="partner-idproof-input"
+                      className="h-12 bg-slate-50 border-slate-200"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">Upload PDF, JPG, or PNG (Max 5MB)</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">Bank Details (For Commission Payout)</h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="account_holder_name">Account Holder Name *</Label>
+                    <Input
+                      id="account_holder_name"
+                      placeholder="As per bank account"
+                      value={formData.account_holder_name}
+                      onChange={(e) => setFormData({ ...formData, account_holder_name: e.target.value })}
+                      required
+                      data-testid="partner-account-name-input"
+                      className="h-12 bg-slate-50 border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="bank_name">Bank Name *</Label>
+                    <Input
+                      id="bank_name"
+                      placeholder="e.g., HDFC Bank, ICICI Bank"
+                      value={formData.bank_name}
+                      onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
+                      required
+                      data-testid="partner-bank-name-input"
+                      className="h-12 bg-slate-50 border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="account_number">Account Number *</Label>
+                    <Input
+                      id="account_number"
+                      type="text"
+                      placeholder="Enter account number"
+                      value={formData.account_number}
+                      onChange={(e) => setFormData({ ...formData, account_number: e.target.value })}
+                      required
+                      data-testid="partner-account-number-input"
+                      className="h-12 bg-slate-50 border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="ifsc_code">IFSC Code *</Label>
+                    <Input
+                      id="ifsc_code"
+                      placeholder="e.g., HDFC0001234"
+                      value={formData.ifsc_code}
+                      onChange={(e) => setFormData({ ...formData, ifsc_code: e.target.value.toUpperCase() })}
+                      required
+                      maxLength={11}
+                      data-testid="partner-ifsc-input"
+                      className="h-12 bg-slate-50 border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg transition-all"
+                    />
+                  </div>
+                </div>
               </div>
 
               <Button

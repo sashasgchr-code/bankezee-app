@@ -82,12 +82,20 @@ async def create_lead(lead_data: LeadCreate):
 async def get_leads(
     status: Optional[str] = None,
     source: Optional[str] = None,
+    source_id: Optional[str] = None,
     current_user: User = Depends(get_current_user)
 ):
     query = {}
     
     if current_user.role == "sales_agent":
-        query["assigned_to"] = current_user.id
+        # For agents, show leads they created OR assigned to them
+        if source_id:
+            query["source_id"] = source_id
+        else:
+            query["$or"] = [
+                {"assigned_to": current_user.id},
+                {"source_id": current_user.id}
+            ]
     elif current_user.role not in ["admin", "operations"]:
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     
@@ -95,6 +103,8 @@ async def get_leads(
         query["status"] = status
     if source:
         query["source"] = source
+    if source_id and current_user.role in ["admin", "operations"]:
+        query["source_id"] = source_id
     
     leads = await db.leads.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
     return leads

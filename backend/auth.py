@@ -51,6 +51,8 @@ class UserRegistration(BaseModel):
     phone: str
     role: str = "sales_agent"
     city: Optional[str] = None
+    pan_number: Optional[str] = None
+    bank_details: Optional[dict] = None
 
 class LoginRequest(BaseModel):
     email: EmailStr

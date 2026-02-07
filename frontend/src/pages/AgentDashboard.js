@@ -20,30 +20,33 @@ const AgentDashboard = () => {
 
   const fetchAgentData = async () => {
     try {
-      // Get agent by user ID
+      console.log('Fetching agent data for user ID:', user.id);
+      
+      // Get agent by user ID (agent_id and user_id are now the same)
       const agentResponse = await api.get(`/agents/by-user/${user.id}`);
       console.log('Agent response:', agentResponse.data);
       
       const agentData = agentResponse.data;
       setAgent(agentData);
       
-      // Fetch QR code data
-      try {
-        const qrResponse = await api.get(`/qr/data/${agentData.id}`);
-        console.log('QR response:', qrResponse.data);
-        setQrData(qrResponse.data);
-      } catch (qrError) {
-        console.error('QR code fetch failed:', qrError);
-      }
+      // Fetch QR code data using user ID (which is same as agent ID)
+      console.log('Fetching QR for agent ID:', agentData.id);
+      const qrResponse = await api.get(`/qr/data/${agentData.id}`);
+      console.log('QR response:', qrResponse.data);
+      setQrData(qrResponse.data);
       
       // Fetch all leads created by this agent
       const leadsResponse = await api.get('/leads');
-      console.log('Leads response:', leadsResponse.data);
       const agentLeads = leadsResponse.data.filter(l => l.source_id === agentData.id);
       setLeads(agentLeads || []);
     } catch (error) {
       console.error('Failed to load agent data:', error);
-      toast.error('Agent profile not found. Please register as an agent first.');
+      console.error('Error details:', error.response?.data);
+      if (error.response?.status === 404) {
+        toast.error('Agent profile not found. Please contact admin to link your account.');
+      } else {
+        toast.error('Failed to load dashboard');
+      }
     } finally {
       setLoading(false);
     }

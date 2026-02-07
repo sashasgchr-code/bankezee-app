@@ -135,6 +135,34 @@ async def register(user_data: UserRegistration):
     
     await db.users.insert_one(user_doc)
     
+    # If registering as sales_agent, also create agent record
+    if user_data.role == "sales_agent":
+        agent_code = f"AGT{user_id[:8].upper()}"
+        agent_doc = {
+            "id": user_id,  # Use same ID as user
+            "agent_code": agent_code,
+            "full_name": user_data.full_name,
+            "phone": user_data.phone,
+            "email": user_data.email,
+            "city": user_data.city,
+            "bank_details": user_data.bank_details,
+            "pan_number": user_data.pan_number,
+            "is_approved": False,
+            "is_active": True,
+            "team_leader_id": None,
+            "performance": {
+                "total_leads": 0,
+                "converted_leads": 0,
+                "total_revenue": 0,
+                "total_commission": 0
+            },
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.agents.insert_one(agent_doc)
+        
+        # Update user with agent_id
+        await db.users.update_one({"id": user_id}, {"$set": {"agent_id": user_id}})
+    
     return {
         "message": "Registration successful. Awaiting approval." if not is_approved else "Registration successful",
         "user_id": user_id,

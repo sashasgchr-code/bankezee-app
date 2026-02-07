@@ -41,6 +41,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/lead-form" element={<LeadFormPage />} />
           <Route path="/agent-registration" element={<AgentRegistration />} />
+          <Route path="/partner-registration" element={<PartnerRegistration />} />
           
           <Route
             path="/admin/dashboard"
@@ -65,6 +66,24 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['sales_agent']}>
                 <AgentLeadCreate />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/partner/dashboard/:partnerId"
+            element={
+              <ProtectedRoute allowedRoles={['partner']}>
+                <PartnerDashboard />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/partner/create-lead"
+            element={
+              <ProtectedRoute allowedRoles={['partner']}>
+                <PartnerLeadCreate />
               </ProtectedRoute>
             }
           />

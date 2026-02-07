@@ -111,9 +111,10 @@ async def approve_agent(
 @router.get("/")
 async def get_agents(
     status: Optional[str] = None,
+    email: Optional[str] = None,
     current_user: User = Depends(get_current_user)
 ):
-    if current_user.role not in ["admin", "operations"]:
+    if current_user.role not in ["admin", "operations"] and not email:
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     
     query = {}
@@ -121,6 +122,9 @@ async def get_agents(
         query["is_approved"] = False
     elif status == "approved":
         query["is_approved"] = True
+    
+    if email:
+        query["email"] = email
     
     agents = await db.agents.find(query, {"_id": 0}).to_list(1000)
     return agents

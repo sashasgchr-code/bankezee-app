@@ -58,8 +58,9 @@ async def register_partner(partner_data: PartnerRegistration):
     
     await db.partners.insert_one(partner_doc)
     
+    # Create user account with same ID
     user_doc = {
-        "id": partner_id,
+        "id": partner_id,  # Use same ID
         "email": f"partner_{partner_id[:8]}@bankezee.com",
         "password": "",
         "full_name": partner_data.name,

@@ -13,6 +13,7 @@ import AgentDashboard from './pages/AgentDashboard';
 import AgentLeadCreate from './pages/AgentLeadCreate';
 import PartnerDashboard from './pages/PartnerDashboard';
 import PartnerLeadCreate from './pages/PartnerLeadCreate';
+import OperationsDashboard from './pages/OperationsDashboard';
 import CRMPage from './pages/CRMPage';
 import LeadDetailPage from './pages/LeadDetailPage';
 

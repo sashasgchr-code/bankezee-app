@@ -1,7 +1,11 @@
 # Bankezee CRM Platform - Product Requirements Document
 
 ## Original Problem Statement
-Build a full-stack web application for a fintech company called Bankezee. The platform should function as a Lead Generation + Sales CRM + Partner Management system.
+Build a full-stack web application for a fintech company called BankEzee. The platform should function as a Lead Generation + Sales CRM + Partner Management system.
+
+## Brand Colors
+- **Primary Green:** #22af47
+- **Secondary Gray:** #535353
 
 ## User Roles
 1. **Admin** - Full system access, user approvals, analytics, lead assignment

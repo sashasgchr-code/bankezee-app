@@ -200,6 +200,52 @@ const LeadDetailPage = () => {
               </CardContent>
             </Card>
 
+            {['admin', 'operations'].includes(user.role) && (
+              <Card data-testid="assign-lead-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <UserCheck className="w-5 h-5 text-primary" />
+                    Assign Lead
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex gap-4">
+                    <Select value={selectedAssignee} onValueChange={setSelectedAssignee}>
+                      <SelectTrigger className="h-12 flex-1" data-testid="assignee-select">
+                        <SelectValue placeholder="Select team member" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {opsTeam.length > 0 ? (
+                          opsTeam.map((member) => (
+                            <SelectItem key={member.id} value={member.id}>
+                              {member.full_name} ({member.email})
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="" disabled>No operations team members</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      onClick={handleAssignLead}
+                      disabled={!selectedAssignee || selectedAssignee === lead.assigned_to}
+                      className="bg-primary text-primary-foreground"
+                      data-testid="assign-lead-btn"
+                    >
+                      Assign
+                    </Button>
+                  </div>
+                  {lead.assigned_to && (
+                    <p className="text-sm text-slate-500 mt-2">
+                      Currently assigned to: <span className="font-medium">
+                        {opsTeam.find(m => m.id === lead.assigned_to)?.full_name || 'Unknown'}
+                      </span>
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             <Card data-testid="add-note-card">
               <CardHeader>
                 <CardTitle>Add Note</CardTitle>

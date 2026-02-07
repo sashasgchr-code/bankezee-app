@@ -131,21 +131,14 @@ const LandingPage = () => {
                 <Users className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
                 <div>
                   <strong className="text-secondary">Sales Agents:</strong>
-                  <span className="text-slate-600 ml-2">Generate leads via QR code or manual entry</span>
+                  <span className="text-slate-600 ml-2">Generate detailed leads and earn commission</span>
                 </div>
               </li>
               <li className="flex items-start gap-3">
                 <Users className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
                 <div>
-                  <strong className="text-secondary">Earn Commission:</strong>
-                  <span className="text-slate-600 ml-2">Get paid for every successful loan</span>
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <Users className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
-                <div>
-                  <strong className="text-secondary">Track Your Leads:</strong>
-                  <span className="text-slate-600 ml-2">Monitor status of all your leads in real-time</span>
+                  <strong className="text-secondary">Retail Partners:</strong>
+                  <span className="text-slate-600 ml-2">Quick lead capture with QR codes</span>
                 </div>
               </li>
             </ul>
@@ -156,6 +149,14 @@ const LandingPage = () => {
                 data-testid="partner-agent-btn"
               >
                 Register as Agent
+              </Button>
+              <Button
+                onClick={() => navigate('/partner-registration')}
+                variant="outline"
+                className="bg-white text-secondary border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm transition-all rounded-full px-8 py-6 text-lg font-medium"
+                data-testid="partner-retail-btn"
+              >
+                Register as Retail Partner
               </Button>
             </div>
           </div>

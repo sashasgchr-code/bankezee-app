@@ -70,6 +70,15 @@ function App() {
           />
           
           <Route
+            path="/partner/create-lead"
+            element={
+              <ProtectedRoute allowedRoles={['partner']}>
+                <PartnerLeadCreate />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
             path="/crm"
             element={
               <ProtectedRoute allowedRoles={['admin', 'operations', 'sales_agent']}>

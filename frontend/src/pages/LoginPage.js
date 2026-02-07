@@ -26,8 +26,10 @@ const LoginPage = () => {
       toast.success('Login successful!');
       
       const role = response.data.user.role;
-      if (role === 'admin' || role === 'operations') {
+      if (role === 'admin') {
         navigate('/admin/dashboard');
+      } else if (role === 'operations') {
+        navigate('/operations/dashboard');
       } else if (role === 'sales_agent') {
         navigate('/agent/dashboard');
       } else {

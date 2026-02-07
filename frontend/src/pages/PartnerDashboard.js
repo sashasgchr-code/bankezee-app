@@ -25,7 +25,7 @@ const PartnerDashboard = () => {
       setDashboard(response.data);
       
       // Fetch partner's created leads
-      const leadsResponse = await api.get('/leads');
+      const leadsResponse = await api.get('/leads/');
       const partnerLeads = leadsResponse.data.filter(l => l.source_id === partnerId);
       setDashboard(prev => ({ ...prev, all_leads: partnerLeads }));
     } catch (error) {

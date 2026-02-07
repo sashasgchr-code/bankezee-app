@@ -36,7 +36,7 @@ const AgentDashboard = () => {
       setQrData(qrResponse.data);
       
       // Fetch all leads created by this agent
-      const leadsResponse = await api.get('/leads');
+      const leadsResponse = await api.get('/leads/');
       const agentLeads = leadsResponse.data.filter(l => l.source_id === agentData.id);
       setLeads(agentLeads || []);
     } catch (error) {

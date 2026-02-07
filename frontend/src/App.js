@@ -11,6 +11,7 @@ import PartnerRegistration from './pages/PartnerRegistration';
 import AdminDashboard from './pages/AdminDashboard';
 import AgentDashboard from './pages/AgentDashboard';
 import PartnerDashboard from './pages/PartnerDashboard';
+import PartnerLeadCreate from './pages/PartnerLeadCreate';
 import CRMPage from './pages/CRMPage';
 import LeadDetailPage from './pages/LeadDetailPage';
 

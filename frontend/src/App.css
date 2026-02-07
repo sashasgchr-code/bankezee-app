@@ -54,11 +54,11 @@
   background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
   transition: all 0.3s ease-out;
-  box-shadow: 0 8px 30px rgba(15, 118, 110, 0.2);
+  box-shadow: 0 8px 30px rgba(34, 175, 71, 0.2);
 }
 
 .btn-primary:hover {
   background: hsl(var(--primary) / 0.9);
-  box-shadow: 0 12px 40px rgba(15, 118, 110, 0.3);
+  box-shadow: 0 12px 40px rgba(34, 175, 71, 0.3);
   transform: translateY(-2px);
 }

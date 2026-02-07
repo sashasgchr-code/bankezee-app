@@ -58,26 +58,34 @@ const LoginPage = () => {
     setLoading(true);
     try {
       const response = await api.post('/auth/verify-otp', { phone: otpLogin.phone, code: otpLogin.otp });
+      console.log('OTP Verification Response:', response.data);
+      
       if (response.data.valid && response.data.token) {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
         toast.success('Login successful!');
         
         const role = response.data.user.role;
+        const partnerId = response.data.user.partner_id || response.data.user.id;
+        
+        console.log('User role:', role, 'Partner ID:', partnerId);
+        
         if (role === 'admin' || role === 'operations') {
           navigate('/admin/dashboard');
         } else if (role === 'sales_agent') {
           navigate('/agent/dashboard');
         } else if (role === 'partner') {
-          const partnerId = response.data.user.partner_id || response.data.user.id;
+          console.log('Navigating to partner dashboard:', `/partner/dashboard/${partnerId}`);
           navigate(`/partner/dashboard/${partnerId}`);
         } else {
           navigate('/');
         }
       } else {
+        console.error('Invalid response:', response.data);
         toast.error(response.data.message || 'Invalid OTP or phone number not registered');
       }
     } catch (error) {
+      console.error('OTP verification error:', error);
       toast.error(error.response?.data?.detail || 'Verification failed');
     } finally {
       setLoading(false);

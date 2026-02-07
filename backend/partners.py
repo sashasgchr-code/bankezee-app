@@ -83,12 +83,26 @@ async def register_partner(partner_data: PartnerRegistration):
     }
 
 @router.get("/")
-async def get_partners(current_user: User = Depends(get_current_user)):
+async def get_partners(
+    referral_code: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
     if current_user.role not in ["admin", "operations"]:
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     
-    partners = await db.partners.find({}, {"_id": 0}).to_list(1000)
+    query = {}
+    if referral_code:
+        query["referral_code"] = referral_code
+    
+    partners = await db.partners.find(query, {"_id": 0}).to_list(1000)
     return partners
+
+@router.get("/by-code/{referral_code}")
+async def get_partner_by_code(referral_code: str):
+    partner = await db.partners.find_one({"referral_code": referral_code}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    return partner
 
 @router.get("/{partner_id}")
 async def get_partner(

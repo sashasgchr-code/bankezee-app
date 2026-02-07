@@ -103,6 +103,30 @@ async def get_partner_by_code(referral_code: str):
         raise HTTPException(status_code=404, detail="Partner not found")
     return partner
 
+@router.post("/approve/{partner_id}")
+async def approve_partner(
+    partner_id: str,
+    approved: bool,
+    current_user: User = Depends(get_current_user)
+):
+    if current_user.role not in ["admin", "operations"]:
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    result = await db.partners.update_one(
+        {"id": partner_id},
+        {"$set": {"is_approved": approved, "approved_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    await db.users.update_one(
+        {"partner_id": partner_id},
+        {"$set": {"is_approved": approved}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    return {"message": f"Partner {'approved' if approved else 'rejected'} successfully"}
+
 @router.get("/{partner_id}")
 async def get_partner(
     partner_id: str,

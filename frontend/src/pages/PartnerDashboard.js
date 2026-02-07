@@ -23,6 +23,11 @@ const PartnerDashboard = () => {
     try {
       const response = await api.get(`/dashboard/partner/${partnerId}`);
       setDashboard(response.data);
+      
+      // Fetch partner's created leads
+      const leadsResponse = await api.get('/leads');
+      const partnerLeads = leadsResponse.data.filter(l => l.source_id === partnerId);
+      setDashboard(prev => ({ ...prev, all_leads: partnerLeads }));
     } catch (error) {
       toast.error('Failed to load dashboard');
     } finally {
@@ -35,7 +40,7 @@ const PartnerDashboard = () => {
       const response = await api.get(`/qr/data/${partnerId}`);
       setQrData(response.data);
     } catch (error) {
-      console.error('Failed to load QR code');
+      console.error('Failed to load QR code:', error);
     }
   };
 

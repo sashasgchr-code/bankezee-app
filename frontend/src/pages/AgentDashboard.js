@@ -20,18 +20,30 @@ const AgentDashboard = () => {
 
   const fetchAgentData = async () => {
     try {
+      // Get agent by email
       const agentResponse = await api.get(`/agents?email=${user.email}`);
+      console.log('Agent response:', agentResponse.data);
+      
       if (agentResponse.data && agentResponse.data.length > 0) {
         const agentData = agentResponse.data[0];
         setAgent(agentData);
         
         // Fetch QR code data
-        const qrResponse = await api.get(`/qr/data/${agentData.id}`);
-        setQrData(qrResponse.data);
+        try {
+          const qrResponse = await api.get(`/qr/data/${agentData.id}`);
+          setQrData(qrResponse.data);
+        } catch (qrError) {
+          console.error('QR code fetch failed:', qrError);
+          toast.error('Failed to load QR code');
+        }
         
         // Fetch all leads created by this agent
-        const leadsResponse = await api.get(`/leads?source=agent&source_id=${agentData.id}`);
-        setLeads(leadsResponse.data || []);
+        const leadsResponse = await api.get('/leads');
+        console.log('Leads response:', leadsResponse.data);
+        const agentLeads = leadsResponse.data.filter(l => l.source_id === agentData.id);
+        setLeads(agentLeads || []);
+      } else {
+        toast.error('Agent profile not found. Please contact admin.');
       }
     } catch (error) {
       console.error('Failed to load agent data:', error);

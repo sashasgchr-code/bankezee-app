@@ -172,3 +172,22 @@ async def get_agent_by_code(agent_code: str):
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
     return agent
+
+@router.get("/by-user/{user_id}")
+async def get_agent_by_user(user_id: str, current_user: User = Depends(get_current_user)):
+    # First check if user has agent_id field
+    user_doc = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if user_doc and user_doc.get("agent_id"):
+        agent = await db.agents.find_one({"id": user_doc["agent_id"]}, {"_id": 0})
+        if agent:
+            return agent
+    
+    # Fallback: search by email
+    if user_doc and user_doc.get("email"):
+        agent = await db.agents.find_one({"email": user_doc["email"]}, {"_id": 0})
+        if agent:
+            # Update user doc to include agent_id for next time
+            await db.users.update_one({"id": user_id}, {"$set": {"agent_id": agent["id"]}})
+            return agent
+    
+    raise HTTPException(status_code=404, detail="Agent not found")

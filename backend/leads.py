@@ -100,6 +100,9 @@ async def get_leads(
                 {"assigned_to": current_user.id},
                 {"source_id": current_user.id}
             ]
+    elif current_user.role == "partner":
+        # For partners, show leads they created
+        query["source_id"] = current_user.id
     elif current_user.role not in ["admin", "operations"]:
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import '@/App.css';
+import { Toaster } from 'sonner';
 
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -31,6 +32,7 @@ function ProtectedRoute({ children, allowedRoles }) {
 function App() {
   return (
     <div className="App">
+      <Toaster position="top-right" richColors />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />

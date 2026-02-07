@@ -126,6 +126,8 @@ async def register(user_data: UserRegistration):
         "phone": user_data.phone,
         "role": user_data.role,
         "city": user_data.city,
+        "pan_number": user_data.pan_number,
+        "bank_details": user_data.bank_details,
         "is_active": True,
         "is_approved": is_approved,
         "created_at": datetime.now(timezone.utc).isoformat()

@@ -68,8 +68,8 @@ const PartnerRegistration = () => {
                 <Handshake className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-3xl font-bold" style={{ fontFamily: 'Manrope, sans-serif' }}>Partner Registration</CardTitle>
-                <CardDescription>Become a freelance partner and start earning</CardDescription>
+                <CardTitle className="text-3xl font-bold" style={{ fontFamily: 'Manrope, sans-serif' }}>Retail Partner Registration</CardTitle>
+                <CardDescription>Become a retail partner and start earning commissions</CardDescription>
               </div>
             </div>
           </CardHeader>

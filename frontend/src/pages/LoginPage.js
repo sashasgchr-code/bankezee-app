@@ -97,9 +97,14 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-6 py-12">
       <Card className="w-full max-w-md shadow-[0_8px_30px_rgb(0,0,0,0.04)]" data-testid="login-card">
-        <CardHeader>
+        <CardHeader className="text-center">
+          <img 
+            src="https://customer-assets.emergentagent.com/job_7c3fdd96-2e7c-4f0d-8929-2f39966615d7/artifacts/d1dzd93e_BankEzee%20Logo.png" 
+            alt="BankEzee Logo" 
+            className="h-14 mx-auto mb-4"
+          />
           <CardTitle className="text-3xl font-bold" style={{ fontFamily: 'Manrope, sans-serif' }}>Welcome Back</CardTitle>
-          <CardDescription>Sign in to access your Bankezee account</CardDescription>
+          <CardDescription>Sign in to access your BankEzee account</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="email" className="w-full">

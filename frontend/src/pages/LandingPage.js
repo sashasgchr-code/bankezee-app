@@ -52,14 +52,6 @@ const LandingPage = () => {
             >
               Apply for Loan <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
-            <Button
-              onClick={() => navigate('/partner-registration')}
-              variant="outline"
-              className="bg-white text-secondary border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm transition-all rounded-full px-8 py-6 text-lg font-medium"
-              data-testid="hero-partner-btn"
-            >
-              Become a Partner
-            </Button>
           </div>
         </div>
         <div className="md:col-span-5">

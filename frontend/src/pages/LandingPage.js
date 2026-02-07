@@ -9,10 +9,11 @@ const LandingPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <nav className="px-6 md:px-12 lg:px-24 py-6 flex justify-between items-center backdrop-blur-xl bg-white/70 border-b border-white/20 sticky top-0 z-50">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-            <BarChart3 className="w-6 h-6 text-white" />
-          </div>
-          <h1 className="text-2xl font-extrabold" style={{ fontFamily: 'Manrope, sans-serif' }}>Bankezee</h1>
+          <img 
+            src="https://customer-assets.emergentagent.com/job_7c3fdd96-2e7c-4f0d-8929-2f39966615d7/artifacts/d1dzd93e_BankEzee%20Logo.png" 
+            alt="BankEzee Logo" 
+            className="h-12"
+          />
         </div>
         <div className="flex gap-4">
           <Button

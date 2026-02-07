@@ -67,6 +67,15 @@ async def register_agent(agent_data: AgentRegistration):
     await db.agents.insert_one(agent_doc)
     
     return {
+        "message": "Agent registration submitted. Awaiting approval. You can login after approval.",
+        "agent_id": agent_id,
+        "agent_code": agent_code
+    }
+    }
+    
+    await db.agents.insert_one(agent_doc)
+    
+    return {
         "message": "Agent registration submitted. Awaiting approval.",
         "agent_id": agent_id,
         "agent_code": agent_code

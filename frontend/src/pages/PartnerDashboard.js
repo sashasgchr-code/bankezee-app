@@ -138,7 +138,7 @@ const PartnerDashboard = () => {
             <Card data-testid="qr-code-card">
               <CardHeader>
                 <CardTitle>Your QR Code</CardTitle>
-                <CardDescription>Share this QR code to generate leads</CardDescription>
+                <CardDescription>Share this QR code or link to generate leads</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col items-center">
                 <img
@@ -150,14 +150,33 @@ const PartnerDashboard = () => {
                 <p className="mt-4 text-sm text-slate-600 text-center">
                   Referral Code: <span className="font-bold text-primary">{qrData.referral_code}</span>
                 </p>
-                <Button
-                  onClick={() => window.open(`/qr/generate/${partnerId}`, '_blank')}
-                  className="mt-4 bg-primary text-primary-foreground hover:bg-primary/90"
-                  data-testid="download-qr-btn"
-                >
-                  <QrCode className="w-4 h-4 mr-2" />
-                  Download QR Code
-                </Button>
+                <div className="mt-4 w-full space-y-2">
+                  <div className="p-3 bg-slate-50 rounded-lg">
+                    <p className="text-xs text-slate-500 mb-1">Lead Generation Link:</p>
+                    <p className="text-sm font-mono break-all">{qrData.qr_url}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => {
+                        navigator.clipboard.writeText(qrData.qr_url);
+                        toast.success('Link copied to clipboard!');
+                      }}
+                      variant="outline"
+                      className="flex-1"
+                      data-testid="copy-link-btn"
+                    >
+                      Copy Link
+                    </Button>
+                    <Button
+                      onClick={() => window.open(`/api/qr/generate/${partnerId}`, '_blank')}
+                      className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+                      data-testid="download-qr-btn"
+                    >
+                      <QrCode className="w-4 h-4 mr-2" />
+                      Download QR
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}

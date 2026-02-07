@@ -148,7 +148,7 @@ async def get_agent_performance(
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
     
-    leads = await db.leads.find({"assigned_to": agent_id}, {"_id": 0}).to_list(1000)
+    leads = await db.leads.find({" source_id": agent_id}, {"_id": 0}).to_list(1000)
     
     total_leads = len(leads)
     converted_leads = len([l for l in leads if l.get("status") == "disbursed"])
@@ -163,3 +163,10 @@ async def get_agent_performance(
         "total_revenue": agent.get("performance", {}).get("total_revenue", 0),
         "total_commission": agent.get("performance", {}).get("total_commission", 0)
     }
+
+@router.get("/by-code/{agent_code}")
+async def get_agent_by_code(agent_code: str):
+    agent = await db.agents.find_one({"agent_code": agent_code}, {"_id": 0})
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    return agent

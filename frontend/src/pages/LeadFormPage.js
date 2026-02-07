@@ -35,12 +35,23 @@ const LeadFormPage = () => {
       
       if (referralCode) {
         try {
-          const partnerResponse = await api.get(`/partners/by-code/${referralCode}`);
-          if (partnerResponse.data) {
-            leadData.source_id = partnerResponse.data.id;
+          // Try as agent code first
+          const agentResponse = await api.get(`/agents/by-code/${referralCode}`);
+          if (agentResponse.data) {
+            leadData.source = 'agent';
+            leadData.source_id = agentResponse.data.id;
           }
         } catch (error) {
-          console.warn('Partner not found for referral code:', referralCode);
+          try {
+            // Fallback to partner code
+            const partnerResponse = await api.get(`/partners/by-code/${referralCode}`);
+            if (partnerResponse.data) {
+              leadData.source = 'retail_qr';
+              leadData.source_id = partnerResponse.data.id;
+            }
+          } catch (err) {
+            console.warn('Referral code not found:', referralCode);
+          }
         }
       }
       

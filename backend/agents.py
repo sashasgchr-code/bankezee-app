@@ -66,6 +66,13 @@ async def register_agent(agent_data: AgentRegistration):
     
     await db.agents.insert_one(agent_doc)
     
+    # Also store agent_id in users collection for easy lookup
+    await db.users.update_one(
+        {"email": agent_data.email},
+        {"$set": {"agent_id": agent_id}},
+        upsert=False
+    )
+    
     return {
         "message": "Agent registration submitted. Awaiting approval. You can login after approval.",
         "agent_id": agent_id,

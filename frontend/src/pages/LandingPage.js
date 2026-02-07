@@ -163,7 +163,7 @@ const LandingPage = () => {
                 className="bg-white text-secondary border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm transition-all rounded-full px-8 py-6 text-lg font-medium"
                 data-testid="partner-freelance-btn"
               >
-                Register as Partner
+                Register as Retail Partner
               </Button>
             </div>
           </div>

@@ -26,9 +26,8 @@ class PartnerRegistration(BaseModel):
     mobile: str
     city: str
     occupation: Optional[str] = None
-    upi_id: Optional[str] = None
-    bank_details: Optional[dict] = None
     pan_number: Optional[str] = None
+    bank_details: Optional[dict] = None
 
 @router.post("/register")
 async def register_partner(partner_data: PartnerRegistration):
@@ -46,10 +45,10 @@ async def register_partner(partner_data: PartnerRegistration):
         "mobile": partner_data.mobile,
         "city": partner_data.city,
         "occupation": partner_data.occupation,
-        "upi_id": partner_data.upi_id,
-        "bank_details": partner_data.bank_details,
         "pan_number": partner_data.pan_number,
+        "bank_details": partner_data.bank_details,
         "is_active": True,
+        "is_approved": False,
         "wallet_balance": 0,
         "total_leads": 0,
         "approved_cases": 0,
@@ -68,7 +67,7 @@ async def register_partner(partner_data: PartnerRegistration):
         "role": "partner",
         "city": partner_data.city,
         "is_active": True,
-        "is_approved": True,
+        "is_approved": False,
         "partner_id": partner_id,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
@@ -76,10 +75,10 @@ async def register_partner(partner_data: PartnerRegistration):
     await db.users.insert_one(user_doc)
     
     return {
-        "message": "Partner registered successfully. You can now login with OTP using your mobile number.",
+        "message": "Retail Partner registration successful. Awaiting admin approval. You can login with OTP after approval.",
         "partner_id": partner_id,
         "referral_code": referral_code,
-        "login_instructions": "Use OTP login with your mobile number to access your dashboard"
+        "login_instructions": "Use OTP login with your mobile number after admin approval"
     }
 
 @router.get("/")

@@ -148,7 +148,7 @@ async def get_agent_performance(
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
     
-    leads = await db.leads.find({" source_id": agent_id}, {"_id": 0}).to_list(1000)
+    leads = await db.leads.find({"source_id": agent_id}, {"_id": 0}).to_list(1000)
     
     total_leads = len(leads)
     converted_leads = len([l for l in leads if l.get("status") == "disbursed"])

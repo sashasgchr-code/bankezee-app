@@ -34,11 +34,21 @@ const LeadDetailPage = () => {
       const response = await api.get(`/leads/${leadId}`);
       setLead(response.data);
       setNewStatus(response.data.status);
+      setSelectedAssignee(response.data.assigned_to || '');
     } catch (error) {
       toast.error('Failed to load lead details');
       navigate('/crm');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchOpsTeam = async () => {
+    try {
+      const response = await api.get('/crm/operations-team');
+      setOpsTeam(response.data);
+    } catch (error) {
+      console.error('Failed to fetch ops team:', error);
     }
   };
 

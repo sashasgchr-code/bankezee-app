@@ -7,9 +7,12 @@ import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import LeadFormPage from './pages/LeadFormPage';
 import AgentRegistration from './pages/AgentRegistration';
+import PartnerRegistration from './pages/PartnerRegistration';
 import AdminDashboard from './pages/AdminDashboard';
 import AgentDashboard from './pages/AgentDashboard';
 import AgentLeadCreate from './pages/AgentLeadCreate';
+import PartnerDashboard from './pages/PartnerDashboard';
+import PartnerLeadCreate from './pages/PartnerLeadCreate';
 import CRMPage from './pages/CRMPage';
 import LeadDetailPage from './pages/LeadDetailPage';
 

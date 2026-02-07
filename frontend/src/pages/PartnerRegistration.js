@@ -16,18 +16,41 @@ const PartnerRegistration = () => {
     mobile: '',
     city: '',
     occupation: '',
-    upi_id: ''
+    pan_number: '',
+    id_proof: null,
+    bank_name: '',
+    account_number: '',
+    ifsc_code: '',
+    account_holder_name: ''
   });
+
+  const handleFileChange = (e) => {
+    setFormData({ ...formData, id_proof: e.target.files[0] });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     
     try {
-      const response = await api.post('/partners/register', formData);
-      toast.success('Partner registration successful!');
-      toast.success(`Your referral code: ${response.data.referral_code}`);
-      setTimeout(() => navigate('/login'), 3000);
+      const registrationData = {
+        name: formData.name,
+        mobile: formData.mobile,
+        city: formData.city,
+        occupation: formData.occupation,
+        pan_number: formData.pan_number,
+        bank_details: {
+          bank_name: formData.bank_name,
+          account_number: formData.account_number,
+          ifsc_code: formData.ifsc_code,
+          account_holder_name: formData.account_holder_name
+        }
+      };
+      
+      const response = await api.post('/partners/register', registrationData);
+      toast.success('Retail Partner registration successful! Awaiting admin approval.');
+      toast.info(`Your referral code: ${response.data.referral_code}. You can login after approval.`);
+      setTimeout(() => navigate('/login'), 4000);
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Registration failed');
     } finally {

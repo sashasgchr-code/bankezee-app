@@ -68,7 +68,7 @@ const PartnerDashboard = () => {
           )}
           <span className="text-sm text-slate-600">Welcome, {user.full_name}</span>
           <Button
-            onClick={() => navigate('/lead-form')}
+            onClick={() => navigate('/partner/create-lead')}
             className="bg-primary text-primary-foreground hover:bg-primary/90"
             data-testid="create-lead-btn"
           >

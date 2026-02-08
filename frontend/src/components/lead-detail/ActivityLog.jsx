@@ -1,7 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { FileText, Upload } from 'lucide-react';
+import { FileText, Upload, Download, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import api from '@/utils/api';
+import { toast } from 'sonner';
 
 const ActivityLog = ({ 
   activities = [], 
@@ -9,10 +12,49 @@ const ActivityLog = ({
   note,
   onNoteChange,
   onAddNote,
-  onUploadDocument,
-  isUploading,
-  canEdit
+  leadId,
+  canEdit,
+  onDocumentsChange
 }) => {
+  const [uploading, setUploading] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState(documents || []);
+
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('lead_id', leadId || '');
+      formData.append('document_type', 'general');
+      
+      const response = await api.post('/storage/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      toast.success('Document uploaded successfully');
+      setUploadedFiles(prev => [...prev, response.data]);
+      if (onDocumentsChange) onDocumentsChange([...uploadedFiles, response.data]);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to upload document');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleDelete = async (filePath) => {
+    try {
+      await api.delete(`/storage/files/${filePath}`);
+      toast.success('Document deleted');
+      setUploadedFiles(prev => prev.filter(f => f.file_path !== filePath));
+    } catch (error) {
+      toast.error('Failed to delete document');
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Documents */}
@@ -20,18 +62,32 @@ const ActivityLog = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5 text-primary" />
-            Documents
+            Documents ({uploadedFiles.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {documents.length === 0 ? (
+          {uploadedFiles.length === 0 ? (
             <p className="text-center text-slate-500 py-4">No documents uploaded</p>
           ) : (
             <div className="space-y-2">
-              {documents.map((doc, idx) => (
+              {uploadedFiles.map((doc, idx) => (
                 <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded">
-                  <span className="text-sm">{doc.name}</span>
-                  <Button variant="ghost" size="sm">View</Button>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{doc.original_name || doc.file_name}</p>
+                    <p className="text-xs text-slate-500">{doc.document_type} • {((doc.size || 0) / 1024).toFixed(1)}KB</p>
+                  </div>
+                  <div className="flex gap-1">
+                    <a href={doc.download_url} target="_blank" rel="noopener noreferrer">
+                      <Button variant="ghost" size="sm">
+                        <Download className="w-4 h-4" />
+                      </Button>
+                    </a>
+                    {canEdit && (
+                      <Button variant="ghost" size="sm" className="text-red-500" onClick={() => handleDelete(doc.file_path)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -42,16 +98,18 @@ const ActivityLog = ({
                 type="file" 
                 className="hidden" 
                 id="doc-upload"
-                onChange={onUploadDocument}
+                accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx"
+                onChange={handleUpload}
               />
               <label htmlFor="doc-upload">
-                <Button variant="outline" className="w-full cursor-pointer" disabled={isUploading} asChild>
+                <Button variant="outline" className="w-full cursor-pointer" disabled={uploading} asChild>
                   <span>
                     <Upload className="w-4 h-4 mr-2" />
-                    {isUploading ? 'Uploading...' : 'Upload Document'}
+                    {uploading ? 'Uploading...' : 'Upload Document'}
                   </span>
                 </Button>
               </label>
+              <p className="text-xs text-slate-500 mt-2 text-center">PDF, Images, DOC, XLS (max 10MB)</p>
             </div>
           )}
         </CardContent>

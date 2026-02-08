@@ -170,7 +170,6 @@ const LandingPage = () => {
             src="https://customer-assets.emergentagent.com/job_7c3fdd96-2e7c-4f0d-8929-2f39966615d7/artifacts/d1dzd93e_BankEzee%20Logo.png" 
             alt="BankEzee Logo" 
             className="h-10 mx-auto mb-4"
-            style={{ filter: 'brightness(0) invert(1)' }}
           />
           <p className="text-slate-300 mb-2">Your trusted partner for loan solutions</p>
           <p className="text-sm text-slate-400">© 2026 BankEzee. All rights reserved.</p>

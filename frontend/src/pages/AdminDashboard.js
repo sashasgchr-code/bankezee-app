@@ -332,9 +332,43 @@ const AdminDashboard = () => {
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>Recent Leads</CardTitle>
-              <CardDescription>All leads in the system</CardDescription>
+              <CardDescription>All leads in the system {selectedLeads.length > 0 && `(${selectedLeads.length} selected)`}</CardDescription>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-center flex-wrap">
+              {/* Bulk Assignment Controls */}
+              {selectedLeads.length > 0 && (
+                <div className="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-lg">
+                  <CheckSquare className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium text-primary">{selectedLeads.length} selected</span>
+                  <Select value={bulkAssignee} onValueChange={setBulkAssignee}>
+                    <SelectTrigger className="w-40 h-8 text-sm" data-testid="bulk-assignee-select">
+                      <SelectValue placeholder="Assign to..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {opsTeam.map((ops) => (
+                        <SelectItem key={ops.id} value={ops.id}>{ops.full_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    size="sm" 
+                    className="h-8 bg-primary text-primary-foreground" 
+                    onClick={handleBulkAssign}
+                    disabled={!bulkAssignee}
+                    data-testid="bulk-assign-btn"
+                  >
+                    Assign
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="h-8"
+                    onClick={() => setSelectedLeads([])}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-40" data-testid="status-filter">
                   <SelectValue placeholder="Status" />
@@ -369,29 +403,42 @@ const AdminDashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
+            {/* Select All Header */}
+            {filteredLeads.length > 0 && (
+              <div className="flex items-center gap-3 pb-3 mb-3 border-b">
+                <Checkbox 
+                  checked={filteredLeads.length > 0 && filteredLeads.every(lead => selectedLeads.includes(lead.id))}
+                  onCheckedChange={selectAllFilteredLeads}
+                  data-testid="select-all-checkbox"
+                />
+                <span className="text-sm text-slate-600">Select all ({filteredLeads.length} leads)</span>
+              </div>
+            )}
             <div className="space-y-3">
-              {(() => {
-                const filteredLeads = leads.filter(lead => {
-                  const statusMatch = statusFilter === 'all' || lead.status === statusFilter;
-                  const leadDate = new Date(lead.created_at);
-                  const monthMatch = monthFilter === 'all' || 
-                    (monthFilter === 'this_month' && leadDate.getMonth() === new Date().getMonth() && leadDate.getFullYear() === new Date().getFullYear()) ||
-                    (monthFilter === 'last_month' && leadDate.getMonth() === new Date().getMonth() - 1) ||
-                    (monthFilter === 'last_3_months' && leadDate >= new Date(new Date().setMonth(new Date().getMonth() - 3)));
-                  return statusMatch && monthMatch;
-                });
-                return filteredLeads.length > 0 ? (
-                  filteredLeads.slice(0, 10).map((lead) => (
-                    <div
-                      key={lead.id}
-                      className="flex justify-between items-center p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+              {filteredLeads.length > 0 ? (
+                filteredLeads.slice(0, 20).map((lead) => (
+                  <div
+                    key={lead.id}
+                    className="flex items-center gap-3 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
+                    data-testid={`lead-item-${lead.id}`}
+                  >
+                    <Checkbox 
+                      checked={selectedLeads.includes(lead.id)}
+                      onCheckedChange={() => toggleLeadSelection(lead.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      data-testid={`lead-checkbox-${lead.id}`}
+                    />
+                    <div 
+                      className="flex-1 flex justify-between items-center cursor-pointer"
                       onClick={() => navigate(`/crm/lead/${lead.id}`)}
-                      data-testid={`lead-item-${lead.id}`}
                     >
                       <div>
                         <p className="font-medium">{lead.full_name}</p>
                         <p className="text-sm text-slate-600">{lead.mobile} | {lead.city}</p>
-                        <p className="text-xs text-slate-500 mt-1">Created: {new Date(lead.created_at).toLocaleDateString()}</p>
+                        <p className="text-xs text-slate-500 mt-1">
+                          Created: {new Date(lead.created_at).toLocaleDateString()}
+                          {lead.assigned_to && <span className="ml-2 text-primary">• Assigned</span>}
+                        </p>
                       </div>
                       <div className="flex items-center gap-3">
                         <span className={`text-sm px-3 py-1 rounded-full capitalize ${
@@ -408,13 +455,13 @@ const AdminDashboard = () => {
                         </Button>
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-slate-500">
-                    {leads.length === 0 ? "No leads yet" : "No leads match your filters"}
                   </div>
-                );
-              })()}
+                ))
+              ) : (
+                <div className="text-center py-8 text-slate-500">
+                  {leads.length === 0 ? "No leads yet" : "No leads match your filters"}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

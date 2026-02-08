@@ -49,6 +49,7 @@ api_router.include_router(qr_router, prefix="/qr", tags=["QR System"])
 api_router.include_router(notifications_router, prefix="/notifications", tags=["Notifications"])
 api_router.include_router(documents_router, prefix="/documents", tags=["Documents"])
 api_router.include_router(dashboard_router, prefix="/dashboard", tags=["Dashboard"])
+api_router.include_router(google_drive_router, tags=["Google Drive"])
 
 app.include_router(api_router)
 

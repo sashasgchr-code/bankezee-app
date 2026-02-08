@@ -270,10 +270,18 @@ const LeadDetailPage = () => {
         disbursed_amount: e.disbursed_amount ? parseFloat(e.disbursed_amount) : null,
         disbursed_tenure: e.disbursed_tenure ? parseInt(e.disbursed_tenure) : null,
         disbursed_roi: e.disbursed_roi ? parseFloat(e.disbursed_roi) : null,
-        disbursement_rejection_reason: e.disbursement_rejection_reason || null
+        disbursement_rejection_reason: e.disbursement_rejection_reason || null,
+        commission_percentage: e.commission_percentage ? parseFloat(e.commission_percentage) : null,
+        commission_amount: e.commission_percentage && e.disbursed_amount 
+          ? parseFloat(((parseFloat(e.disbursed_amount) * parseFloat(e.commission_percentage)) / 100).toFixed(2)) 
+          : null
       }));
-      await api.put(`/crm/${leadId}/eligibilities`, { eligibilities: formattedEligibilities });
-      toast.success('Eligibilities saved successfully');
+      const response = await api.put(`/crm/${leadId}/eligibilities`, { eligibilities: formattedEligibilities });
+      if (response.data.commission_credited > 0) {
+        toast.success(`Eligibilities saved! Commission of ₹${response.data.commission_credited.toLocaleString()} credited to agent/partner.`);
+      } else {
+        toast.success('Eligibilities saved successfully');
+      }
       fetchLead();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to save eligibilities');

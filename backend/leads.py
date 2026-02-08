@@ -125,8 +125,15 @@ async def get_lead(
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
     
-    if current_user.role == "sales_agent" and lead.get("assigned_to") != current_user.id:
-        raise HTTPException(status_code=403, detail="Access denied")
+    # Check permissions
+    if current_user.role == "sales_agent":
+        # Agents can view leads they created OR leads assigned to them
+        if lead.get("source_id") != current_user.id and lead.get("assigned_to") != current_user.id:
+            raise HTTPException(status_code=403, detail="Access denied")
+    elif current_user.role == "partner":
+        # Partners can view leads they created
+        if lead.get("source_id") != current_user.id:
+            raise HTTPException(status_code=403, detail="Access denied")
     
     return lead
 

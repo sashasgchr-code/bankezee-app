@@ -424,8 +424,7 @@ const LeadDetailPage = () => {
               note={note}
               onNoteChange={setNote}
               onAddNote={handleAddNote}
-              onUploadDocument={handleDocumentUpload}
-              isUploading={uploading}
+              leadId={leadId}
               canEdit={canEdit}
             />
           </div>

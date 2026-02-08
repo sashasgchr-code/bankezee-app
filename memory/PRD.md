@@ -96,12 +96,21 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 ## What's Implemented (as of Feb 8, 2026)
 
 ### Session 3 Highlights (Current)
-1. **Input Focus Bug Fixed (P0)**
+1. **Commission & Incentive Tracking (P1) ✅ NEW**
+   - Ops team can enter commission % when marking a bank eligibility as "Disbursed"
+   - System auto-calculates commission amount: (Disbursed Amount × Commission %) / 100
+   - Commission automatically credited to Agent/Partner
+   - Prevents duplicate credits on re-saves (only credits new/changed amounts)
+   - New API endpoint: `GET /api/crm/earnings/{source_id}` returns total & monthly earnings
+   - Agent Dashboard now shows: Total Earnings + This Month earnings cards
+   - Partner Dashboard now shows: Total Earnings + This Month + Wallet Balance cards
+
+2. **Input Focus Bug Fixed (P0)**
    - Refactored LeadDetailPage.js to use inline JSX instead of nested EditableField component
    - All input fields in edit mode now work correctly without losing focus
    - Operations team can properly edit lead details
 
-2. **All Reason Fields Implemented (P1)**
+3. **All Reason Fields Implemented (P1)**
    - "Not Eligible Reason" field when bank eligibility is No
    - "Login Rejection Reason" field when login is not done
    - "Decline Reason" field when approval is declined
@@ -122,7 +131,7 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
    - Tracks: Eligible/Not Eligible, Amount, Tenure
    - Login Status: Done/Not Done, Bank Name, Rejection Reason
    - Approval Status: Approved/Declined with Bank, Amount, Tenure, ROI
-   - Disbursement Status: Yes/No with full details
+   - Disbursement Status: Yes/No with full details + Commission %
    - Conditional fields show based on previous selections
    - Admin/Ops can edit, Agents/Partners can view
 
@@ -134,12 +143,11 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 ## Remaining/Backlog Tasks
 
 ### P1 (Medium Priority)
-- [ ] Commission & Incentive Tracking - Calculate earnings when leads are disbursed
 - [ ] Bulk Lead Assignment - Allow admins to assign multiple leads at once
 
 ### P2 (Low Priority)
-- [ ] Activate Notifications System (SMS/Email via Twilio/Resend)
-- [ ] Document Upload to Google Drive
+- [ ] Activate Notifications System (SMS/Email via Twilio/Resend) - MOCKED
+- [ ] Document Upload to Google Drive - MOCKED
 - [ ] Server-side filtering for large lead lists
 - [ ] Refactor LeadDetailPage.js into smaller components (currently 900+ lines)
 

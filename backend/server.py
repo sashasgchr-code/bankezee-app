@@ -23,6 +23,7 @@ from qr_system import router as qr_router
 from notifications import router as notifications_router
 from documents import router as documents_router
 from dashboard import router as dashboard_router
+from google_drive import router as google_drive_router
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')

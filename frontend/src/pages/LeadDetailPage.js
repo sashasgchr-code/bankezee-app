@@ -344,12 +344,45 @@ const LeadDetailPage = () => {
                 <div>
                   <h4 className="text-sm font-semibold text-primary mb-3">Customer Details</h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <EditableField label="Full Name" fieldKey="full_name" />
-                    <EditableField label="Mobile" fieldKey="mobile" />
-                    <EditableField label="Email" fieldKey="email" type="email" />
-                    <EditableField label="Mother Name" fieldKey="mother_name" />
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Full Name</p>
+                      {isEditingDetails ? (
+                        <Input value={editedDetails.full_name || ''} onChange={(e) => handleDetailChange('full_name', e.target.value)} className="h-9 bg-white" />
+                      ) : (
+                        <p className="font-medium">{editedDetails.full_name || '-'}</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Mobile</p>
+                      {isEditingDetails ? (
+                        <Input value={editedDetails.mobile || ''} onChange={(e) => handleDetailChange('mobile', e.target.value)} className="h-9 bg-white" />
+                      ) : (
+                        <p className="font-medium">{editedDetails.mobile || '-'}</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Email</p>
+                      {isEditingDetails ? (
+                        <Input type="email" value={editedDetails.email || ''} onChange={(e) => handleDetailChange('email', e.target.value)} className="h-9 bg-white" />
+                      ) : (
+                        <p className="font-medium">{editedDetails.email || '-'}</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Mother Name</p>
+                      {isEditingDetails ? (
+                        <Input value={editedDetails.mother_name || ''} onChange={(e) => handleDetailChange('mother_name', e.target.value)} className="h-9 bg-white" />
+                      ) : (
+                        <p className="font-medium">{editedDetails.mother_name || '-'}</p>
+                      )}
+                    </div>
                     <div className="col-span-2">
-                      <EditableField label="Current Address" fieldKey="current_address" />
+                      <p className="text-xs text-slate-500 mb-1">Current Address</p>
+                      {isEditingDetails ? (
+                        <Input value={editedDetails.current_address || ''} onChange={(e) => handleDetailChange('current_address', e.target.value)} className="h-9 bg-white" />
+                      ) : (
+                        <p className="font-medium">{editedDetails.current_address || '-'}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -358,14 +391,21 @@ const LeadDetailPage = () => {
                 <div>
                   <h4 className="text-sm font-semibold text-primary mb-3">Employment Details</h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <EditableField label="Company Name" fieldKey="company_name" />
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Company Name</p>
+                      {isEditingDetails ? (
+                        <Input value={editedDetails.company_name || ''} onChange={(e) => handleDetailChange('company_name', e.target.value)} className="h-9 bg-white" />
+                      ) : (
+                        <p className="font-medium">{editedDetails.company_name || '-'}</p>
+                      )}
+                    </div>
                     <div>
                       <p className="text-xs text-slate-500 mb-1">Net Salary</p>
                       {isEditingDetails ? (
                         <Input
                           type="number"
                           value={editedDetails.net_salary || ''}
-                          onChange={(e) => setEditedDetails({ ...editedDetails, net_salary: e.target.value })}
+                          onChange={(e) => handleDetailChange('net_salary', e.target.value)}
                           className="h-9 bg-white"
                           placeholder="₹"
                         />
@@ -376,7 +416,7 @@ const LeadDetailPage = () => {
                     <div>
                       <p className="text-xs text-slate-500 mb-1">Employment Type</p>
                       {isEditingDetails ? (
-                        <Select value={editedDetails.employment_type || undefined} onValueChange={(v) => setEditedDetails({ ...editedDetails, employment_type: v })}>
+                        <Select value={editedDetails.employment_type || undefined} onValueChange={(v) => handleDetailChange('employment_type', v)}>
                           <SelectTrigger className="h-9 bg-white"><SelectValue placeholder="Select" /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="salaried">Salaried</SelectItem>

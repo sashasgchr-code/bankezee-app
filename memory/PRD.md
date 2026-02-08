@@ -121,17 +121,13 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 
 ## Remaining/Backlog Tasks
 
-### P0 (High Priority)
-- [ ] Complete the detailed Agent Lead Form fields as specified by user
-
 ### P1 (Medium Priority)
 - [ ] Commission & Incentive Tracking - Calculate earnings when leads are disbursed
-- [ ] Multiple Operations Team members support
 
 ### P2 (Low Priority)
-- [ ] Activate Notifications System (SMS/Email)
+- [ ] Activate Notifications System (SMS/Email via Twilio/Resend)
 - [ ] Document Upload to Google Drive
-- [ ] Server-side filtering for Operations Dashboard (performance)
+- [ ] Server-side filtering for large lead lists
 
 ## Database Schema
 

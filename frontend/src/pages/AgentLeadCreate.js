@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { ArrowLeft, UserPlus, Upload } from 'lucide-react';
+import { ArrowLeft, Upload } from 'lucide-react';
 
 const AgentLeadCreate = () => {
   const navigate = useNavigate();
@@ -30,21 +30,7 @@ const AgentLeadCreate = () => {
     type_of_loan: '',
     cibil_score: '',
     loan_amount_required: '',
-    tenure_required: '',
-    et_name: '',
-    et_code: '',
-    type_of_house: '',
-    address_proof_month: '',
-    address_proof_week: '',
-    id_card: null,
-    customer_aadhaar: null,
-    customer_pan: null,
-    passport_photo: null,
-    payslips: null,
-    bank_statements: null,
-    cibil_screenshots: null,
-    form_16: null,
-    address_proof: null
+    tenure_required: ''
   });
 
   useEffect(() => {
@@ -59,10 +45,6 @@ const AgentLeadCreate = () => {
       console.error('Failed to fetch agent:', error);
       toast.error('Agent profile not found');
     }
-  };
-
-  const handleFileChange = (field, files) => {
-    setFormData({ ...formData, [field]: files[0] });
   };
 
   const handleSubmit = async (e) => {
@@ -98,11 +80,6 @@ const AgentLeadCreate = () => {
           cibil_score: formData.cibil_score,
           loan_amount_required: formData.loan_amount_required,
           tenure_required: formData.tenure_required,
-          et_name: formData.et_name,
-          et_code: formData.et_code,
-          type_of_house: formData.type_of_house,
-          address_proof_month: formData.address_proof_month,
-          address_proof_week: formData.address_proof_week,
           documents_note: 'Documents to be uploaded separately'
         }
       };
@@ -322,70 +299,6 @@ const AgentLeadCreate = () => {
                       onChange={(e) => setFormData({ ...formData, tenure_required: e.target.value })}
                       required
                       placeholder="e.g., 20"
-                      className="h-11 bg-slate-50"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Agent/ET Details */}
-              <div>
-                <h3 className="text-lg font-semibold mb-4 text-primary">Agent/ET Details</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>ET Name</Label>
-                    <Input
-                      value={formData.et_name}
-                      onChange={(e) => setFormData({ ...formData, et_name: e.target.value })}
-                      className="h-11 bg-slate-50"
-                    />
-                  </div>
-                  <div>
-                    <Label>ET Code</Label>
-                    <Input
-                      value={formData.et_code}
-                      onChange={(e) => setFormData({ ...formData, et_code: e.target.value })}
-                      className="h-11 bg-slate-50"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Property Details */}
-              <div>
-                <h3 className="text-lg font-semibold mb-4 text-primary">Property & Address Proof</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Type of House</Label>
-                    <Select
-                      value={formData.type_of_house || undefined}
-                      onValueChange={(value) => setFormData({ ...formData, type_of_house: value })}
-                    >
-                      <SelectTrigger className="h-11 bg-slate-50">
-                        <SelectValue placeholder="Select house type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="owned">Owned</SelectItem>
-                        <SelectItem value="rented">Rented</SelectItem>
-                        <SelectItem value="parental">Parental</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Address Proof Month</Label>
-                    <Input
-                      value={formData.address_proof_month}
-                      onChange={(e) => setFormData({ ...formData, address_proof_month: e.target.value })}
-                      placeholder="e.g., January"
-                      className="h-11 bg-slate-50"
-                    />
-                  </div>
-                  <div>
-                    <Label>Address Proof Week</Label>
-                    <Input
-                      value={formData.address_proof_week}
-                      onChange={(e) => setFormData({ ...formData, address_proof_week: e.target.value })}
-                      placeholder="e.g., Week 1"
                       className="h-11 bg-slate-50"
                     />
                   </div>

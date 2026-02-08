@@ -235,6 +235,7 @@ const LeadDetailPage = () => {
         is_eligible: e.is_eligible === 'yes',
         eligible_amount: e.eligible_amount ? parseFloat(e.eligible_amount) : null,
         eligible_tenure: e.eligible_tenure ? parseInt(e.eligible_tenure) : null,
+        not_eligible_reason: e.not_eligible_reason || null,
         login_done: e.login_done === 'yes' ? true : e.login_done === 'no' ? false : null,
         login_bank: e.login_bank || null,
         login_rejection_reason: e.login_rejection_reason || null,

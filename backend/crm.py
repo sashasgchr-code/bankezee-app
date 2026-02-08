@@ -387,7 +387,7 @@ async def update_eligibilities(
                 "created_at": datetime.now(timezone.utc).isoformat()
             })
     
-    return {"message": "Eligibilities updated successfully", "count": len(eligibilities_data), "commission_credited": total_commission}
+    return {"message": "Eligibilities updated successfully", "count": len(eligibilities_data), "commission_credited": new_commission}
 
 @router.get("/{lead_id}/eligibilities")
 async def get_eligibilities(lead_id: str):

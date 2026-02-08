@@ -114,7 +114,14 @@ const LeadDetailPage = () => {
       }));
       setEligibilities(formattedElig);
     } catch (error) {
-      toast.error('Failed to load lead details');
+      console.error('Failed to load lead:', error);
+      if (error.response?.status === 403) {
+        toast.error('You do not have permission to view this lead');
+      } else if (error.response?.status === 404) {
+        toast.error('Lead not found');
+      } else {
+        toast.error('Failed to load lead details');
+      }
       navigate(-1);
     } finally {
       setLoading(false);

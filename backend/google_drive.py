@@ -224,13 +224,17 @@ async def check_drive_status():
     
     try:
         service = get_drive_service()
-        # Try to get folder info to verify access
-        folder = service.files().get(fileId=DRIVE_FOLDER_ID, fields="id, name").execute()
+        # Try listing files in the folder to verify access
+        results = service.files().list(
+            q=f"'{DRIVE_FOLDER_ID}' in parents and trashed = false",
+            pageSize=1,
+            fields="files(id, name)"
+        ).execute()
+        
         return {
             "configured": True,
             "folder_id": DRIVE_FOLDER_ID,
-            "folder_name": folder.get("name"),
-            "message": "Google Drive is properly configured"
+            "message": "Google Drive is properly configured and accessible"
         }
     except Exception as e:
         return {

@@ -34,6 +34,31 @@ class LeadUpdate(BaseModel):
 class LeadAssignment(BaseModel):
     assigned_to: str
 
+class EligibilityEntry(BaseModel):
+    bank_name: str
+    is_eligible: bool
+    eligible_amount: Optional[float] = None
+    eligible_tenure: Optional[int] = None
+    login_done: Optional[bool] = None
+    login_bank: Optional[str] = None
+    login_rejection_reason: Optional[str] = None
+    approval_status: Optional[str] = None  # approved, declined
+    approved_bank: Optional[str] = None
+    approved_amount: Optional[float] = None
+    approved_tenure: Optional[int] = None
+    approved_roi: Optional[float] = None
+    declined_bank: Optional[str] = None
+    declined_reason: Optional[str] = None
+    disbursed: Optional[bool] = None
+    disbursed_bank: Optional[str] = None
+    disbursed_amount: Optional[float] = None
+    disbursed_tenure: Optional[int] = None
+    disbursed_roi: Optional[float] = None
+    disbursement_rejection_reason: Optional[str] = None
+
+class EligibilityUpdate(BaseModel):
+    eligibilities: List[EligibilityEntry]
+
 @router.put("/{lead_id}/status")
 async def update_lead_status(
     lead_id: str,

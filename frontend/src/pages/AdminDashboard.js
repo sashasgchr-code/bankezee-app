@@ -2,18 +2,23 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { Users, FileText, DollarSign, TrendingUp, LogOut, LayoutDashboard } from 'lucide-react';
+import { Users, FileText, DollarSign, TrendingUp, LogOut, LayoutDashboard, Eye } from 'lucide-react';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [dashboard, setDashboard] = useState(null);
+  const [leads, setLeads] = useState([]);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [monthFilter, setMonthFilter] = useState('all');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
     fetchDashboard();
+    fetchLeads();
   }, []);
 
   const fetchDashboard = async () => {
@@ -24,6 +29,15 @@ const AdminDashboard = () => {
       toast.error('Failed to load dashboard');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchLeads = async () => {
+    try {
+      const response = await api.get('/leads/');
+      setLeads(response.data);
+    } catch (error) {
+      console.error('Failed to fetch leads');
     }
   };
 

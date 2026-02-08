@@ -12,10 +12,10 @@ import { ArrowLeft, FileText, Upload, UserCheck, Plus, Trash2, Building2 } from 
 
 const EMPTY_ELIGIBILITY = {
   bank_name: '',
-  is_eligible: null,
+  is_eligible: '',
   eligible_amount: '',
   eligible_tenure: '',
-  login_done: null,
+  login_done: '',
   login_bank: '',
   login_rejection_reason: '',
   approval_status: '',
@@ -25,7 +25,7 @@ const EMPTY_ELIGIBILITY = {
   approved_roi: '',
   declined_bank: '',
   declined_reason: '',
-  disbursed: null,
+  disbursed: '',
   disbursed_bank: '',
   disbursed_amount: '',
   disbursed_tenure: '',
@@ -58,10 +58,26 @@ const LeadDetailPage = () => {
   const fetchLead = async () => {
     try {
       const response = await api.get(`/leads/${leadId}`);
-      setLead(response.data);
-      setNewStatus(response.data.status);
-      setSelectedAssignee(response.data.assigned_to || '');
-      setEligibilities(response.data.eligibilities || []);
+      const leadData = response.data;
+      setLead(leadData);
+      setNewStatus(leadData.status || 'new');
+      setSelectedAssignee(leadData.assigned_to || '');
+      // Convert eligibilities to string format for form handling
+      const formattedElig = (leadData.eligibilities || []).map(e => ({
+        ...e,
+        is_eligible: e.is_eligible === true ? 'yes' : e.is_eligible === false ? 'no' : '',
+        login_done: e.login_done === true ? 'yes' : e.login_done === false ? 'no' : '',
+        disbursed: e.disbursed === true ? 'yes' : e.disbursed === false ? 'no' : '',
+        eligible_amount: e.eligible_amount || '',
+        eligible_tenure: e.eligible_tenure || '',
+        approved_amount: e.approved_amount || '',
+        approved_tenure: e.approved_tenure || '',
+        approved_roi: e.approved_roi || '',
+        disbursed_amount: e.disbursed_amount || '',
+        disbursed_tenure: e.disbursed_tenure || '',
+        disbursed_roi: e.disbursed_roi || '',
+      }));
+      setEligibilities(formattedElig);
     } catch (error) {
       toast.error('Failed to load lead details');
       navigate(-1);
@@ -153,11 +169,11 @@ const LeadDetailPage = () => {
     setSavingEligibilities(true);
     try {
       const formattedEligibilities = eligibilities.map(e => ({
-        bank_name: e.bank_name,
-        is_eligible: e.is_eligible === 'true' || e.is_eligible === true,
+        bank_name: e.bank_name || '',
+        is_eligible: e.is_eligible === 'yes',
         eligible_amount: e.eligible_amount ? parseFloat(e.eligible_amount) : null,
         eligible_tenure: e.eligible_tenure ? parseInt(e.eligible_tenure) : null,
-        login_done: e.login_done === 'true' || e.login_done === true ? true : e.login_done === 'false' || e.login_done === false ? false : null,
+        login_done: e.login_done === 'yes' ? true : e.login_done === 'no' ? false : null,
         login_bank: e.login_bank || null,
         login_rejection_reason: e.login_rejection_reason || null,
         approval_status: e.approval_status || null,
@@ -167,7 +183,7 @@ const LeadDetailPage = () => {
         approved_roi: e.approved_roi ? parseFloat(e.approved_roi) : null,
         declined_bank: e.declined_bank || null,
         declined_reason: e.declined_reason || null,
-        disbursed: e.disbursed === 'true' || e.disbursed === true ? true : e.disbursed === 'false' || e.disbursed === false ? false : null,
+        disbursed: e.disbursed === 'yes' ? true : e.disbursed === 'no' ? false : null,
         disbursed_bank: e.disbursed_bank || null,
         disbursed_amount: e.disbursed_amount ? parseFloat(e.disbursed_amount) : null,
         disbursed_tenure: e.disbursed_tenure ? parseInt(e.disbursed_tenure) : null,
@@ -188,6 +204,14 @@ const LeadDetailPage = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <div className="text-lg text-slate-600">Loading lead details...</div>
+      </div>
+    );
+  }
+
+  if (!lead) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+        <div className="text-lg text-slate-600">Lead not found</div>
       </div>
     );
   }
@@ -217,11 +241,26 @@ const LeadDetailPage = () => {
                 <div>
                   <h4 className="text-sm font-semibold text-primary mb-3">Customer Details</h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <div><Label className="text-slate-500 text-xs">Full Name</Label><p className="font-medium">{lead.full_name}</p></div>
-                    <div><Label className="text-slate-500 text-xs">Mobile</Label><p className="font-medium">{lead.mobile}</p></div>
-                    <div><Label className="text-slate-500 text-xs">Email</Label><p className="font-medium">{lead.email || '-'}</p></div>
-                    <div><Label className="text-slate-500 text-xs">Mother Name</Label><p className="font-medium">{additionalData.mother_name || '-'}</p></div>
-                    <div className="col-span-2"><Label className="text-slate-500 text-xs">Current Address</Label><p className="font-medium">{additionalData.current_address || lead.city || '-'}</p></div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Full Name</p>
+                      <p className="font-medium">{lead.full_name || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Mobile</p>
+                      <p className="font-medium">{lead.mobile || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Email</p>
+                      <p className="font-medium">{lead.email || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Mother Name</p>
+                      <p className="font-medium">{additionalData.mother_name || '-'}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-xs text-slate-500 mb-1">Current Address</p>
+                      <p className="font-medium">{additionalData.current_address || lead.city || '-'}</p>
+                    </div>
                   </div>
                 </div>
                 
@@ -229,10 +268,22 @@ const LeadDetailPage = () => {
                 <div>
                   <h4 className="text-sm font-semibold text-primary mb-3">Employment Details</h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <div><Label className="text-slate-500 text-xs">Company Name</Label><p className="font-medium">{additionalData.company_name || '-'}</p></div>
-                    <div><Label className="text-slate-500 text-xs">Net Salary</Label><p className="font-medium">{additionalData.net_salary ? `₹${Number(additionalData.net_salary).toLocaleString()}` : '-'}</p></div>
-                    <div><Label className="text-slate-500 text-xs">Employment Type</Label><p className="font-medium capitalize">{lead.employment_type || '-'}</p></div>
-                    <div className="col-span-2"><Label className="text-slate-500 text-xs">Office Address</Label><p className="font-medium">{additionalData.office_address || '-'}</p></div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Company Name</p>
+                      <p className="font-medium">{additionalData.company_name || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Net Salary</p>
+                      <p className="font-medium">{additionalData.net_salary ? `₹${Number(additionalData.net_salary).toLocaleString()}` : '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Employment Type</p>
+                      <p className="font-medium capitalize">{lead.employment_type || '-'}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-xs text-slate-500 mb-1">Office Address</p>
+                      <p className="font-medium">{additionalData.office_address || '-'}</p>
+                    </div>
                   </div>
                 </div>
 
@@ -240,10 +291,22 @@ const LeadDetailPage = () => {
                 <div>
                   <h4 className="text-sm font-semibold text-primary mb-3">Existing Loans & Obligations</h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div><Label className="text-slate-500 text-xs">Total EMI</Label><p className="font-medium">{additionalData.obligations_emi ? `₹${Number(additionalData.obligations_emi).toLocaleString()}` : '-'}</p></div>
-                    <div><Label className="text-slate-500 text-xs">Existing Loan 1</Label><p className="font-medium">{additionalData.existing_loan_1 || '-'}</p></div>
-                    <div><Label className="text-slate-500 text-xs">Existing Loan 2</Label><p className="font-medium">{additionalData.existing_loan_2 || '-'}</p></div>
-                    <div><Label className="text-slate-500 text-xs">Existing Loan 3</Label><p className="font-medium">{additionalData.existing_loan_3 || '-'}</p></div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Total EMI</p>
+                      <p className="font-medium">{additionalData.obligations_emi ? `₹${Number(additionalData.obligations_emi).toLocaleString()}` : '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Existing Loan 1</p>
+                      <p className="font-medium">{additionalData.existing_loan_1 || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Existing Loan 2</p>
+                      <p className="font-medium">{additionalData.existing_loan_2 || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Existing Loan 3</p>
+                      <p className="font-medium">{additionalData.existing_loan_3 || '-'}</p>
+                    </div>
                   </div>
                 </div>
 
@@ -251,32 +314,51 @@ const LeadDetailPage = () => {
                 <div>
                   <h4 className="text-sm font-semibold text-primary mb-3">Loan Requirements</h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div><Label className="text-slate-500 text-xs">Loan Type</Label><p className="font-medium capitalize">{(additionalData.type_of_loan || lead.requirement || '-').replace('_', ' ')}</p></div>
-                    <div><Label className="text-slate-500 text-xs">CIBIL Score</Label><p className="font-medium">{additionalData.cibil_score || '-'}</p></div>
-                    <div><Label className="text-slate-500 text-xs">Amount Required</Label><p className="font-medium">{additionalData.loan_amount_required ? `₹${Number(additionalData.loan_amount_required).toLocaleString()}` : '-'}</p></div>
-                    <div><Label className="text-slate-500 text-xs">Tenure Required</Label><p className="font-medium">{additionalData.tenure_required ? `${additionalData.tenure_required} years` : '-'}</p></div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Loan Type</p>
+                      <p className="font-medium capitalize">{(additionalData.type_of_loan || lead.requirement || '-').replace(/_/g, ' ')}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">CIBIL Score</p>
+                      <p className="font-medium">{additionalData.cibil_score || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Amount Required</p>
+                      <p className="font-medium">{additionalData.loan_amount_required ? `₹${Number(additionalData.loan_amount_required).toLocaleString()}` : '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Tenure Required</p>
+                      <p className="font-medium">{additionalData.tenure_required ? `${additionalData.tenure_required} years` : '-'}</p>
+                    </div>
                   </div>
                 </div>
 
                 {/* Source Info */}
                 <div className="pt-4 border-t">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div><Label className="text-slate-500 text-xs">Source</Label><p className="font-medium capitalize">{lead.source}</p></div>
-                    <div><Label className="text-slate-500 text-xs">Current Status</Label>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Source</p>
+                      <p className="font-medium capitalize">{lead.source || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Current Status</p>
                       <span className={`text-sm px-2 py-1 rounded-full capitalize ${
                         lead.status === 'disbursed' ? 'bg-green-100 text-green-800' :
                         lead.status === 'rejected' ? 'bg-red-100 text-red-800' :
                         lead.status === 'approved' ? 'bg-blue-100 text-blue-800' :
                         'bg-yellow-100 text-yellow-800'
-                      }`}>{lead.status.replace('_', ' ')}</span>
+                      }`}>{(lead.status || 'new').replace(/_/g, ' ')}</span>
                     </div>
-                    <div><Label className="text-slate-500 text-xs">Created</Label><p className="font-medium">{new Date(lead.created_at).toLocaleDateString()}</p></div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Created</p>
+                      <p className="font-medium">{lead.created_at ? new Date(lead.created_at).toLocaleDateString() : '-'}</p>
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Eligibility Tracking - Only for Admin/Ops to edit, but visible to all */}
+            {/* Eligibility Tracking */}
             <Card data-testid="eligibility-card">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
@@ -309,45 +391,45 @@ const LeadDetailPage = () => {
                         <h5 className="font-semibold text-primary mb-3">Bank #{index + 1}</h5>
                         
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          {/* Bank Name & Eligibility */}
                           <div>
-                            <Label className="text-xs">Bank Name</Label>
+                            <p className="text-xs text-slate-500 mb-1">Bank Name</p>
                             {canEditEligibilities ? (
-                              <Input value={elig.bank_name || ''} onChange={(e) => updateEligibility(index, 'bank_name', e.target.value)} className="h-9 bg-white" />
+                              <Input value={elig.bank_name || ''} onChange={(e) => updateEligibility(index, 'bank_name', e.target.value)} className="h-9 bg-white" placeholder="Enter bank name" />
                             ) : (
                               <p className="font-medium">{elig.bank_name || '-'}</p>
                             )}
                           </div>
                           <div>
-                            <Label className="text-xs">Eligible?</Label>
+                            <p className="text-xs text-slate-500 mb-1">Eligible?</p>
                             {canEditEligibilities ? (
-                              <Select value={elig.is_eligible === true ? 'true' : elig.is_eligible === false ? 'false' : ''} onValueChange={(v) => updateEligibility(index, 'is_eligible', v)}>
+                              <Select value={elig.is_eligible || undefined} onValueChange={(v) => updateEligibility(index, 'is_eligible', v)}>
                                 <SelectTrigger className="h-9 bg-white"><SelectValue placeholder="Select" /></SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="true">Yes - Eligible</SelectItem>
-                                  <SelectItem value="false">No - Not Eligible</SelectItem>
+                                  <SelectItem value="yes">Yes - Eligible</SelectItem>
+                                  <SelectItem value="no">No - Not Eligible</SelectItem>
                                 </SelectContent>
                               </Select>
                             ) : (
-                              <p className={`font-medium ${elig.is_eligible ? 'text-green-600' : 'text-red-600'}`}>{elig.is_eligible === true ? 'Eligible' : elig.is_eligible === false ? 'Not Eligible' : '-'}</p>
+                              <p className={`font-medium ${elig.is_eligible === 'yes' ? 'text-green-600' : 'text-red-600'}`}>
+                                {elig.is_eligible === 'yes' ? 'Eligible' : elig.is_eligible === 'no' ? 'Not Eligible' : '-'}
+                              </p>
                             )}
                           </div>
                           
-                          {/* Show these only if eligible */}
-                          {(elig.is_eligible === true || elig.is_eligible === 'true') && (
+                          {elig.is_eligible === 'yes' && (
                             <>
                               <div>
-                                <Label className="text-xs">Eligible Amount (₹)</Label>
+                                <p className="text-xs text-slate-500 mb-1">Eligible Amount (₹)</p>
                                 {canEditEligibilities ? (
-                                  <Input type="number" value={elig.eligible_amount || ''} onChange={(e) => updateEligibility(index, 'eligible_amount', e.target.value)} className="h-9 bg-white" />
+                                  <Input type="number" value={elig.eligible_amount || ''} onChange={(e) => updateEligibility(index, 'eligible_amount', e.target.value)} className="h-9 bg-white" placeholder="Amount" />
                                 ) : (
                                   <p className="font-medium">{elig.eligible_amount ? `₹${Number(elig.eligible_amount).toLocaleString()}` : '-'}</p>
                                 )}
                               </div>
                               <div>
-                                <Label className="text-xs">Eligible Tenure (months)</Label>
+                                <p className="text-xs text-slate-500 mb-1">Eligible Tenure (months)</p>
                                 {canEditEligibilities ? (
-                                  <Input type="number" value={elig.eligible_tenure || ''} onChange={(e) => updateEligibility(index, 'eligible_tenure', e.target.value)} className="h-9 bg-white" />
+                                  <Input type="number" value={elig.eligible_tenure || ''} onChange={(e) => updateEligibility(index, 'eligible_tenure', e.target.value)} className="h-9 bg-white" placeholder="Months" />
                                 ) : (
                                   <p className="font-medium">{elig.eligible_tenure || '-'}</p>
                                 )}
@@ -357,39 +439,39 @@ const LeadDetailPage = () => {
                         </div>
 
                         {/* Login Status */}
-                        {(elig.is_eligible === true || elig.is_eligible === 'true') && (
+                        {elig.is_eligible === 'yes' && (
                           <div className="mt-4 pt-3 border-t">
-                            <h6 className="text-xs font-semibold text-slate-600 mb-2">Login Status</h6>
+                            <p className="text-xs font-semibold text-slate-600 mb-2">Login Status</p>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                               <div>
-                                <Label className="text-xs">Login Done?</Label>
+                                <p className="text-xs text-slate-500 mb-1">Login Done?</p>
                                 {canEditEligibilities ? (
-                                  <Select value={elig.login_done === true ? 'true' : elig.login_done === false ? 'false' : ''} onValueChange={(v) => updateEligibility(index, 'login_done', v)}>
+                                  <Select value={elig.login_done || undefined} onValueChange={(v) => updateEligibility(index, 'login_done', v)}>
                                     <SelectTrigger className="h-9 bg-white"><SelectValue placeholder="Select" /></SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="true">Yes</SelectItem>
-                                      <SelectItem value="false">No</SelectItem>
+                                      <SelectItem value="yes">Yes</SelectItem>
+                                      <SelectItem value="no">No</SelectItem>
                                     </SelectContent>
                                   </Select>
                                 ) : (
-                                  <p className="font-medium">{elig.login_done === true ? 'Yes' : elig.login_done === false ? 'No' : '-'}</p>
+                                  <p className="font-medium">{elig.login_done === 'yes' ? 'Yes' : elig.login_done === 'no' ? 'No' : '-'}</p>
                                 )}
                               </div>
-                              {(elig.login_done === true || elig.login_done === 'true') && (
+                              {elig.login_done === 'yes' && (
                                 <div>
-                                  <Label className="text-xs">Login Bank</Label>
+                                  <p className="text-xs text-slate-500 mb-1">Login Bank</p>
                                   {canEditEligibilities ? (
-                                    <Input value={elig.login_bank || ''} onChange={(e) => updateEligibility(index, 'login_bank', e.target.value)} className="h-9 bg-white" />
+                                    <Input value={elig.login_bank || ''} onChange={(e) => updateEligibility(index, 'login_bank', e.target.value)} className="h-9 bg-white" placeholder="Bank name" />
                                   ) : (
                                     <p className="font-medium">{elig.login_bank || '-'}</p>
                                   )}
                                 </div>
                               )}
-                              {(elig.login_done === false || elig.login_done === 'false') && (
+                              {elig.login_done === 'no' && (
                                 <div className="col-span-2">
-                                  <Label className="text-xs">Rejection Reason</Label>
+                                  <p className="text-xs text-slate-500 mb-1">Rejection Reason</p>
                                   {canEditEligibilities ? (
-                                    <Input value={elig.login_rejection_reason || ''} onChange={(e) => updateEligibility(index, 'login_rejection_reason', e.target.value)} className="h-9 bg-white" />
+                                    <Input value={elig.login_rejection_reason || ''} onChange={(e) => updateEligibility(index, 'login_rejection_reason', e.target.value)} className="h-9 bg-white" placeholder="Reason" />
                                   ) : (
                                     <p className="font-medium">{elig.login_rejection_reason || '-'}</p>
                                   )}
@@ -400,14 +482,14 @@ const LeadDetailPage = () => {
                         )}
 
                         {/* Approval Status */}
-                        {(elig.login_done === true || elig.login_done === 'true') && (
+                        {elig.login_done === 'yes' && (
                           <div className="mt-4 pt-3 border-t">
-                            <h6 className="text-xs font-semibold text-slate-600 mb-2">Approval Status</h6>
+                            <p className="text-xs font-semibold text-slate-600 mb-2">Approval Status</p>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                               <div>
-                                <Label className="text-xs">Approval</Label>
+                                <p className="text-xs text-slate-500 mb-1">Approval</p>
                                 {canEditEligibilities ? (
-                                  <Select value={elig.approval_status || ''} onValueChange={(v) => updateEligibility(index, 'approval_status', v)}>
+                                  <Select value={elig.approval_status || undefined} onValueChange={(v) => updateEligibility(index, 'approval_status', v)}>
                                     <SelectTrigger className="h-9 bg-white"><SelectValue placeholder="Select" /></SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="approved">Approved</SelectItem>
@@ -420,16 +502,34 @@ const LeadDetailPage = () => {
                               </div>
                               {elig.approval_status === 'approved' && (
                                 <>
-                                  <div><Label className="text-xs">Approved Bank</Label>{canEditEligibilities ? <Input value={elig.approved_bank || ''} onChange={(e) => updateEligibility(index, 'approved_bank', e.target.value)} className="h-9 bg-white" /> : <p className="font-medium">{elig.approved_bank || '-'}</p>}</div>
-                                  <div><Label className="text-xs">Approved Amount</Label>{canEditEligibilities ? <Input type="number" value={elig.approved_amount || ''} onChange={(e) => updateEligibility(index, 'approved_amount', e.target.value)} className="h-9 bg-white" /> : <p className="font-medium">{elig.approved_amount ? `₹${Number(elig.approved_amount).toLocaleString()}` : '-'}</p>}</div>
-                                  <div><Label className="text-xs">Approved Tenure</Label>{canEditEligibilities ? <Input type="number" value={elig.approved_tenure || ''} onChange={(e) => updateEligibility(index, 'approved_tenure', e.target.value)} className="h-9 bg-white" /> : <p className="font-medium">{elig.approved_tenure || '-'}</p>}</div>
-                                  <div><Label className="text-xs">ROI (%)</Label>{canEditEligibilities ? <Input type="number" step="0.01" value={elig.approved_roi || ''} onChange={(e) => updateEligibility(index, 'approved_roi', e.target.value)} className="h-9 bg-white" /> : <p className="font-medium">{elig.approved_roi ? `${elig.approved_roi}%` : '-'}</p>}</div>
+                                  <div>
+                                    <p className="text-xs text-slate-500 mb-1">Approved Bank</p>
+                                    {canEditEligibilities ? <Input value={elig.approved_bank || ''} onChange={(e) => updateEligibility(index, 'approved_bank', e.target.value)} className="h-9 bg-white" placeholder="Bank" /> : <p className="font-medium">{elig.approved_bank || '-'}</p>}
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-slate-500 mb-1">Approved Amount</p>
+                                    {canEditEligibilities ? <Input type="number" value={elig.approved_amount || ''} onChange={(e) => updateEligibility(index, 'approved_amount', e.target.value)} className="h-9 bg-white" placeholder="Amount" /> : <p className="font-medium">{elig.approved_amount ? `₹${Number(elig.approved_amount).toLocaleString()}` : '-'}</p>}
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-slate-500 mb-1">Tenure (months)</p>
+                                    {canEditEligibilities ? <Input type="number" value={elig.approved_tenure || ''} onChange={(e) => updateEligibility(index, 'approved_tenure', e.target.value)} className="h-9 bg-white" placeholder="Months" /> : <p className="font-medium">{elig.approved_tenure || '-'}</p>}
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-slate-500 mb-1">ROI (%)</p>
+                                    {canEditEligibilities ? <Input type="number" step="0.01" value={elig.approved_roi || ''} onChange={(e) => updateEligibility(index, 'approved_roi', e.target.value)} className="h-9 bg-white" placeholder="%" /> : <p className="font-medium">{elig.approved_roi ? `${elig.approved_roi}%` : '-'}</p>}
+                                  </div>
                                 </>
                               )}
                               {elig.approval_status === 'declined' && (
                                 <>
-                                  <div><Label className="text-xs">Declined Bank</Label>{canEditEligibilities ? <Input value={elig.declined_bank || ''} onChange={(e) => updateEligibility(index, 'declined_bank', e.target.value)} className="h-9 bg-white" /> : <p className="font-medium">{elig.declined_bank || '-'}</p>}</div>
-                                  <div className="col-span-2"><Label className="text-xs">Decline Reason</Label>{canEditEligibilities ? <Input value={elig.declined_reason || ''} onChange={(e) => updateEligibility(index, 'declined_reason', e.target.value)} className="h-9 bg-white" /> : <p className="font-medium">{elig.declined_reason || '-'}</p>}</div>
+                                  <div>
+                                    <p className="text-xs text-slate-500 mb-1">Declined Bank</p>
+                                    {canEditEligibilities ? <Input value={elig.declined_bank || ''} onChange={(e) => updateEligibility(index, 'declined_bank', e.target.value)} className="h-9 bg-white" placeholder="Bank" /> : <p className="font-medium">{elig.declined_bank || '-'}</p>}
+                                  </div>
+                                  <div className="col-span-2">
+                                    <p className="text-xs text-slate-500 mb-1">Decline Reason</p>
+                                    {canEditEligibilities ? <Input value={elig.declined_reason || ''} onChange={(e) => updateEligibility(index, 'declined_reason', e.target.value)} className="h-9 bg-white" placeholder="Reason" /> : <p className="font-medium">{elig.declined_reason || '-'}</p>}
+                                  </div>
                                 </>
                               )}
                             </div>
@@ -439,32 +539,47 @@ const LeadDetailPage = () => {
                         {/* Disbursement Status */}
                         {elig.approval_status === 'approved' && (
                           <div className="mt-4 pt-3 border-t">
-                            <h6 className="text-xs font-semibold text-slate-600 mb-2">Disbursement Status</h6>
+                            <p className="text-xs font-semibold text-slate-600 mb-2">Disbursement Status</p>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                               <div>
-                                <Label className="text-xs">Disbursed?</Label>
+                                <p className="text-xs text-slate-500 mb-1">Disbursed?</p>
                                 {canEditEligibilities ? (
-                                  <Select value={elig.disbursed === true ? 'true' : elig.disbursed === false ? 'false' : ''} onValueChange={(v) => updateEligibility(index, 'disbursed', v)}>
+                                  <Select value={elig.disbursed || undefined} onValueChange={(v) => updateEligibility(index, 'disbursed', v)}>
                                     <SelectTrigger className="h-9 bg-white"><SelectValue placeholder="Select" /></SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="true">Yes</SelectItem>
-                                      <SelectItem value="false">No</SelectItem>
+                                      <SelectItem value="yes">Yes</SelectItem>
+                                      <SelectItem value="no">No</SelectItem>
                                     </SelectContent>
                                   </Select>
                                 ) : (
-                                  <p className={`font-medium ${elig.disbursed === true ? 'text-green-600' : ''}`}>{elig.disbursed === true ? 'Yes' : elig.disbursed === false ? 'No' : '-'}</p>
+                                  <p className={`font-medium ${elig.disbursed === 'yes' ? 'text-green-600' : ''}`}>{elig.disbursed === 'yes' ? 'Yes' : elig.disbursed === 'no' ? 'No' : '-'}</p>
                                 )}
                               </div>
-                              {(elig.disbursed === true || elig.disbursed === 'true') && (
+                              {elig.disbursed === 'yes' && (
                                 <>
-                                  <div><Label className="text-xs">Disbursed Bank</Label>{canEditEligibilities ? <Input value={elig.disbursed_bank || ''} onChange={(e) => updateEligibility(index, 'disbursed_bank', e.target.value)} className="h-9 bg-white" /> : <p className="font-medium">{elig.disbursed_bank || '-'}</p>}</div>
-                                  <div><Label className="text-xs">Disbursed Amount</Label>{canEditEligibilities ? <Input type="number" value={elig.disbursed_amount || ''} onChange={(e) => updateEligibility(index, 'disbursed_amount', e.target.value)} className="h-9 bg-white" /> : <p className="font-medium">{elig.disbursed_amount ? `₹${Number(elig.disbursed_amount).toLocaleString()}` : '-'}</p>}</div>
-                                  <div><Label className="text-xs">Disbursed Tenure</Label>{canEditEligibilities ? <Input type="number" value={elig.disbursed_tenure || ''} onChange={(e) => updateEligibility(index, 'disbursed_tenure', e.target.value)} className="h-9 bg-white" /> : <p className="font-medium">{elig.disbursed_tenure || '-'}</p>}</div>
-                                  <div><Label className="text-xs">ROI (%)</Label>{canEditEligibilities ? <Input type="number" step="0.01" value={elig.disbursed_roi || ''} onChange={(e) => updateEligibility(index, 'disbursed_roi', e.target.value)} className="h-9 bg-white" /> : <p className="font-medium">{elig.disbursed_roi ? `${elig.disbursed_roi}%` : '-'}</p>}</div>
+                                  <div>
+                                    <p className="text-xs text-slate-500 mb-1">Disbursed Bank</p>
+                                    {canEditEligibilities ? <Input value={elig.disbursed_bank || ''} onChange={(e) => updateEligibility(index, 'disbursed_bank', e.target.value)} className="h-9 bg-white" placeholder="Bank" /> : <p className="font-medium">{elig.disbursed_bank || '-'}</p>}
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-slate-500 mb-1">Disbursed Amount</p>
+                                    {canEditEligibilities ? <Input type="number" value={elig.disbursed_amount || ''} onChange={(e) => updateEligibility(index, 'disbursed_amount', e.target.value)} className="h-9 bg-white" placeholder="Amount" /> : <p className="font-medium">{elig.disbursed_amount ? `₹${Number(elig.disbursed_amount).toLocaleString()}` : '-'}</p>}
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-slate-500 mb-1">Tenure (months)</p>
+                                    {canEditEligibilities ? <Input type="number" value={elig.disbursed_tenure || ''} onChange={(e) => updateEligibility(index, 'disbursed_tenure', e.target.value)} className="h-9 bg-white" placeholder="Months" /> : <p className="font-medium">{elig.disbursed_tenure || '-'}</p>}
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-slate-500 mb-1">ROI (%)</p>
+                                    {canEditEligibilities ? <Input type="number" step="0.01" value={elig.disbursed_roi || ''} onChange={(e) => updateEligibility(index, 'disbursed_roi', e.target.value)} className="h-9 bg-white" placeholder="%" /> : <p className="font-medium">{elig.disbursed_roi ? `${elig.disbursed_roi}%` : '-'}</p>}
+                                  </div>
                                 </>
                               )}
-                              {(elig.disbursed === false || elig.disbursed === 'false') && (
-                                <div className="col-span-3"><Label className="text-xs">Rejection Reason</Label>{canEditEligibilities ? <Input value={elig.disbursement_rejection_reason || ''} onChange={(e) => updateEligibility(index, 'disbursement_rejection_reason', e.target.value)} className="h-9 bg-white" /> : <p className="font-medium">{elig.disbursement_rejection_reason || '-'}</p>}</div>
+                              {elig.disbursed === 'no' && (
+                                <div className="col-span-3">
+                                  <p className="text-xs text-slate-500 mb-1">Rejection Reason</p>
+                                  {canEditEligibilities ? <Input value={elig.disbursement_rejection_reason || ''} onChange={(e) => updateEligibility(index, 'disbursement_rejection_reason', e.target.value)} className="h-9 bg-white" placeholder="Reason" /> : <p className="font-medium">{elig.disbursement_rejection_reason || '-'}</p>}
+                                </div>
                               )}
                             </div>
                           </div>
@@ -511,12 +626,12 @@ const LeadDetailPage = () => {
                 <CardHeader><CardTitle className="flex items-center gap-2"><UserCheck className="w-5 h-5 text-primary" />Assign Lead</CardTitle></CardHeader>
                 <CardContent>
                   <div className="flex gap-4">
-                    <Select value={selectedAssignee} onValueChange={setSelectedAssignee}>
+                    <Select value={selectedAssignee || undefined} onValueChange={setSelectedAssignee}>
                       <SelectTrigger className="h-12 flex-1"><SelectValue placeholder="Select team member" /></SelectTrigger>
                       <SelectContent>
                         {opsTeam.length > 0 ? opsTeam.map((member) => (
                           <SelectItem key={member.id} value={member.id}>{member.full_name} ({member.email})</SelectItem>
-                        )) : <SelectItem value="" disabled>No operations team members</SelectItem>}
+                        )) : <SelectItem value="none" disabled>No operations team members</SelectItem>}
                       </SelectContent>
                     </Select>
                     <Button onClick={handleAssignLead} disabled={!selectedAssignee || selectedAssignee === lead.assigned_to} className="bg-primary text-primary-foreground">Assign</Button>

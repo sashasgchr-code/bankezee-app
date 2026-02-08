@@ -81,7 +81,8 @@ const AgentDashboard = () => {
   const totalLeads = leads.length;
   const convertedLeads = leads.filter(l => l.status === 'disbursed').length;
   const pendingLeads = leads.filter(l => ['new', 'contacted'].includes(l.status)).length;
-  const totalCommission = agent?.performance?.total_commission || 0;
+  const totalCommission = earnings.total_earnings || agent?.performance?.total_commission || 0;
+  const monthlyCommission = earnings.monthly_earnings || 0;
 
   // Filter leads based on selected filters
   const filteredLeads = leads.filter(lead => {

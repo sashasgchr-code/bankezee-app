@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import api from '@/utils/api';
 import { toast } from 'sonner';
 import { FileText, DollarSign, TrendingUp, LogOut, LayoutDashboard, QrCode, UserPlus } from 'lucide-react';
@@ -12,6 +13,8 @@ const AgentDashboard = () => {
   const [agent, setAgent] = useState(null);
   const [leads, setLeads] = useState([]);
   const [qrData, setQrData] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [monthFilter, setMonthFilter] = useState('all');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {

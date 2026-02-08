@@ -65,6 +65,9 @@ class EligibilityEntry(BaseModel):
     disbursed_tenure: Optional[int] = None
     disbursed_roi: Optional[float] = None
     disbursement_rejection_reason: Optional[str] = None
+    # Commission fields - entered manually by ops when disbursed
+    commission_percentage: Optional[float] = None
+    commission_amount: Optional[float] = None
 
 class EligibilityUpdate(BaseModel):
     eligibilities: List[EligibilityEntry]
@@ -308,8 +311,19 @@ async def update_eligibilities(
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
     
-    # Convert eligibilities to dict format
-    eligibilities_data = [e.dict() for e in eligibility_update.eligibilities]
+    # Convert eligibilities to dict format and calculate commission
+    eligibilities_data = []
+    total_commission = 0
+    
+    for e in eligibility_update.eligibilities:
+        elig_dict = e.dict()
+        # Auto-calculate commission amount if percentage and disbursed amount provided
+        if elig_dict.get('disbursed') and elig_dict.get('disbursed_amount') and elig_dict.get('commission_percentage'):
+            elig_dict['commission_amount'] = round(
+                (elig_dict['disbursed_amount'] * elig_dict['commission_percentage']) / 100, 2
+            )
+            total_commission += elig_dict['commission_amount']
+        eligibilities_data.append(elig_dict)
     
     result = await db.leads.update_one(
         {"id": lead_id},
@@ -330,7 +344,37 @@ async def update_eligibilities(
         }
     )
     
-    return {"message": "Eligibilities updated successfully", "count": len(eligibilities_data)}
+    # If there's commission to credit, update the source agent/partner
+    if total_commission > 0 and lead.get("source_id"):
+        source_type = lead.get("source")
+        if source_type == "agent":
+            await db.agents.update_one(
+                {"id": lead["source_id"]},
+                {"$inc": {"performance.total_commission": total_commission}}
+            )
+            # Log commission entry
+            await db.commissions.insert_one({
+                "lead_id": lead_id,
+                "source_id": lead["source_id"],
+                "source_type": "agent",
+                "amount": total_commission,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+        elif source_type in ["partner", "retail_qr"]:
+            await db.partners.update_one(
+                {"id": lead["source_id"]},
+                {"$inc": {"total_earnings": total_commission, "wallet_balance": total_commission}}
+            )
+            # Log commission entry
+            await db.commissions.insert_one({
+                "lead_id": lead_id,
+                "source_id": lead["source_id"],
+                "source_type": "partner",
+                "amount": total_commission,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+    
+    return {"message": "Eligibilities updated successfully", "count": len(eligibilities_data), "commission_credited": total_commission}
 
 @router.get("/{lead_id}/eligibilities")
 async def get_eligibilities(lead_id: str):
@@ -340,3 +384,50 @@ async def get_eligibilities(lead_id: str):
         raise HTTPException(status_code=404, detail="Lead not found")
     
     return lead.get("eligibilities", [])
+
+
+@router.get("/earnings/{source_id}")
+async def get_earnings(
+    source_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get earnings summary for an agent or partner"""
+    # Verify user has permission to view this data
+    if current_user.role not in ["admin", "operations"] and current_user.id != source_id:
+        raise HTTPException(status_code=403, detail="Not authorized to view these earnings")
+    
+    # Get all commissions for this source
+    commissions = await db.commissions.find(
+        {"source_id": source_id},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    # Calculate total earnings
+    total_earnings = sum(c.get("amount", 0) for c in commissions)
+    
+    # Calculate monthly earnings (current month)
+    now = datetime.now(timezone.utc)
+    current_month_start = datetime(now.year, now.month, 1, tzinfo=timezone.utc)
+    monthly_earnings = sum(
+        c.get("amount", 0) for c in commissions 
+        if datetime.fromisoformat(c.get("created_at", "").replace("Z", "+00:00")) >= current_month_start
+    )
+    
+    # Get commission history (last 10)
+    recent_commissions = sorted(
+        commissions, 
+        key=lambda x: x.get("created_at", ""), 
+        reverse=True
+    )[:10]
+    
+    # Enrich with lead names
+    for comm in recent_commissions:
+        lead = await db.leads.find_one({"id": comm.get("lead_id")}, {"_id": 0, "full_name": 1})
+        comm["lead_name"] = lead.get("full_name", "Unknown") if lead else "Unknown"
+    
+    return {
+        "total_earnings": total_earnings,
+        "monthly_earnings": monthly_earnings,
+        "commission_count": len(commissions),
+        "recent_commissions": recent_commissions
+    }

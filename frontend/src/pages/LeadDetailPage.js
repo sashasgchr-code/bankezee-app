@@ -14,6 +14,7 @@ const EMPTY_ELIGIBILITY = {
   is_eligible: '',
   eligible_amount: '',
   eligible_tenure: '',
+  not_eligible_reason: '',
   login_done: '',
   login_bank: '',
   login_rejection_reason: '',

@@ -277,13 +277,18 @@ const AgentDashboard = () => {
                 filteredLeads.map((lead) => (
                   <div
                     key={lead.id}
-                    className="flex justify-between items-center p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
+                    className="flex justify-between items-center p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/lead/${lead.id}`)}
                     data-testid={`lead-item-${lead.id}`}
                   >
                     <div>
                       <p className="font-medium">{lead.full_name}</p>
-                      <p className="text-sm text-slate-600">{lead.mobile} | {lead.requirement}</p>
-                      <p className="text-xs text-slate-500 mt-1">Created: {new Date(lead.created_at).toLocaleDateString()}</p>
+                      <p className="text-sm text-slate-600">{lead.mobile} | {(lead.additional_data?.type_of_loan || lead.requirement || '').replace('_', ' ')}</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {lead.additional_data?.company_name && <span>{lead.additional_data.company_name} • </span>}
+                        {lead.additional_data?.loan_amount_required && <span>₹{Number(lead.additional_data.loan_amount_required).toLocaleString()} • </span>}
+                        Created: {new Date(lead.created_at).toLocaleDateString()}
+                      </p>
                     </div>
                     <div className="text-right">
                       <span className={`text-sm px-3 py-1 rounded-full capitalize ${
@@ -294,6 +299,9 @@ const AgentDashboard = () => {
                       }`}>
                         {lead.status.replace('_', ' ')}
                       </span>
+                      {lead.eligibilities && lead.eligibilities.length > 0 && (
+                        <p className="text-xs text-slate-500 mt-1">{lead.eligibilities.length} bank(s) checked</p>
+                      )}
                     </div>
                   </div>
                 ))

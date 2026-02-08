@@ -736,9 +736,6 @@ const LeadDetailPage = () => {
                         <SelectItem value="rejected">Rejected</SelectItem>
                       </SelectContent>
                     </Select>
-                        <SelectItem value="rejected">Rejected</SelectItem>
-                      </SelectContent>
-                    </Select>
                     <Button onClick={handleStatusUpdate} disabled={newStatus === lead.status} className="bg-primary text-primary-foreground">Update Status</Button>
                   </div>
                 </CardContent>

@@ -138,10 +138,15 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 
 ## Remaining/Backlog Tasks
 
-### P2 (Low Priority)
-- [ ] Activate Notifications System (SMS/Email via Twilio/Resend) - MOCKED (requires API keys)
-- [ ] Document Upload to Google Drive - MOCKED (requires Google Cloud setup)
-- [x] ~~Refactor LeadDetailPage.js into smaller components~~ - ✅ COMPLETED
+### Ready for Production
+- [x] ~~Activate Notifications System (SMS/Email)~~ - Requires Twilio/Resend API keys when ready
+- [x] ~~Document Upload~~ - ✅ Local storage implemented (Google Drive ready when Workspace available)
+- [x] ~~Refactor LeadDetailPage.js~~ - ✅ COMPLETED
+
+### Pending (Requires External Setup)
+- [ ] **SMS OTP via Twilio** - User will provide API keys later
+- [ ] **Email via Resend** - User will provide API keys later  
+- [ ] **Google Drive Storage** - User will get Google Workspace later (code ready)
 
 ## Code Architecture (After Refactor)
 

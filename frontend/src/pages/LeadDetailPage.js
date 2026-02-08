@@ -30,7 +30,9 @@ const EMPTY_ELIGIBILITY = {
   disbursed_amount: '',
   disbursed_tenure: '',
   disbursed_roi: '',
-  disbursement_rejection_reason: ''
+  disbursement_rejection_reason: '',
+  commission_percentage: '',
+  commission_amount: ''
 };
 
 const LeadDetailPage = () => {

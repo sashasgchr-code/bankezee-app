@@ -43,9 +43,14 @@ const CRMPage = () => {
       new: 'bg-blue-100 text-blue-800',
       contacted: 'bg-yellow-100 text-yellow-800',
       documents_collected: 'bg-purple-100 text-purple-800',
+      not_eligible: 'bg-red-100 text-red-800',
       sent_to_bank: 'bg-indigo-100 text-indigo-800',
+      login: 'bg-cyan-100 text-cyan-800',
+      not_login: 'bg-orange-100 text-orange-800',
       approved: 'bg-green-100 text-green-800',
+      declined: 'bg-red-100 text-red-800',
       disbursed: 'bg-primary/20 text-primary',
+      not_disbursed: 'bg-orange-100 text-orange-800',
       rejected: 'bg-red-100 text-red-800'
     };
     return colors[status] || 'bg-slate-100 text-slate-800';

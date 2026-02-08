@@ -169,6 +169,51 @@ async def register(user_data: UserRegistration):
         "requires_approval": not is_approved
     }
 
+
+class CreateOpsUserRequest(BaseModel):
+    email: EmailStr
+    password: str
+    full_name: str
+    phone: Optional[str] = None
+
+
+@router.post("/create-ops-user")
+async def create_ops_user(
+    user_data: CreateOpsUserRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Create a new Operations team member - Admin only"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can create Operations users")
+    
+    existing = await db.users.find_one({"email": user_data.email}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    hashed_password = pwd_context.hash(user_data.password)
+    user_id = str(uuid.uuid4())
+    
+    user_doc = {
+        "id": user_id,
+        "email": user_data.email,
+        "password": hashed_password,
+        "full_name": user_data.full_name,
+        "phone": user_data.phone,
+        "role": "operations",
+        "is_active": True,
+        "is_approved": True,  # Auto-approved since created by admin
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.users.insert_one(user_doc)
+    
+    return {
+        "message": "Operations user created successfully",
+        "user_id": user_id,
+        "email": user_data.email,
+        "full_name": user_data.full_name
+    }
+
 @router.post("/login")
 async def login(login_data: LoginRequest):
     user_doc = await db.users.find_one({"email": login_data.email}, {"_id": 0})

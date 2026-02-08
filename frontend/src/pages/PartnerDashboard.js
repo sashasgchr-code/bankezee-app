@@ -298,7 +298,7 @@ const PartnerDashboard = () => {
                           ? "No leads generated yet. Start by creating a lead or sharing your QR code!"
                           : "No leads match your filters."}
                       </div>
-                    )}}
+                    )}
                   </div>
                 );
               })()}

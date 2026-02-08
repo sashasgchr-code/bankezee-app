@@ -141,8 +141,72 @@ const AdminDashboard = () => {
     );
   }
 
+  const filteredLeads = getFilteredLeads();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Add Ops User Modal */}
+      {showAddOpsModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Add Operations Team Member</h3>
+              <Button variant="ghost" size="sm" onClick={() => setShowAddOpsModal(false)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm text-slate-600 mb-1 block">Full Name *</label>
+                <Input 
+                  placeholder="Enter full name" 
+                  value={newOpsUser.full_name}
+                  onChange={(e) => setNewOpsUser({...newOpsUser, full_name: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="text-sm text-slate-600 mb-1 block">Email *</label>
+                <Input 
+                  type="email"
+                  placeholder="Enter email" 
+                  value={newOpsUser.email}
+                  onChange={(e) => setNewOpsUser({...newOpsUser, email: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="text-sm text-slate-600 mb-1 block">Password *</label>
+                <Input 
+                  type="password"
+                  placeholder="Enter password" 
+                  value={newOpsUser.password}
+                  onChange={(e) => setNewOpsUser({...newOpsUser, password: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="text-sm text-slate-600 mb-1 block">Phone (optional)</label>
+                <Input 
+                  placeholder="Enter phone number" 
+                  value={newOpsUser.phone}
+                  onChange={(e) => setNewOpsUser({...newOpsUser, phone: e.target.value})}
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <Button variant="outline" className="flex-1" onClick={() => setShowAddOpsModal(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  className="flex-1 bg-primary text-primary-foreground" 
+                  onClick={handleCreateOpsUser}
+                  disabled={creatingOps}
+                >
+                  {creatingOps ? 'Creating...' : 'Create User'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <nav className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
         <div className="flex items-center gap-3">
           <LayoutDashboard className="w-6 h-6 text-primary" />
@@ -150,6 +214,14 @@ const AdminDashboard = () => {
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-slate-600">Welcome, {user.full_name}</span>
+          <Button
+            onClick={() => setShowAddOpsModal(true)}
+            className="bg-primary text-primary-foreground"
+            data-testid="add-ops-btn"
+          >
+            <UserPlus className="w-4 h-4 mr-2" />
+            Add Ops User
+          </Button>
           <Button
             onClick={() => navigate('/crm')}
             variant="outline"

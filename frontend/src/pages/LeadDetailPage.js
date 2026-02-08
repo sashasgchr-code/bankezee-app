@@ -429,7 +429,12 @@ const LeadDetailPage = () => {
                       )}
                     </div>
                     <div className="col-span-2">
-                      <EditableField label="Office Address" fieldKey="office_address" />
+                      <p className="text-xs text-slate-500 mb-1">Office Address</p>
+                      {isEditingDetails ? (
+                        <Input value={editedDetails.office_address || ''} onChange={(e) => handleDetailChange('office_address', e.target.value)} className="h-9 bg-white" />
+                      ) : (
+                        <p className="font-medium">{editedDetails.office_address || '-'}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -444,7 +449,7 @@ const LeadDetailPage = () => {
                         <Input
                           type="number"
                           value={editedDetails.obligations_emi || ''}
-                          onChange={(e) => setEditedDetails({ ...editedDetails, obligations_emi: e.target.value })}
+                          onChange={(e) => handleDetailChange('obligations_emi', e.target.value)}
                           className="h-9 bg-white"
                           placeholder="₹"
                         />
@@ -452,9 +457,30 @@ const LeadDetailPage = () => {
                         <p className="font-medium">{editedDetails.obligations_emi ? `₹${Number(editedDetails.obligations_emi).toLocaleString()}` : '-'}</p>
                       )}
                     </div>
-                    <EditableField label="Existing Loan 1" fieldKey="existing_loan_1" placeholder="Bank & amount" />
-                    <EditableField label="Existing Loan 2" fieldKey="existing_loan_2" placeholder="Bank & amount" />
-                    <EditableField label="Existing Loan 3" fieldKey="existing_loan_3" placeholder="Bank & amount" />
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Existing Loan 1</p>
+                      {isEditingDetails ? (
+                        <Input value={editedDetails.existing_loan_1 || ''} onChange={(e) => handleDetailChange('existing_loan_1', e.target.value)} className="h-9 bg-white" placeholder="Bank & amount" />
+                      ) : (
+                        <p className="font-medium">{editedDetails.existing_loan_1 || '-'}</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Existing Loan 2</p>
+                      {isEditingDetails ? (
+                        <Input value={editedDetails.existing_loan_2 || ''} onChange={(e) => handleDetailChange('existing_loan_2', e.target.value)} className="h-9 bg-white" placeholder="Bank & amount" />
+                      ) : (
+                        <p className="font-medium">{editedDetails.existing_loan_2 || '-'}</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Existing Loan 3</p>
+                      {isEditingDetails ? (
+                        <Input value={editedDetails.existing_loan_3 || ''} onChange={(e) => handleDetailChange('existing_loan_3', e.target.value)} className="h-9 bg-white" placeholder="Bank & amount" />
+                      ) : (
+                        <p className="font-medium">{editedDetails.existing_loan_3 || '-'}</p>
+                      )}
+                    </div>
                   </div>
                 </div>
 

@@ -95,6 +95,18 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 
 ## What's Implemented (as of Feb 8, 2026)
 
+### Session 3 Highlights (Current)
+1. **Input Focus Bug Fixed (P0)**
+   - Refactored LeadDetailPage.js to use inline JSX instead of nested EditableField component
+   - All input fields in edit mode now work correctly without losing focus
+   - Operations team can properly edit lead details
+
+2. **All Reason Fields Implemented (P1)**
+   - "Not Eligible Reason" field when bank eligibility is No
+   - "Login Rejection Reason" field when login is not done
+   - "Decline Reason" field when approval is declined
+   - "Disbursement Rejection Reason" field when disbursement is No
+
 ### Session 2 Highlights
 1. **Agent Lead Form Simplified**
    - Removed "Agent/ET Details" section
@@ -105,7 +117,7 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
    - Shows ALL form data: Customer details, employment, existing loans, loan requirements
    - Agents and Partners can view full lead details by clicking on leads
 
-3. **Bank Eligibility Tracking System (NEW)**
+3. **Bank Eligibility Tracking System**
    - Up to 7 bank eligibilities per lead
    - Tracks: Eligible/Not Eligible, Amount, Tenure
    - Login Status: Done/Not Done, Bank Name, Rejection Reason
@@ -123,11 +135,13 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 
 ### P1 (Medium Priority)
 - [ ] Commission & Incentive Tracking - Calculate earnings when leads are disbursed
+- [ ] Bulk Lead Assignment - Allow admins to assign multiple leads at once
 
 ### P2 (Low Priority)
 - [ ] Activate Notifications System (SMS/Email via Twilio/Resend)
 - [ ] Document Upload to Google Drive
 - [ ] Server-side filtering for large lead lists
+- [ ] Refactor LeadDetailPage.js into smaller components (currently 900+ lines)
 
 ## Database Schema
 

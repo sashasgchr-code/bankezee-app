@@ -321,7 +321,7 @@ const LeadDetailPage = () => {
                           <div>
                             <Label className="text-xs">Eligible?</Label>
                             {canEditEligibilities ? (
-                              <Select value={String(elig.is_eligible)} onValueChange={(v) => updateEligibility(index, 'is_eligible', v)}>
+                              <Select value={elig.is_eligible === true ? 'true' : elig.is_eligible === false ? 'false' : ''} onValueChange={(v) => updateEligibility(index, 'is_eligible', v)}>
                                 <SelectTrigger className="h-9 bg-white"><SelectValue placeholder="Select" /></SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="true">Yes - Eligible</SelectItem>

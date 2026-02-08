@@ -444,7 +444,7 @@ const LeadDetailPage = () => {
                               <div>
                                 <Label className="text-xs">Disbursed?</Label>
                                 {canEditEligibilities ? (
-                                  <Select value={String(elig.disbursed)} onValueChange={(v) => updateEligibility(index, 'disbursed', v)}>
+                                  <Select value={elig.disbursed === true ? 'true' : elig.disbursed === false ? 'false' : ''} onValueChange={(v) => updateEligibility(index, 'disbursed', v)}>
                                     <SelectTrigger className="h-9 bg-white"><SelectValue placeholder="Select" /></SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="true">Yes</SelectItem>

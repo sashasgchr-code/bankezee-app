@@ -50,6 +50,7 @@ const LeadDetailPage = () => {
   const [isEditingDetails, setIsEditingDetails] = useState(false);
   const [savingDetails, setSavingDetails] = useState(false);
   const [editedDetails, setEditedDetails] = useState({});
+  const [sourceInfo, setSourceInfo] = useState(null);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const canEdit = ['admin', 'operations'].includes(user.role);
 
@@ -74,6 +75,11 @@ const LeadDetailPage = () => {
       setLead(leadData);
       setNewStatus(leadData.status || 'new');
       setSelectedAssignee(leadData.assigned_to || '');
+      
+      // Fetch source agent/partner info if available
+      if (leadData.source_id && ['admin', 'operations'].includes(user.role)) {
+        fetchSourceInfo(leadData.source, leadData.source_id);
+      }
       
       // Initialize edited details with safe null checks
       const additionalData = leadData.additional_data || {};

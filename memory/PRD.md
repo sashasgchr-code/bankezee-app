@@ -96,44 +96,40 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 ## What's Implemented (as of Feb 8, 2026)
 
 ### Session 3 Highlights (Current)
-1. **Commission & Incentive Tracking (P1) ✅ NEW**
+1. **Bulk Lead Assignment (P1) ✅ NEW**
+   - Checkboxes on each lead in Admin Dashboard
+   - "Select All" checkbox for bulk selection
+   - Bulk assign controls appear when leads are selected
+   - Assign multiple leads at once to an Ops team member
+   - New API: `PUT /api/crm/bulk-assign`
+
+2. **Add Ops User Feature ✅ NEW**
+   - "Add Ops User" button in Admin Dashboard nav bar
+   - Modal form with Full Name, Email, Password, Phone fields
+   - Admin creates Ops accounts directly (no self-registration)
+   - New Ops users can login immediately
+   - New API: `POST /api/auth/create-ops-user`
+
+3. **Agent/Partner Info on Lead Detail ✅ NEW**
+   - "Lead Source & Status" section shows referring Agent/Partner details
+   - Displays Name, Code, and Contact for Ops/Admin users
+
+4. **Commission & Incentive Tracking (P1) ✅**
    - Ops team can enter commission % when marking a bank eligibility as "Disbursed"
-   - System auto-calculates commission amount: (Disbursed Amount × Commission %) / 100
+   - System auto-calculates commission amount
    - Commission automatically credited to Agent/Partner
-   - Prevents duplicate credits on re-saves (only credits new/changed amounts)
-   - New API endpoint: `GET /api/crm/earnings/{source_id}` returns total & monthly earnings
-   - Agent Dashboard now shows: Total Earnings + This Month earnings cards
-   - Partner Dashboard now shows: Total Earnings + This Month + Wallet Balance cards
+   - Agent & Partner Dashboards show Total Earnings and This Month cards
 
-2. **Input Focus Bug Fixed (P0)**
-   - Refactored LeadDetailPage.js to use inline JSX instead of nested EditableField component
-   - All input fields in edit mode now work correctly without losing focus
-   - Operations team can properly edit lead details
+5. **Input Focus Bug Fixed (P0)**
+   - All input fields in edit mode work correctly without losing focus
 
-3. **All Reason Fields Implemented (P1)**
-   - "Not Eligible Reason" field when bank eligibility is No
-   - "Login Rejection Reason" field when login is not done
-   - "Decline Reason" field when approval is declined
-   - "Disbursement Rejection Reason" field when disbursement is No
+6. **All Reason Fields Implemented (P1)**
+   - "Not Eligible Reason", "Login Rejection Reason", "Decline Reason", etc.
 
 ### Session 2 Highlights
-1. **Agent Lead Form Simplified**
-   - Removed "Agent/ET Details" section
-   - Removed "Property & Address Proof" section
-   - Form now has: Customer Info, Employment, Existing Loans, New Loan Requirements
-
-2. **Enhanced Lead Details Display**
-   - Shows ALL form data: Customer details, employment, existing loans, loan requirements
-   - Agents and Partners can view full lead details by clicking on leads
-
-3. **Bank Eligibility Tracking System**
-   - Up to 7 bank eligibilities per lead
-   - Tracks: Eligible/Not Eligible, Amount, Tenure
-   - Login Status: Done/Not Done, Bank Name, Rejection Reason
-   - Approval Status: Approved/Declined with Bank, Amount, Tenure, ROI
-   - Disbursement Status: Yes/No with full details + Commission %
-   - Conditional fields show based on previous selections
-   - Admin/Ops can edit, Agents/Partners can view
+1. **Agent Lead Form Simplified** - Customer Info, Employment, Existing Loans, Loan Requirements
+2. **Enhanced Lead Details Display** - Shows ALL form data
+3. **Bank Eligibility Tracking System** - Up to 7 banks with conditional fields
 
 ### Session 1 Highlights
 1. **Fixed QR Code Generation** - Agent/Partner records properly linked
@@ -141,9 +137,6 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 3. **Operations Dashboard** - New role with dedicated dashboard
 
 ## Remaining/Backlog Tasks
-
-### P1 (Medium Priority)
-- [ ] Bulk Lead Assignment - Allow admins to assign multiple leads at once
 
 ### P2 (Low Priority)
 - [ ] Activate Notifications System (SMS/Email via Twilio/Resend) - MOCKED

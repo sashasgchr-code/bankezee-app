@@ -364,7 +364,7 @@ const LeadDetailPage = () => {
                               <div>
                                 <Label className="text-xs">Login Done?</Label>
                                 {canEditEligibilities ? (
-                                  <Select value={String(elig.login_done)} onValueChange={(v) => updateEligibility(index, 'login_done', v)}>
+                                  <Select value={elig.login_done === true ? 'true' : elig.login_done === false ? 'false' : ''} onValueChange={(v) => updateEligibility(index, 'login_done', v)}>
                                     <SelectTrigger className="h-9 bg-white"><SelectValue placeholder="Select" /></SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="true">Yes</SelectItem>

@@ -491,7 +491,7 @@ const LeadDetailPage = () => {
                     <div>
                       <p className="text-xs text-slate-500 mb-1">Loan Type</p>
                       {isEditingDetails ? (
-                        <Select value={editedDetails.type_of_loan || undefined} onValueChange={(v) => setEditedDetails({ ...editedDetails, type_of_loan: v })}>
+                        <Select value={editedDetails.type_of_loan || undefined} onValueChange={(v) => handleDetailChange('type_of_loan', v)}>
                           <SelectTrigger className="h-9 bg-white"><SelectValue placeholder="Select" /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="home_loan">Home Loan</SelectItem>
@@ -505,14 +505,21 @@ const LeadDetailPage = () => {
                         <p className="font-medium capitalize">{(editedDetails.type_of_loan || '-').replace(/_/g, ' ')}</p>
                       )}
                     </div>
-                    <EditableField label="CIBIL Score" fieldKey="cibil_score" type="number" />
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">CIBIL Score</p>
+                      {isEditingDetails ? (
+                        <Input type="number" value={editedDetails.cibil_score || ''} onChange={(e) => handleDetailChange('cibil_score', e.target.value)} className="h-9 bg-white" />
+                      ) : (
+                        <p className="font-medium">{editedDetails.cibil_score || '-'}</p>
+                      )}
+                    </div>
                     <div>
                       <p className="text-xs text-slate-500 mb-1">Amount Required</p>
                       {isEditingDetails ? (
                         <Input
                           type="number"
                           value={editedDetails.loan_amount_required || ''}
-                          onChange={(e) => setEditedDetails({ ...editedDetails, loan_amount_required: e.target.value })}
+                          onChange={(e) => handleDetailChange('loan_amount_required', e.target.value)}
                           className="h-9 bg-white"
                           placeholder="₹"
                         />
@@ -526,7 +533,7 @@ const LeadDetailPage = () => {
                         <Input
                           type="number"
                           value={editedDetails.tenure_required || ''}
-                          onChange={(e) => setEditedDetails({ ...editedDetails, tenure_required: e.target.value })}
+                          onChange={(e) => handleDetailChange('tenure_required', e.target.value)}
                           className="h-9 bg-white"
                           placeholder="Years"
                         />

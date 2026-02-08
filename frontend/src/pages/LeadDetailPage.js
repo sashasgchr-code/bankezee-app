@@ -62,10 +62,18 @@ const LeadDetailPage = () => {
     try {
       const response = await api.get(`/leads/${leadId}`);
       const leadData = response.data;
+      
+      if (!leadData) {
+        toast.error('Lead not found');
+        navigate(-1);
+        return;
+      }
+      
       setLead(leadData);
       setNewStatus(leadData.status || 'new');
       setSelectedAssignee(leadData.assigned_to || '');
-      // Initialize edited details
+      
+      // Initialize edited details with safe null checks
       const additionalData = leadData.additional_data || {};
       setEditedDetails({
         full_name: leadData.full_name || '',
@@ -87,6 +95,7 @@ const LeadDetailPage = () => {
         loan_amount_required: additionalData.loan_amount_required || '',
         tenure_required: additionalData.tenure_required || ''
       });
+      
       // Convert eligibilities to string format for form handling
       const formattedElig = (leadData.eligibilities || []).map(e => ({
         ...e,

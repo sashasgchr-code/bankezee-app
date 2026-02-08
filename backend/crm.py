@@ -148,9 +148,13 @@ async def update_lead_status(
     status_update: StatusUpdate,
     current_user: User = Depends(get_current_user)
 ):
-    valid_statuses = ["new", "contacted", "documents_collected", "sent_to_bank", "approved", "disbursed", "rejected"]
+    valid_statuses = [
+        "new", "contacted", "documents_collected", "not_eligible", 
+        "sent_to_bank", "login", "not_login", "approved", "declined",
+        "disbursed", "not_disbursed", "rejected"
+    ]
     if status_update.status not in valid_statuses:
-        raise HTTPException(status_code=400, detail="Invalid status")
+        raise HTTPException(status_code=400, detail=f"Invalid status. Valid statuses: {', '.join(valid_statuses)}")
     
     lead = await db.leads.find_one({"id": lead_id}, {"_id": 0})
     if not lead:

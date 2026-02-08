@@ -237,14 +237,44 @@ const AgentDashboard = () => {
         </div>
 
         <Card data-testid="all-leads-card">
-          <CardHeader>
-            <CardTitle>All Your Leads ({leads.length})</CardTitle>
-            <CardDescription>Track all leads you've generated</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>All Your Leads ({filteredLeads.length})</CardTitle>
+              <CardDescription>Track all leads you've generated</CardDescription>
+            </div>
+            <div className="flex gap-3">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-40" data-testid="status-filter">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="new">New</SelectItem>
+                  <SelectItem value="contacted">Contacted</SelectItem>
+                  <SelectItem value="documents_collected">Documents Collected</SelectItem>
+                  <SelectItem value="sent_to_bank">Sent to Bank</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="disbursed">Disbursed</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={monthFilter} onValueChange={setMonthFilter}>
+                <SelectTrigger className="w-40" data-testid="month-filter">
+                  <SelectValue placeholder="Time" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Time</SelectItem>
+                  <SelectItem value="this_month">This Month</SelectItem>
+                  <SelectItem value="last_month">Last Month</SelectItem>
+                  <SelectItem value="last_3_months">Last 3 Months</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {leads.length > 0 ? (
-                leads.map((lead) => (
+              {filteredLeads.length > 0 ? (
+                filteredLeads.map((lead) => (
                   <div
                     key={lead.id}
                     className="flex justify-between items-center p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"

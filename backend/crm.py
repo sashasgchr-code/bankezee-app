@@ -48,6 +48,7 @@ class EligibilityEntry(BaseModel):
     is_eligible: bool
     eligible_amount: Optional[float] = None
     eligible_tenure: Optional[int] = None
+    not_eligible_reason: Optional[str] = None
     login_done: Optional[bool] = None
     login_bank: Optional[str] = None
     login_rejection_reason: Optional[str] = None

@@ -34,6 +34,15 @@ class LeadUpdate(BaseModel):
 class LeadAssignment(BaseModel):
     assigned_to: str
 
+class LeadDetailsUpdate(BaseModel):
+    full_name: Optional[str] = None
+    mobile: Optional[str] = None
+    email: Optional[str] = None
+    city: Optional[str] = None
+    employment_type: Optional[str] = None
+    requirement: Optional[str] = None
+    additional_data: Optional[dict] = None
+
 class EligibilityEntry(BaseModel):
     bank_name: str
     is_eligible: bool

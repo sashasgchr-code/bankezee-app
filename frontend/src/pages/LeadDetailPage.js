@@ -298,27 +298,10 @@ const LeadDetailPage = () => {
 
   const additionalData = lead.additional_data || {};
 
-  // Editable field component
-  const EditableField = ({ label, fieldKey, type = 'text', placeholder = '' }) => (
-    <div>
-      <p className="text-xs text-slate-500 mb-1">{label}</p>
-      {isEditingDetails ? (
-        <Input
-          type={type}
-          value={editedDetails[fieldKey] || ''}
-          onChange={(e) => setEditedDetails({ ...editedDetails, [fieldKey]: e.target.value })}
-          className="h-9 bg-white"
-          placeholder={placeholder}
-        />
-      ) : (
-        <p className="font-medium">
-          {type === 'number' && editedDetails[fieldKey] 
-            ? `₹${Number(editedDetails[fieldKey]).toLocaleString()}` 
-            : editedDetails[fieldKey] || '-'}
-        </p>
-      )}
-    </div>
-  );
+  // Handler for updating edited details
+  const handleDetailChange = (fieldKey, value) => {
+    setEditedDetails(prev => ({ ...prev, [fieldKey]: value }));
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">

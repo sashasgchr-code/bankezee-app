@@ -578,11 +578,28 @@ const LeadDetailPage = () => {
 
                 {/* Source Info - Not editable */}
                 <div className="pt-4 border-t">
+                  <h4 className="text-sm font-semibold text-primary mb-3">Lead Source & Status</h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <p className="text-xs text-slate-500 mb-1">Source</p>
+                      <p className="text-xs text-slate-500 mb-1">Source Type</p>
                       <p className="font-medium capitalize">{lead.source || '-'}</p>
                     </div>
+                    {sourceInfo && canEdit && (
+                      <>
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">{sourceInfo.type} Name</p>
+                          <p className="font-medium">{sourceInfo.full_name || sourceInfo.name || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">{sourceInfo.type} Code</p>
+                          <p className="font-medium text-primary">{sourceInfo.agent_code || sourceInfo.referral_code || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">{sourceInfo.type} Contact</p>
+                          <p className="font-medium">{sourceInfo.phone || sourceInfo.mobile || '-'}</p>
+                        </div>
+                      </>
+                    )}
                     <div>
                       <p className="text-xs text-slate-500 mb-1">Current Status</p>
                       <span className={`text-sm px-2 py-1 rounded-full capitalize ${

@@ -2,12 +2,21 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { ArrowLeft, FileText, Upload, UserCheck, Plus, Trash2, Building2, Save, Edit2 } from 'lucide-react';
+import { ArrowLeft, Save, Edit2 } from 'lucide-react';
+
+import {
+  CustomerDetailsSection,
+  EmploymentDetailsSection,
+  ExistingLoansSection,
+  LoanRequirementsSection,
+  LeadSourceSection,
+  EligibilityTracker,
+  StatusUpdateCard,
+  LeadAssignmentCard,
+  ActivityLog
+} from '@/components/lead-detail';
 
 const EMPTY_ELIGIBILITY = {
   bank_name: '',
@@ -81,7 +90,7 @@ const LeadDetailPage = () => {
         fetchSourceInfo(leadData.source, leadData.source_id);
       }
       
-      // Initialize edited details with safe null checks
+      // Initialize edited details
       const additionalData = leadData.additional_data || {};
       setEditedDetails({
         full_name: leadData.full_name || '',
@@ -104,7 +113,7 @@ const LeadDetailPage = () => {
         tenure_required: additionalData.tenure_required || ''
       });
       
-      // Convert eligibilities to string format for form handling
+      // Convert eligibilities to form format
       const formattedElig = (leadData.eligibilities || []).map(e => ({
         ...e,
         is_eligible: e.is_eligible === true ? 'yes' : e.is_eligible === false ? 'no' : '',
@@ -156,21 +165,23 @@ const LeadDetailPage = () => {
       }
     } catch (error) {
       console.error('Failed to fetch source info:', error);
-      // Set basic info even if fetch fails
       setSourceInfo({ type: sourceType === 'agent' ? 'Agent' : 'Partner', id: sourceId });
     }
+  };
+
+  const handleDetailChange = (field, value) => {
+    setEditedDetails(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSaveDetails = async () => {
     setSavingDetails(true);
     try {
-      const updatePayload = {
+      await api.put(`/crm/${leadId}/details`, {
         full_name: editedDetails.full_name,
         mobile: editedDetails.mobile,
         email: editedDetails.email,
         city: editedDetails.city,
         employment_type: editedDetails.employment_type,
-        requirement: editedDetails.type_of_loan,
         additional_data: {
           mother_name: editedDetails.mother_name,
           current_address: editedDetails.current_address,
@@ -186,9 +197,8 @@ const LeadDetailPage = () => {
           loan_amount_required: editedDetails.loan_amount_required,
           tenure_required: editedDetails.tenure_required
         }
-      };
-      await api.put(`/crm/${leadId}/details`, updatePayload);
-      toast.success('Lead details saved successfully');
+      });
+      toast.success('Details saved successfully');
       setIsEditingDetails(false);
       fetchLead();
     } catch (error) {
@@ -200,19 +210,29 @@ const LeadDetailPage = () => {
 
   const handleStatusUpdate = async () => {
     try {
-      await api.put(`/crm/${leadId}/status`, { status: newStatus });
+      await api.put(`/leads/${leadId}/status`, { status: newStatus });
       toast.success('Status updated successfully');
       fetchLead();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to update status');
+      toast.error('Failed to update status');
+    }
+  };
+
+  const handleAssignment = async () => {
+    try {
+      await api.put(`/crm/${leadId}/assign`, { assigned_to: selectedAssignee });
+      toast.success('Lead assigned successfully');
+      fetchLead();
+    } catch (error) {
+      toast.error('Failed to assign lead');
     }
   };
 
   const handleAddNote = async () => {
     if (!note.trim()) return;
     try {
-      await api.post(`/crm/${leadId}/notes`, { note });
-      toast.success('Note added successfully');
+      await api.post(`/leads/${leadId}/notes`, { content: note });
+      toast.success('Note added');
       setNote('');
       fetchLead();
     } catch (error) {
@@ -220,41 +240,17 @@ const LeadDetailPage = () => {
     }
   };
 
-  const handleAssignLead = async () => {
-    if (!selectedAssignee) return;
-    try {
-      await api.put(`/crm/${leadId}/assign`, { assigned_to: selectedAssignee });
-      toast.success('Lead assigned successfully');
-      fetchLead();
-    } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to assign lead');
-    }
-  };
-
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
+  const handleDocumentUpload = async (e) => {
+    const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    try {
-      await api.post(`/documents/upload?lead_id=${leadId}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      toast.success('Document uploaded successfully');
-      fetchLead();
-    } catch (error) {
-      toast.error('Failed to upload document');
-    } finally {
-      setUploading(false);
-    }
+    toast.info('Document upload coming soon - Google Drive integration required');
+    setUploading(false);
   };
 
+  // Eligibility handlers
   const addEligibility = () => {
-    if (eligibilities.length >= 7) {
-      toast.error('Maximum 7 eligibilities allowed');
-      return;
-    }
+    if (eligibilities.length >= 7) return;
     setEligibilities([...eligibilities, { ...EMPTY_ELIGIBILITY }]);
   };
 
@@ -300,7 +296,7 @@ const LeadDetailPage = () => {
       }));
       const response = await api.put(`/crm/${leadId}/eligibilities`, { eligibilities: formattedEligibilities });
       if (response.data.commission_credited > 0) {
-        toast.success(`Eligibilities saved! Commission of ₹${response.data.commission_credited.toLocaleString()} credited to agent/partner.`);
+        toast.success(`Eligibilities saved! Commission of ₹${response.data.commission_credited.toLocaleString()} credited.`);
       } else {
         toast.success('Eligibilities saved successfully');
       }
@@ -320,20 +316,7 @@ const LeadDetailPage = () => {
     );
   }
 
-  if (!lead) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <div className="text-lg text-slate-600">Lead not found</div>
-      </div>
-    );
-  }
-
-  const additionalData = lead.additional_data || {};
-
-  // Handler for updating edited details
-  const handleDetailChange = (fieldKey, value) => {
-    setEditedDetails(prev => ({ ...prev, [fieldKey]: value }));
-  };
+  if (!lead) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -372,610 +355,79 @@ const LeadDetailPage = () => {
                 )}
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Basic Info */}
-                <div>
-                  <h4 className="text-sm font-semibold text-primary mb-3">Customer Details</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">Full Name</p>
-                      {isEditingDetails ? (
-                        <Input value={editedDetails.full_name || ''} onChange={(e) => handleDetailChange('full_name', e.target.value)} className="h-9 bg-white" />
-                      ) : (
-                        <p className="font-medium">{editedDetails.full_name || '-'}</p>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">Mobile</p>
-                      {isEditingDetails ? (
-                        <Input value={editedDetails.mobile || ''} onChange={(e) => handleDetailChange('mobile', e.target.value)} className="h-9 bg-white" />
-                      ) : (
-                        <p className="font-medium">{editedDetails.mobile || '-'}</p>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">Email</p>
-                      {isEditingDetails ? (
-                        <Input type="email" value={editedDetails.email || ''} onChange={(e) => handleDetailChange('email', e.target.value)} className="h-9 bg-white" />
-                      ) : (
-                        <p className="font-medium">{editedDetails.email || '-'}</p>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">Mother Name</p>
-                      {isEditingDetails ? (
-                        <Input value={editedDetails.mother_name || ''} onChange={(e) => handleDetailChange('mother_name', e.target.value)} className="h-9 bg-white" />
-                      ) : (
-                        <p className="font-medium">{editedDetails.mother_name || '-'}</p>
-                      )}
-                    </div>
-                    <div className="col-span-2">
-                      <p className="text-xs text-slate-500 mb-1">Current Address</p>
-                      {isEditingDetails ? (
-                        <Input value={editedDetails.current_address || ''} onChange={(e) => handleDetailChange('current_address', e.target.value)} className="h-9 bg-white" />
-                      ) : (
-                        <p className="font-medium">{editedDetails.current_address || '-'}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Employment Info */}
-                <div>
-                  <h4 className="text-sm font-semibold text-primary mb-3">Employment Details</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">Company Name</p>
-                      {isEditingDetails ? (
-                        <Input value={editedDetails.company_name || ''} onChange={(e) => handleDetailChange('company_name', e.target.value)} className="h-9 bg-white" />
-                      ) : (
-                        <p className="font-medium">{editedDetails.company_name || '-'}</p>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">Net Salary</p>
-                      {isEditingDetails ? (
-                        <Input
-                          type="number"
-                          value={editedDetails.net_salary || ''}
-                          onChange={(e) => handleDetailChange('net_salary', e.target.value)}
-                          className="h-9 bg-white"
-                          placeholder="₹"
-                        />
-                      ) : (
-                        <p className="font-medium">{editedDetails.net_salary ? `₹${Number(editedDetails.net_salary).toLocaleString()}` : '-'}</p>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">Employment Type</p>
-                      {isEditingDetails ? (
-                        <Select value={editedDetails.employment_type || undefined} onValueChange={(v) => handleDetailChange('employment_type', v)}>
-                          <SelectTrigger className="h-9 bg-white"><SelectValue placeholder="Select" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="salaried">Salaried</SelectItem>
-                            <SelectItem value="self_employed">Self Employed</SelectItem>
-                            <SelectItem value="business">Business</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <p className="font-medium capitalize">{editedDetails.employment_type || '-'}</p>
-                      )}
-                    </div>
-                    <div className="col-span-2">
-                      <p className="text-xs text-slate-500 mb-1">Office Address</p>
-                      {isEditingDetails ? (
-                        <Input value={editedDetails.office_address || ''} onChange={(e) => handleDetailChange('office_address', e.target.value)} className="h-9 bg-white" />
-                      ) : (
-                        <p className="font-medium">{editedDetails.office_address || '-'}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Existing Loans */}
-                <div>
-                  <h4 className="text-sm font-semibold text-primary mb-3">Existing Loans & Obligations</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">Total EMI</p>
-                      {isEditingDetails ? (
-                        <Input
-                          type="number"
-                          value={editedDetails.obligations_emi || ''}
-                          onChange={(e) => handleDetailChange('obligations_emi', e.target.value)}
-                          className="h-9 bg-white"
-                          placeholder="₹"
-                        />
-                      ) : (
-                        <p className="font-medium">{editedDetails.obligations_emi ? `₹${Number(editedDetails.obligations_emi).toLocaleString()}` : '-'}</p>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">Existing Loan 1</p>
-                      {isEditingDetails ? (
-                        <Input value={editedDetails.existing_loan_1 || ''} onChange={(e) => handleDetailChange('existing_loan_1', e.target.value)} className="h-9 bg-white" placeholder="Bank & amount" />
-                      ) : (
-                        <p className="font-medium">{editedDetails.existing_loan_1 || '-'}</p>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">Existing Loan 2</p>
-                      {isEditingDetails ? (
-                        <Input value={editedDetails.existing_loan_2 || ''} onChange={(e) => handleDetailChange('existing_loan_2', e.target.value)} className="h-9 bg-white" placeholder="Bank & amount" />
-                      ) : (
-                        <p className="font-medium">{editedDetails.existing_loan_2 || '-'}</p>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">Existing Loan 3</p>
-                      {isEditingDetails ? (
-                        <Input value={editedDetails.existing_loan_3 || ''} onChange={(e) => handleDetailChange('existing_loan_3', e.target.value)} className="h-9 bg-white" placeholder="Bank & amount" />
-                      ) : (
-                        <p className="font-medium">{editedDetails.existing_loan_3 || '-'}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Loan Requirements */}
-                <div>
-                  <h4 className="text-sm font-semibold text-primary mb-3">Loan Requirements</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">Loan Type</p>
-                      {isEditingDetails ? (
-                        <Select value={editedDetails.type_of_loan || undefined} onValueChange={(v) => handleDetailChange('type_of_loan', v)}>
-                          <SelectTrigger className="h-9 bg-white"><SelectValue placeholder="Select" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="home_loan">Home Loan</SelectItem>
-                            <SelectItem value="personal_loan">Personal Loan</SelectItem>
-                            <SelectItem value="top_up">Top-up Loan</SelectItem>
-                            <SelectItem value="balance_transfer">Balance Transfer</SelectItem>
-                            <SelectItem value="loan_against_property">Loan Against Property</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <p className="font-medium capitalize">{(editedDetails.type_of_loan || '-').replace(/_/g, ' ')}</p>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">CIBIL Score</p>
-                      {isEditingDetails ? (
-                        <Input type="number" value={editedDetails.cibil_score || ''} onChange={(e) => handleDetailChange('cibil_score', e.target.value)} className="h-9 bg-white" />
-                      ) : (
-                        <p className="font-medium">{editedDetails.cibil_score || '-'}</p>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">Amount Required</p>
-                      {isEditingDetails ? (
-                        <Input
-                          type="number"
-                          value={editedDetails.loan_amount_required || ''}
-                          onChange={(e) => handleDetailChange('loan_amount_required', e.target.value)}
-                          className="h-9 bg-white"
-                          placeholder="₹"
-                        />
-                      ) : (
-                        <p className="font-medium">{editedDetails.loan_amount_required ? `₹${Number(editedDetails.loan_amount_required).toLocaleString()}` : '-'}</p>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">Tenure Required</p>
-                      {isEditingDetails ? (
-                        <Input
-                          type="number"
-                          value={editedDetails.tenure_required || ''}
-                          onChange={(e) => handleDetailChange('tenure_required', e.target.value)}
-                          className="h-9 bg-white"
-                          placeholder="Years"
-                        />
-                      ) : (
-                        <p className="font-medium">{editedDetails.tenure_required ? `${editedDetails.tenure_required} years` : '-'}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Source Info - Not editable */}
-                <div className="pt-4 border-t">
-                  <h4 className="text-sm font-semibold text-primary mb-3">Lead Source & Status</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">Source Type</p>
-                      <p className="font-medium capitalize">{lead.source || '-'}</p>
-                    </div>
-                    {sourceInfo && canEdit && (
-                      <>
-                        <div>
-                          <p className="text-xs text-slate-500 mb-1">{sourceInfo.type} Name</p>
-                          <p className="font-medium">{sourceInfo.full_name || sourceInfo.name || '-'}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-500 mb-1">{sourceInfo.type} Code</p>
-                          <p className="font-medium text-primary">{sourceInfo.agent_code || sourceInfo.referral_code || '-'}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-500 mb-1">{sourceInfo.type} Contact</p>
-                          <p className="font-medium">{sourceInfo.phone || sourceInfo.mobile || '-'}</p>
-                        </div>
-                      </>
-                    )}
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">Current Status</p>
-                      <span className={`text-sm px-2 py-1 rounded-full capitalize ${
-                        lead.status === 'disbursed' ? 'bg-green-100 text-green-800' :
-                        lead.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                        lead.status === 'approved' ? 'bg-blue-100 text-blue-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>{(lead.status || 'new').replace(/_/g, ' ')}</span>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">Created</p>
-                      <p className="font-medium">{lead.created_at ? new Date(lead.created_at).toLocaleDateString() : '-'}</p>
-                    </div>
-                  </div>
-                </div>
+                <CustomerDetailsSection
+                  details={editedDetails}
+                  isEditing={isEditingDetails}
+                  onDetailChange={handleDetailChange}
+                />
+                <EmploymentDetailsSection
+                  details={editedDetails}
+                  isEditing={isEditingDetails}
+                  onDetailChange={handleDetailChange}
+                />
+                <ExistingLoansSection
+                  details={editedDetails}
+                  isEditing={isEditingDetails}
+                  onDetailChange={handleDetailChange}
+                />
+                <LoanRequirementsSection
+                  details={editedDetails}
+                  isEditing={isEditingDetails}
+                  onDetailChange={handleDetailChange}
+                />
+                <LeadSourceSection
+                  lead={lead}
+                  sourceInfo={sourceInfo}
+                  canEdit={canEdit}
+                />
               </CardContent>
             </Card>
 
-            {/* Eligibility Tracking */}
-            <Card data-testid="eligibility-card">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="w-5 h-5 text-primary" />
-                  Bank Eligibilities ({eligibilities.length}/7)
-                </CardTitle>
-                {canEdit && (
-                  <Button onClick={addEligibility} variant="outline" size="sm" disabled={eligibilities.length >= 7}>
-                    <Plus className="w-4 h-4 mr-1" /> Add Bank
-                  </Button>
-                )}
-              </CardHeader>
-              <CardContent>
-                {eligibilities.length === 0 ? (
-                  <p className="text-center text-slate-500 py-8">No eligibility records yet</p>
-                ) : (
-                  <div className="space-y-6">
-                    {eligibilities.map((elig, index) => (
-                      <div key={index} className="border rounded-lg p-4 bg-slate-50 relative">
-                        {canEdit && (
-                          <Button 
-                            onClick={() => removeEligibility(index)} 
-                            variant="ghost" 
-                            size="sm" 
-                            className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        )}
-                        <h5 className="font-semibold text-primary mb-3">Bank #{index + 1}</h5>
-                        
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          <div>
-                            <p className="text-xs text-slate-500 mb-1">Bank Name</p>
-                            {canEdit ? (
-                              <Input value={elig.bank_name || ''} onChange={(e) => updateEligibility(index, 'bank_name', e.target.value)} className="h-9 bg-white" placeholder="Enter bank name" />
-                            ) : (
-                              <p className="font-medium">{elig.bank_name || '-'}</p>
-                            )}
-                          </div>
-                          <div>
-                            <p className="text-xs text-slate-500 mb-1">Eligible?</p>
-                            {canEdit ? (
-                              <Select value={elig.is_eligible || undefined} onValueChange={(v) => updateEligibility(index, 'is_eligible', v)}>
-                                <SelectTrigger className="h-9 bg-white"><SelectValue placeholder="Select" /></SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="yes">Yes - Eligible</SelectItem>
-                                  <SelectItem value="no">No - Not Eligible</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            ) : (
-                              <p className={`font-medium ${elig.is_eligible === 'yes' ? 'text-green-600' : 'text-red-600'}`}>
-                                {elig.is_eligible === 'yes' ? 'Eligible' : elig.is_eligible === 'no' ? 'Not Eligible' : '-'}
-                              </p>
-                            )}
-                          </div>
-                          
-                          {elig.is_eligible === 'yes' && (
-                            <>
-                              <div>
-                                <p className="text-xs text-slate-500 mb-1">Eligible Amount (₹)</p>
-                                {canEdit ? (
-                                  <Input type="number" value={elig.eligible_amount || ''} onChange={(e) => updateEligibility(index, 'eligible_amount', e.target.value)} className="h-9 bg-white" placeholder="Amount" />
-                                ) : (
-                                  <p className="font-medium">{elig.eligible_amount ? `₹${Number(elig.eligible_amount).toLocaleString()}` : '-'}</p>
-                                )}
-                              </div>
-                              <div>
-                                <p className="text-xs text-slate-500 mb-1">Eligible Tenure (months)</p>
-                                {canEdit ? (
-                                  <Input type="number" value={elig.eligible_tenure || ''} onChange={(e) => updateEligibility(index, 'eligible_tenure', e.target.value)} className="h-9 bg-white" placeholder="Months" />
-                                ) : (
-                                  <p className="font-medium">{elig.eligible_tenure || '-'}</p>
-                                )}
-                              </div>
-                            </>
-                          )}
-                          
-                          {elig.is_eligible === 'no' && (
-                            <div className="col-span-2">
-                              <p className="text-xs text-slate-500 mb-1">Not Eligible Reason</p>
-                              {canEdit ? (
-                                <Input value={elig.not_eligible_reason || ''} onChange={(e) => updateEligibility(index, 'not_eligible_reason', e.target.value)} className="h-9 bg-white" placeholder="Reason for not being eligible" />
-                              ) : (
-                                <p className="font-medium">{elig.not_eligible_reason || '-'}</p>
-                              )}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Login Status */}
-                        {elig.is_eligible === 'yes' && (
-                          <div className="mt-4 pt-3 border-t">
-                            <p className="text-xs font-semibold text-slate-600 mb-2">Login Status</p>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                              <div>
-                                <p className="text-xs text-slate-500 mb-1">Login Done?</p>
-                                {canEdit ? (
-                                  <Select value={elig.login_done || undefined} onValueChange={(v) => updateEligibility(index, 'login_done', v)}>
-                                    <SelectTrigger className="h-9 bg-white"><SelectValue placeholder="Select" /></SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="yes">Yes</SelectItem>
-                                      <SelectItem value="no">No</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                ) : (
-                                  <p className="font-medium">{elig.login_done === 'yes' ? 'Yes' : elig.login_done === 'no' ? 'No' : '-'}</p>
-                                )}
-                              </div>
-                              {elig.login_done === 'yes' && (
-                                <div>
-                                  <p className="text-xs text-slate-500 mb-1">Login Bank</p>
-                                  {canEdit ? (
-                                    <Input value={elig.login_bank || ''} onChange={(e) => updateEligibility(index, 'login_bank', e.target.value)} className="h-9 bg-white" placeholder="Bank name" />
-                                  ) : (
-                                    <p className="font-medium">{elig.login_bank || '-'}</p>
-                                  )}
-                                </div>
-                              )}
-                              {elig.login_done === 'no' && (
-                                <div className="col-span-2">
-                                  <p className="text-xs text-slate-500 mb-1">Rejection Reason</p>
-                                  {canEdit ? (
-                                    <Input value={elig.login_rejection_reason || ''} onChange={(e) => updateEligibility(index, 'login_rejection_reason', e.target.value)} className="h-9 bg-white" placeholder="Reason" />
-                                  ) : (
-                                    <p className="font-medium">{elig.login_rejection_reason || '-'}</p>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Approval Status */}
-                        {elig.login_done === 'yes' && (
-                          <div className="mt-4 pt-3 border-t">
-                            <p className="text-xs font-semibold text-slate-600 mb-2">Approval Status</p>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                              <div>
-                                <p className="text-xs text-slate-500 mb-1">Approval</p>
-                                {canEdit ? (
-                                  <Select value={elig.approval_status || undefined} onValueChange={(v) => updateEligibility(index, 'approval_status', v)}>
-                                    <SelectTrigger className="h-9 bg-white"><SelectValue placeholder="Select" /></SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="approved">Approved</SelectItem>
-                                      <SelectItem value="declined">Declined</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                ) : (
-                                  <p className={`font-medium capitalize ${elig.approval_status === 'approved' ? 'text-green-600' : 'text-red-600'}`}>{elig.approval_status || '-'}</p>
-                                )}
-                              </div>
-                              {elig.approval_status === 'approved' && (
-                                <>
-                                  <div><p className="text-xs text-slate-500 mb-1">Approved Bank</p>{canEdit ? <Input value={elig.approved_bank || ''} onChange={(e) => updateEligibility(index, 'approved_bank', e.target.value)} className="h-9 bg-white" placeholder="Bank" /> : <p className="font-medium">{elig.approved_bank || '-'}</p>}</div>
-                                  <div><p className="text-xs text-slate-500 mb-1">Approved Amount</p>{canEdit ? <Input type="number" value={elig.approved_amount || ''} onChange={(e) => updateEligibility(index, 'approved_amount', e.target.value)} className="h-9 bg-white" placeholder="Amount" /> : <p className="font-medium">{elig.approved_amount ? `₹${Number(elig.approved_amount).toLocaleString()}` : '-'}</p>}</div>
-                                  <div><p className="text-xs text-slate-500 mb-1">Tenure (months)</p>{canEdit ? <Input type="number" value={elig.approved_tenure || ''} onChange={(e) => updateEligibility(index, 'approved_tenure', e.target.value)} className="h-9 bg-white" placeholder="Months" /> : <p className="font-medium">{elig.approved_tenure || '-'}</p>}</div>
-                                  <div><p className="text-xs text-slate-500 mb-1">ROI (%)</p>{canEdit ? <Input type="number" step="0.01" value={elig.approved_roi || ''} onChange={(e) => updateEligibility(index, 'approved_roi', e.target.value)} className="h-9 bg-white" placeholder="%" /> : <p className="font-medium">{elig.approved_roi ? `${elig.approved_roi}%` : '-'}</p>}</div>
-                                </>
-                              )}
-                              {elig.approval_status === 'declined' && (
-                                <>
-                                  <div><p className="text-xs text-slate-500 mb-1">Declined Bank</p>{canEdit ? <Input value={elig.declined_bank || ''} onChange={(e) => updateEligibility(index, 'declined_bank', e.target.value)} className="h-9 bg-white" placeholder="Bank" /> : <p className="font-medium">{elig.declined_bank || '-'}</p>}</div>
-                                  <div className="col-span-2"><p className="text-xs text-slate-500 mb-1">Decline Reason</p>{canEdit ? <Input value={elig.declined_reason || ''} onChange={(e) => updateEligibility(index, 'declined_reason', e.target.value)} className="h-9 bg-white" placeholder="Reason" /> : <p className="font-medium">{elig.declined_reason || '-'}</p>}</div>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Disbursement Status */}
-                        {elig.approval_status === 'approved' && (
-                          <div className="mt-4 pt-3 border-t">
-                            <p className="text-xs font-semibold text-slate-600 mb-2">Disbursement Status</p>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                              <div>
-                                <p className="text-xs text-slate-500 mb-1">Disbursed?</p>
-                                {canEdit ? (
-                                  <Select value={elig.disbursed || undefined} onValueChange={(v) => updateEligibility(index, 'disbursed', v)}>
-                                    <SelectTrigger className="h-9 bg-white"><SelectValue placeholder="Select" /></SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="yes">Yes</SelectItem>
-                                      <SelectItem value="no">No</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                ) : (
-                                  <p className={`font-medium ${elig.disbursed === 'yes' ? 'text-green-600' : ''}`}>{elig.disbursed === 'yes' ? 'Yes' : elig.disbursed === 'no' ? 'No' : '-'}</p>
-                                )}
-                              </div>
-                              {elig.disbursed === 'yes' && (
-                                <>
-                                  <div><p className="text-xs text-slate-500 mb-1">Disbursed Bank</p>{canEdit ? <Input value={elig.disbursed_bank || ''} onChange={(e) => updateEligibility(index, 'disbursed_bank', e.target.value)} className="h-9 bg-white" placeholder="Bank" /> : <p className="font-medium">{elig.disbursed_bank || '-'}</p>}</div>
-                                  <div><p className="text-xs text-slate-500 mb-1">Disbursed Amount</p>{canEdit ? <Input type="number" value={elig.disbursed_amount || ''} onChange={(e) => updateEligibility(index, 'disbursed_amount', e.target.value)} className="h-9 bg-white" placeholder="Amount" /> : <p className="font-medium">{elig.disbursed_amount ? `₹${Number(elig.disbursed_amount).toLocaleString()}` : '-'}</p>}</div>
-                                  <div><p className="text-xs text-slate-500 mb-1">Tenure (months)</p>{canEdit ? <Input type="number" value={elig.disbursed_tenure || ''} onChange={(e) => updateEligibility(index, 'disbursed_tenure', e.target.value)} className="h-9 bg-white" placeholder="Months" /> : <p className="font-medium">{elig.disbursed_tenure || '-'}</p>}</div>
-                                  <div><p className="text-xs text-slate-500 mb-1">ROI (%)</p>{canEdit ? <Input type="number" step="0.01" value={elig.disbursed_roi || ''} onChange={(e) => updateEligibility(index, 'disbursed_roi', e.target.value)} className="h-9 bg-white" placeholder="%" /> : <p className="font-medium">{elig.disbursed_roi ? `${elig.disbursed_roi}%` : '-'}</p>}</div>
-                                  <div className="col-span-2 mt-2 pt-2 border-t border-dashed">
-                                    <p className="text-xs font-semibold text-primary mb-2">Commission (for Agent/Partner)</p>
-                                    <div className="grid grid-cols-2 gap-3">
-                                      <div>
-                                        <p className="text-xs text-slate-500 mb-1">Commission %</p>
-                                        {canEdit ? (
-                                          <Input 
-                                            type="number" 
-                                            step="0.01" 
-                                            value={elig.commission_percentage || ''} 
-                                            onChange={(e) => updateEligibility(index, 'commission_percentage', e.target.value)} 
-                                            className="h-9 bg-white" 
-                                            placeholder="e.g., 0.5" 
-                                          />
-                                        ) : (
-                                          <p className="font-medium">{elig.commission_percentage ? `${elig.commission_percentage}%` : '-'}</p>
-                                        )}
-                                      </div>
-                                      <div>
-                                        <p className="text-xs text-slate-500 mb-1">Commission Amount</p>
-                                        <p className="font-medium text-green-600">
-                                          {elig.commission_percentage && elig.disbursed_amount 
-                                            ? `₹${((Number(elig.disbursed_amount) * Number(elig.commission_percentage)) / 100).toLocaleString(undefined, {maximumFractionDigits: 2})}` 
-                                            : '-'}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </>
-                              )}
-                              {elig.disbursed === 'no' && (
-                                <div className="col-span-3"><p className="text-xs text-slate-500 mb-1">Rejection Reason</p>{canEdit ? <Input value={elig.disbursement_rejection_reason || ''} onChange={(e) => updateEligibility(index, 'disbursement_rejection_reason', e.target.value)} className="h-9 bg-white" placeholder="Reason" /> : <p className="font-medium">{elig.disbursement_rejection_reason || '-'}</p>}</div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {canEdit && eligibilities.length > 0 && (
-                  <Button onClick={saveEligibilities} className="w-full mt-4 bg-primary text-primary-foreground" disabled={savingEligibilities}>
-                    {savingEligibilities ? 'Saving...' : 'Save All Eligibilities'}
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+            {/* Eligibility Tracker */}
+            <EligibilityTracker
+              eligibilities={eligibilities}
+              canEdit={canEdit}
+              onUpdate={updateEligibility}
+              onAdd={addEligibility}
+              onRemove={removeEligibility}
+              onSave={saveEligibilities}
+              isSaving={savingEligibilities}
+            />
 
             {/* Status Update - Only for Admin/Ops */}
             {canEdit && (
-              <Card data-testid="status-update-card">
-                <CardHeader><CardTitle>Update Status</CardTitle></CardHeader>
-                <CardContent>
-                  <div className="flex gap-4">
-                    <Select value={newStatus} onValueChange={setNewStatus}>
-                      <SelectTrigger className="h-12 flex-1"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="new">New</SelectItem>
-                        <SelectItem value="contacted">Contacted</SelectItem>
-                        <SelectItem value="documents_collected">Documents Collected</SelectItem>
-                        <SelectItem value="not_eligible">Not Eligible</SelectItem>
-                        <SelectItem value="sent_to_bank">Sent to Bank</SelectItem>
-                        <SelectItem value="login">Login</SelectItem>
-                        <SelectItem value="not_login">Not Login</SelectItem>
-                        <SelectItem value="approved">Approved</SelectItem>
-                        <SelectItem value="declined">Declined</SelectItem>
-                        <SelectItem value="disbursed">Disbursed</SelectItem>
-                        <SelectItem value="not_disbursed">Not Disbursed</SelectItem>
-                        <SelectItem value="rejected">Rejected</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button onClick={handleStatusUpdate} disabled={newStatus === lead.status} className="bg-primary text-primary-foreground">Update Status</Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <StatusUpdateCard
+                currentStatus={lead.status}
+                newStatus={newStatus}
+                onStatusChange={setNewStatus}
+                onUpdate={handleStatusUpdate}
+              />
             )}
 
             {/* Assign Lead - Only for Admin/Ops */}
             {canEdit && (
-              <Card data-testid="assign-lead-card">
-                <CardHeader><CardTitle className="flex items-center gap-2"><UserCheck className="w-5 h-5 text-primary" />Assign Lead</CardTitle></CardHeader>
-                <CardContent>
-                  <div className="flex gap-4">
-                    <Select value={selectedAssignee || undefined} onValueChange={setSelectedAssignee}>
-                      <SelectTrigger className="h-12 flex-1"><SelectValue placeholder="Select team member" /></SelectTrigger>
-                      <SelectContent>
-                        {opsTeam.length > 0 ? opsTeam.map((member) => (
-                          <SelectItem key={member.id} value={member.id}>{member.full_name} ({member.email})</SelectItem>
-                        )) : <SelectItem value="none" disabled>No operations team members</SelectItem>}
-                      </SelectContent>
-                    </Select>
-                    <Button onClick={handleAssignLead} disabled={!selectedAssignee || selectedAssignee === lead.assigned_to} className="bg-primary text-primary-foreground">Assign</Button>
-                  </div>
-                  {lead.assigned_to && <p className="text-sm text-slate-500 mt-2">Currently assigned to: <span className="font-medium">{opsTeam.find(m => m.id === lead.assigned_to)?.full_name || 'Unknown'}</span></p>}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Notes - Only for Admin/Ops */}
-            {canEdit && (
-              <Card data-testid="add-note-card">
-                <CardHeader><CardTitle>Add Note</CardTitle></CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <Textarea placeholder="Type your note here..." value={note} onChange={(e) => setNote(e.target.value)} rows={4} className="bg-slate-50" />
-                    <Button onClick={handleAddNote} disabled={!note.trim()} className="bg-primary text-primary-foreground">Add Note</Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <LeadAssignmentCard
+                opsTeam={opsTeam}
+                selectedAssignee={selectedAssignee}
+                currentAssignee={lead.assigned_to}
+                onAssigneeChange={setSelectedAssignee}
+                onAssign={handleAssignment}
+              />
             )}
           </div>
 
-          <div className="space-y-6">
-            {/* Documents */}
-            <Card data-testid="documents-card">
-              <CardHeader><CardTitle>Documents</CardTitle></CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {canEdit && (
-                    <label htmlFor="file-upload" className="cursor-pointer">
-                      <div className="border-2 border-dashed border-slate-200 rounded-lg p-6 text-center hover:border-primary transition-colors">
-                        <Upload className="w-8 h-8 mx-auto mb-2 text-slate-400" />
-                        <p className="text-sm text-slate-600">Click to upload document</p>
-                      </div>
-                      <input id="file-upload" type="file" className="hidden" onChange={handleFileUpload} disabled={uploading} />
-                    </label>
-                  )}
-                  {lead.documents && lead.documents.length > 0 && (
-                    <div className="space-y-2">
-                      {lead.documents.map((doc, idx) => (
-                        <div key={idx} className="flex items-center gap-2 p-2 bg-slate-50 rounded">
-                          <FileText className="w-4 h-4 text-primary" />
-                          <span className="text-sm flex-1">{doc.filename}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {(!lead.documents || lead.documents.length === 0) && !canEdit && (
-                    <p className="text-center text-slate-500 py-4 text-sm">No documents uploaded yet</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Activity Log */}
-            <Card data-testid="activity-log-card">
-              <CardHeader><CardTitle>Activity Log</CardTitle></CardHeader>
-              <CardContent>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {lead.activities && lead.activities.length > 0 ? (
-                    [...lead.activities].reverse().map((activity, idx) => (
-                      <div key={idx} className="border-l-2 border-primary pl-3 pb-3">
-                        <p className="text-sm font-medium">{activity.message}</p>
-                        <p className="text-xs text-slate-500 mt-1">{activity.by_name || 'System'} • {new Date(activity.timestamp).toLocaleString()}</p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-slate-500 text-center py-4">No activity yet</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+          {/* Sidebar */}
+          <div>
+            <ActivityLog
+              activities={lead.activities || []}
+              documents={lead.documents || []}
+              note={note}
+              onNoteChange={setNote}
+              onAddNote={handleAddNote}
+              onUploadDocument={handleDocumentUpload}
+              isUploading={uploading}
+              canEdit={canEdit}
+            />
           </div>
         </div>
       </div>

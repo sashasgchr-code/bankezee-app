@@ -101,7 +101,7 @@ function App() {
           <Route
             path="/crm"
             element={
-              <ProtectedRoute allowedRoles={['admin', 'operations', 'sales_agent']}>
+              <ProtectedRoute allowedRoles={['admin', 'operations', 'sales_agent', 'partner']}>
                 <CRMPage />
               </ProtectedRoute>
             }
@@ -110,7 +110,16 @@ function App() {
           <Route
             path="/crm/lead/:leadId"
             element={
-              <ProtectedRoute allowedRoles={['admin', 'operations', 'sales_agent']}>
+              <ProtectedRoute allowedRoles={['admin', 'operations', 'sales_agent', 'partner']}>
+                <LeadDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/lead/:leadId"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'operations', 'sales_agent', 'partner']}>
                 <LeadDetailPage />
               </ProtectedRoute>
             }

@@ -240,20 +240,29 @@ const PartnerDashboard = () => {
                   <div className="space-y-3">
                     {filteredLeads.length > 0 ? (
                       filteredLeads.map((lead) => (
-                    <div key={lead.id} className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                    <div 
+                      key={lead.id} 
+                      className="flex justify-between items-center p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                      onClick={() => navigate(`/lead/${lead.id}`)}
+                    >
                       <div>
                         <p className="font-medium text-sm">{lead.full_name}</p>
-                        <p className="text-xs text-slate-500">{lead.mobile} | {lead.requirement}</p>
+                        <p className="text-xs text-slate-500">{lead.mobile} | {(lead.requirement || '').replace('_', ' ')}</p>
                         <p className="text-xs text-slate-400 mt-1">Created: {new Date(lead.created_at).toLocaleDateString()}</p>
                       </div>
-                      <span className={`text-xs px-2 py-1 rounded-full capitalize ${
-                        lead.status === 'disbursed' ? 'bg-green-100 text-green-800' :
-                        lead.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                        lead.status === 'approved' ? 'bg-blue-100 text-blue-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {lead.status.replace('_', ' ')}
-                      </span>
+                      <div className="text-right">
+                        <span className={`text-xs px-2 py-1 rounded-full capitalize ${
+                          lead.status === 'disbursed' ? 'bg-green-100 text-green-800' :
+                          lead.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                          lead.status === 'approved' ? 'bg-blue-100 text-blue-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {lead.status.replace('_', ' ')}
+                        </span>
+                        {lead.eligibilities && lead.eligibilities.length > 0 && (
+                          <p className="text-xs text-slate-500 mt-1">{lead.eligibilities.length} bank(s)</p>
+                        )}
+                      </div>
                     </div>
                       ))
                     ) : (
@@ -262,7 +271,7 @@ const PartnerDashboard = () => {
                           ? "No leads generated yet. Start by creating a lead or sharing your QR code!"
                           : "No leads match your filters."}
                       </div>
-                    )}
+                    )}}
                   </div>
                 );
               })()}

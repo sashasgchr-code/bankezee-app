@@ -106,7 +106,7 @@ const PartnerDashboard = () => {
       </nav>
 
       <div className="px-6 md:px-12 lg:px-24 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-12">
           <Card className="hover-lift" data-testid="stat-total-leads">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
@@ -135,7 +135,7 @@ const PartnerDashboard = () => {
               <DollarSign className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{dashboard?.wallet_balance?.toLocaleString() || 0}</div>
+              <div className="text-2xl font-bold">₹{(earnings.total_earnings || dashboard?.wallet_balance || 0).toLocaleString()}</div>
               <p className="text-xs text-slate-600 mt-1">Available</p>
             </CardContent>
           </Card>
@@ -146,8 +146,19 @@ const PartnerDashboard = () => {
               <DollarSign className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{dashboard?.total_earnings?.toLocaleString() || 0}</div>
+              <div className="text-2xl font-bold text-green-600">₹{(earnings.total_earnings || dashboard?.total_earnings || 0).toLocaleString()}</div>
               <p className="text-xs text-slate-600 mt-1">All time</p>
+            </CardContent>
+          </Card>
+
+          <Card className="hover-lift" data-testid="stat-monthly-earnings">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">This Month</CardTitle>
+              <DollarSign className="h-4 w-4 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">₹{(earnings.monthly_earnings || 0).toLocaleString()}</div>
+              <p className="text-xs text-slate-600 mt-1">Monthly earnings</p>
             </CardContent>
           </Card>
         </div>

@@ -93,24 +93,31 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 - Email notifications via Resend
 - Document upload to Google Drive
 
-## What's Implemented (as of Feb 7, 2026)
+## What's Implemented (as of Feb 8, 2026)
 
-### Session Highlights
-1. **Fixed QR Code Generation (P0)**
-   - Root cause: Old agent users didn't have agent records
-   - Ran migration to create missing agent records
-   - Fixed FRONTEND_URL for correct QR links
+### Session 2 Highlights
+1. **Agent Lead Form Simplified**
+   - Removed "Agent/ET Details" section
+   - Removed "Property & Address Proof" section
+   - Form now has: Customer Info, Employment, Existing Loans, New Loan Requirements
 
-2. **Implemented Lead Assignment (P1)**
-   - Created /api/crm/{lead_id}/assign endpoint
-   - Created /api/crm/operations-team endpoint
-   - Added Assign Lead UI on Lead Detail page
-   - Created Operations Dashboard
+2. **Enhanced Lead Details Display**
+   - Shows ALL form data: Customer details, employment, existing loans, loan requirements
+   - Agents and Partners can view full lead details by clicking on leads
 
-3. **Created Operations Team Role**
-   - Dedicated dashboard at /operations/dashboard
-   - Shows assigned leads with status filters
-   - Can view and manage assigned leads
+3. **Bank Eligibility Tracking System (NEW)**
+   - Up to 7 bank eligibilities per lead
+   - Tracks: Eligible/Not Eligible, Amount, Tenure
+   - Login Status: Done/Not Done, Bank Name, Rejection Reason
+   - Approval Status: Approved/Declined with Bank, Amount, Tenure, ROI
+   - Disbursement Status: Yes/No with full details
+   - Conditional fields show based on previous selections
+   - Admin/Ops can edit, Agents/Partners can view
+
+### Session 1 Highlights
+1. **Fixed QR Code Generation** - Agent/Partner records properly linked
+2. **Lead Assignment** - Admins can assign leads to Operations Team
+3. **Operations Dashboard** - New role with dedicated dashboard
 
 ## Remaining/Backlog Tasks
 

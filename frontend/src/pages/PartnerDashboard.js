@@ -255,13 +255,17 @@ const PartnerDashboard = () => {
                         {lead.status.replace('_', ' ')}
                       </span>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-slate-500 text-sm">
-                    No leads generated yet. Start by creating a lead or sharing your QR code!
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-slate-500 text-sm">
+                        {allLeads.length === 0 
+                          ? "No leads generated yet. Start by creating a lead or sharing your QR code!"
+                          : "No leads match your filters."}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </div>

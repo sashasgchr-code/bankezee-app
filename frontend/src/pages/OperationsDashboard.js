@@ -179,12 +179,14 @@ const OperationsDashboard = () => {
                     <div className="flex items-center gap-3">
                       <span className={`text-sm px-3 py-1 rounded-full capitalize ${
                         lead.status === 'disbursed' ? 'bg-green-100 text-green-800' :
-                        lead.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                        lead.status === 'rejected' || lead.status === 'declined' || lead.status === 'not_eligible' ? 'bg-red-100 text-red-800' :
                         lead.status === 'approved' ? 'bg-blue-100 text-blue-800' :
                         lead.status === 'new' ? 'bg-yellow-100 text-yellow-800' :
+                        lead.status === 'login' ? 'bg-cyan-100 text-cyan-800' :
+                        lead.status === 'not_login' || lead.status === 'not_disbursed' ? 'bg-orange-100 text-orange-800' :
                         'bg-slate-100 text-slate-800'
                       }`}>
-                        {lead.status.replace('_', ' ')}
+                        {lead.status.replace(/_/g, ' ')}
                       </span>
                       <Button variant="ghost" size="sm">
                         <Eye className="w-4 h-4" />

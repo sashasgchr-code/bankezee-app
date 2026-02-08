@@ -767,6 +767,34 @@ const LeadDetailPage = () => {
                                   <div><p className="text-xs text-slate-500 mb-1">Disbursed Amount</p>{canEdit ? <Input type="number" value={elig.disbursed_amount || ''} onChange={(e) => updateEligibility(index, 'disbursed_amount', e.target.value)} className="h-9 bg-white" placeholder="Amount" /> : <p className="font-medium">{elig.disbursed_amount ? `₹${Number(elig.disbursed_amount).toLocaleString()}` : '-'}</p>}</div>
                                   <div><p className="text-xs text-slate-500 mb-1">Tenure (months)</p>{canEdit ? <Input type="number" value={elig.disbursed_tenure || ''} onChange={(e) => updateEligibility(index, 'disbursed_tenure', e.target.value)} className="h-9 bg-white" placeholder="Months" /> : <p className="font-medium">{elig.disbursed_tenure || '-'}</p>}</div>
                                   <div><p className="text-xs text-slate-500 mb-1">ROI (%)</p>{canEdit ? <Input type="number" step="0.01" value={elig.disbursed_roi || ''} onChange={(e) => updateEligibility(index, 'disbursed_roi', e.target.value)} className="h-9 bg-white" placeholder="%" /> : <p className="font-medium">{elig.disbursed_roi ? `${elig.disbursed_roi}%` : '-'}</p>}</div>
+                                  <div className="col-span-2 mt-2 pt-2 border-t border-dashed">
+                                    <p className="text-xs font-semibold text-primary mb-2">Commission (for Agent/Partner)</p>
+                                    <div className="grid grid-cols-2 gap-3">
+                                      <div>
+                                        <p className="text-xs text-slate-500 mb-1">Commission %</p>
+                                        {canEdit ? (
+                                          <Input 
+                                            type="number" 
+                                            step="0.01" 
+                                            value={elig.commission_percentage || ''} 
+                                            onChange={(e) => updateEligibility(index, 'commission_percentage', e.target.value)} 
+                                            className="h-9 bg-white" 
+                                            placeholder="e.g., 0.5" 
+                                          />
+                                        ) : (
+                                          <p className="font-medium">{elig.commission_percentage ? `${elig.commission_percentage}%` : '-'}</p>
+                                        )}
+                                      </div>
+                                      <div>
+                                        <p className="text-xs text-slate-500 mb-1">Commission Amount</p>
+                                        <p className="font-medium text-green-600">
+                                          {elig.commission_percentage && elig.disbursed_amount 
+                                            ? `₹${((Number(elig.disbursed_amount) * Number(elig.commission_percentage)) / 100).toLocaleString(undefined, {maximumFractionDigits: 2})}` 
+                                            : '-'}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
                                 </>
                               )}
                               {elig.disbursed === 'no' && (

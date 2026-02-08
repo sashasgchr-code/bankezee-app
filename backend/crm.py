@@ -311,18 +311,31 @@ async def update_eligibilities(
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
     
+    # Get existing eligibilities to compare
+    existing_eligibilities = lead.get("eligibilities", [])
+    existing_commissions = {}
+    for e in existing_eligibilities:
+        if e.get("bank_name") and e.get("commission_amount"):
+            existing_commissions[e["bank_name"]] = e.get("commission_amount", 0)
+    
     # Convert eligibilities to dict format and calculate commission
     eligibilities_data = []
-    total_commission = 0
+    new_commission = 0
     
     for e in eligibility_update.eligibilities:
         elig_dict = e.dict()
         # Auto-calculate commission amount if percentage and disbursed amount provided
         if elig_dict.get('disbursed') and elig_dict.get('disbursed_amount') and elig_dict.get('commission_percentage'):
-            elig_dict['commission_amount'] = round(
+            calculated_commission = round(
                 (elig_dict['disbursed_amount'] * elig_dict['commission_percentage']) / 100, 2
             )
-            total_commission += elig_dict['commission_amount']
+            elig_dict['commission_amount'] = calculated_commission
+            
+            # Only credit NEW commission (not already credited)
+            bank_name = elig_dict.get('bank_name', '')
+            prev_commission = existing_commissions.get(bank_name, 0)
+            if calculated_commission > prev_commission:
+                new_commission += (calculated_commission - prev_commission)
         eligibilities_data.append(elig_dict)
     
     result = await db.leads.update_one(
@@ -335,7 +348,7 @@ async def update_eligibilities(
             "$push": {
                 "activities": {
                     "type": "eligibility_update",
-                    "message": f"Eligibilities updated ({len(eligibilities_data)} bank(s))",
+                    "message": f"Eligibilities updated ({len(eligibilities_data)} bank(s))" + (f", Commission: ₹{new_commission}" if new_commission > 0 else ""),
                     "by": current_user.id,
                     "by_name": current_user.full_name,
                     "timestamp": datetime.now(timezone.utc).isoformat()
@@ -344,33 +357,33 @@ async def update_eligibilities(
         }
     )
     
-    # If there's commission to credit, update the source agent/partner
-    if total_commission > 0 and lead.get("source_id"):
+    # If there's NEW commission to credit, update the source agent/partner
+    if new_commission > 0 and lead.get("source_id"):
         source_type = lead.get("source")
         if source_type == "agent":
             await db.agents.update_one(
                 {"id": lead["source_id"]},
-                {"$inc": {"performance.total_commission": total_commission}}
+                {"$inc": {"performance.total_commission": new_commission}}
             )
             # Log commission entry
             await db.commissions.insert_one({
                 "lead_id": lead_id,
                 "source_id": lead["source_id"],
                 "source_type": "agent",
-                "amount": total_commission,
+                "amount": new_commission,
                 "created_at": datetime.now(timezone.utc).isoformat()
             })
         elif source_type in ["partner", "retail_qr"]:
             await db.partners.update_one(
                 {"id": lead["source_id"]},
-                {"$inc": {"total_earnings": total_commission, "wallet_balance": total_commission}}
+                {"$inc": {"total_earnings": new_commission, "wallet_balance": new_commission}}
             )
             # Log commission entry
             await db.commissions.insert_one({
                 "lead_id": lead_id,
                 "source_id": lead["source_id"],
                 "source_type": "partner",
-                "amount": total_commission,
+                "amount": new_commission,
                 "created_at": datetime.now(timezone.utc).isoformat()
             })
     

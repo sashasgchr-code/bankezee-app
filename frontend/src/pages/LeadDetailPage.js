@@ -210,11 +210,11 @@ const LeadDetailPage = () => {
 
   const handleStatusUpdate = async () => {
     try {
-      await api.put(`/leads/${leadId}/status`, { status: newStatus });
+      await api.put(`/crm/${leadId}/status`, { status: newStatus });
       toast.success('Status updated successfully');
       fetchLead();
     } catch (error) {
-      toast.error('Failed to update status');
+      toast.error(error.response?.data?.detail || 'Failed to update status');
     }
   };
 

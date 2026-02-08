@@ -15,11 +15,13 @@ const PartnerDashboard = () => {
   const [qrData, setQrData] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [monthFilter, setMonthFilter] = useState('all');
+  const [earnings, setEarnings] = useState({ total_earnings: 0, monthly_earnings: 0 });
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
     fetchDashboard();
     fetchQRCode();
+    fetchEarnings();
   }, []);
 
   const fetchDashboard = async () => {
@@ -44,6 +46,15 @@ const PartnerDashboard = () => {
       setQrData(response.data);
     } catch (error) {
       console.error('Failed to load QR code:', error);
+    }
+  };
+
+  const fetchEarnings = async () => {
+    try {
+      const response = await api.get(`/crm/earnings/${partnerId}`);
+      setEarnings(response.data);
+    } catch (error) {
+      console.log('Earnings not available yet:', error);
     }
   };
 

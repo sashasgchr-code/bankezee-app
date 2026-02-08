@@ -34,6 +34,10 @@ class LeadUpdate(BaseModel):
 class LeadAssignment(BaseModel):
     assigned_to: str
 
+class BulkLeadAssignment(BaseModel):
+    lead_ids: List[str]
+    assigned_to: str
+
 class LeadDetailsUpdate(BaseModel):
     full_name: Optional[str] = None
     mobile: Optional[str] = None

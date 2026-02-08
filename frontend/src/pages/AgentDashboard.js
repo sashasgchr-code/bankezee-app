@@ -74,6 +74,17 @@ const AgentDashboard = () => {
   const pendingLeads = leads.filter(l => ['new', 'contacted'].includes(l.status)).length;
   const totalCommission = agent?.performance?.total_commission || 0;
 
+  // Filter leads based on selected filters
+  const filteredLeads = leads.filter(lead => {
+    const statusMatch = statusFilter === 'all' || lead.status === statusFilter;
+    const leadDate = new Date(lead.created_at);
+    const monthMatch = monthFilter === 'all' || 
+      (monthFilter === 'this_month' && leadDate.getMonth() === new Date().getMonth() && leadDate.getFullYear() === new Date().getFullYear()) ||
+      (monthFilter === 'last_month' && leadDate.getMonth() === new Date().getMonth() - 1) ||
+      (monthFilter === 'last_3_months' && leadDate >= new Date(new Date().setMonth(new Date().getMonth() - 3)));
+    return statusMatch && monthMatch;
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <nav className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-50">

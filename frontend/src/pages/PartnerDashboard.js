@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import api from '@/utils/api';
 import { toast } from 'sonner';
 import { QrCode, DollarSign, FileText, LogOut, LayoutDashboard } from 'lucide-react';
@@ -12,6 +13,8 @@ const PartnerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [dashboard, setDashboard] = useState(null);
   const [qrData, setQrData] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [monthFilter, setMonthFilter] = useState('all');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {

@@ -95,6 +95,7 @@ const LeadDetailPage = () => {
         disbursed: e.disbursed === true ? 'yes' : e.disbursed === false ? 'no' : '',
         eligible_amount: e.eligible_amount || '',
         eligible_tenure: e.eligible_tenure || '',
+        not_eligible_reason: e.not_eligible_reason || '',
         approved_amount: e.approved_amount || '',
         approved_tenure: e.approved_tenure || '',
         approved_roi: e.approved_roi || '',

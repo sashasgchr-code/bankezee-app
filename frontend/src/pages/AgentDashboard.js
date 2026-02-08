@@ -15,6 +15,7 @@ const AgentDashboard = () => {
   const [qrData, setQrData] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [monthFilter, setMonthFilter] = useState('all');
+  const [earnings, setEarnings] = useState({ total_earnings: 0, monthly_earnings: 0 });
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
@@ -42,6 +43,14 @@ const AgentDashboard = () => {
       const leadsResponse = await api.get('/leads/');
       const agentLeads = leadsResponse.data.filter(l => l.source_id === agentData.id);
       setLeads(agentLeads || []);
+      
+      // Fetch earnings data
+      try {
+        const earningsResponse = await api.get(`/crm/earnings/${agentData.id}`);
+        setEarnings(earningsResponse.data);
+      } catch (err) {
+        console.log('Earnings not available yet:', err);
+      }
     } catch (error) {
       console.error('Failed to load agent data:', error);
       console.error('Error details:', error.response?.data);

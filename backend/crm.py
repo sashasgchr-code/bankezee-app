@@ -142,6 +142,63 @@ async def add_note(
     
     return {"message": "Note added successfully"}
 
+@router.put("/{lead_id}/details")
+async def update_lead_details(
+    lead_id: str,
+    update_data: LeadDetailsUpdate,
+    current_user: User = Depends(get_current_user)
+):
+    """Update lead customer details - for Admin and Operations only"""
+    if current_user.role not in ["admin", "operations"]:
+        raise HTTPException(status_code=403, detail="Only admin or operations can update lead details")
+    
+    lead = await db.leads.find_one({"id": lead_id}, {"_id": 0})
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    
+    # Build update dict with only non-None values
+    update_dict = {}
+    if update_data.full_name is not None:
+        update_dict["full_name"] = update_data.full_name
+    if update_data.mobile is not None:
+        update_dict["mobile"] = update_data.mobile
+    if update_data.email is not None:
+        update_dict["email"] = update_data.email
+    if update_data.city is not None:
+        update_dict["city"] = update_data.city
+    if update_data.employment_type is not None:
+        update_dict["employment_type"] = update_data.employment_type
+    if update_data.requirement is not None:
+        update_dict["requirement"] = update_data.requirement
+    if update_data.additional_data is not None:
+        # Merge additional_data with existing
+        existing_additional = lead.get("additional_data", {}) or {}
+        merged_additional = {**existing_additional, **update_data.additional_data}
+        update_dict["additional_data"] = merged_additional
+    
+    if not update_dict:
+        return {"message": "No changes to update"}
+    
+    update_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.leads.update_one(
+        {"id": lead_id},
+        {
+            "$set": update_dict,
+            "$push": {
+                "activities": {
+                    "type": "details_update",
+                    "message": "Lead details updated",
+                    "by": current_user.id,
+                    "by_name": current_user.full_name,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        }
+    )
+    
+    return {"message": "Lead details updated successfully"}
+
 @router.put("/{lead_id}")
 async def update_lead(
     lead_id: str,

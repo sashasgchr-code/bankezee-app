@@ -572,6 +572,17 @@ const LeadDetailPage = () => {
                               </div>
                             </>
                           )}
+                          
+                          {elig.is_eligible === 'no' && (
+                            <div className="col-span-2">
+                              <p className="text-xs text-slate-500 mb-1">Not Eligible Reason</p>
+                              {canEdit ? (
+                                <Input value={elig.not_eligible_reason || ''} onChange={(e) => updateEligibility(index, 'not_eligible_reason', e.target.value)} className="h-9 bg-white" placeholder="Reason for not being eligible" />
+                              ) : (
+                                <p className="font-medium">{elig.not_eligible_reason || '-'}</p>
+                              )}
+                            </div>
+                          )}
                         </div>
 
                         {/* Login Status */}

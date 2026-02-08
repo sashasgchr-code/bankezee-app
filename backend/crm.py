@@ -222,3 +222,54 @@ async def get_operations_team(current_user: User = Depends(get_current_user)):
     ).to_list(100)
     
     return ops_team
+
+
+@router.put("/{lead_id}/eligibilities")
+async def update_eligibilities(
+    lead_id: str,
+    eligibility_update: EligibilityUpdate,
+    current_user: User = Depends(get_current_user)
+):
+    """Update lead eligibilities (up to 7 bank eligibilities)"""
+    if current_user.role not in ["admin", "operations"]:
+        raise HTTPException(status_code=403, detail="Only admin or operations can update eligibilities")
+    
+    if len(eligibility_update.eligibilities) > 7:
+        raise HTTPException(status_code=400, detail="Maximum 7 eligibilities allowed")
+    
+    lead = await db.leads.find_one({"id": lead_id}, {"_id": 0})
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    
+    # Convert eligibilities to dict format
+    eligibilities_data = [e.dict() for e in eligibility_update.eligibilities]
+    
+    result = await db.leads.update_one(
+        {"id": lead_id},
+        {
+            "$set": {
+                "eligibilities": eligibilities_data,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            },
+            "$push": {
+                "activities": {
+                    "type": "eligibility_update",
+                    "message": f"Eligibilities updated ({len(eligibilities_data)} bank(s))",
+                    "by": current_user.id,
+                    "by_name": current_user.full_name,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        }
+    )
+    
+    return {"message": "Eligibilities updated successfully", "count": len(eligibilities_data)}
+
+@router.get("/{lead_id}/eligibilities")
+async def get_eligibilities(lead_id: str):
+    """Get lead eligibilities - accessible to all authenticated users"""
+    lead = await db.leads.find_one({"id": lead_id}, {"_id": 0, "eligibilities": 1})
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    
+    return lead.get("eligibilities", [])

@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { Users, FileText, DollarSign, TrendingUp, LogOut, LayoutDashboard, Eye } from 'lucide-react';
+import { Users, FileText, DollarSign, TrendingUp, LogOut, LayoutDashboard, Eye, UserPlus, CheckSquare, X } from 'lucide-react';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -14,11 +16,18 @@ const AdminDashboard = () => {
   const [leads, setLeads] = useState([]);
   const [statusFilter, setStatusFilter] = useState('all');
   const [monthFilter, setMonthFilter] = useState('all');
+  const [selectedLeads, setSelectedLeads] = useState([]);
+  const [opsTeam, setOpsTeam] = useState([]);
+  const [bulkAssignee, setBulkAssignee] = useState('');
+  const [showAddOpsModal, setShowAddOpsModal] = useState(false);
+  const [newOpsUser, setNewOpsUser] = useState({ email: '', password: '', full_name: '', phone: '' });
+  const [creatingOps, setCreatingOps] = useState(false);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
     fetchDashboard();
     fetchLeads();
+    fetchOpsTeam();
   }, []);
 
   const fetchDashboard = async () => {
@@ -41,10 +50,87 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchOpsTeam = async () => {
+    try {
+      const response = await api.get('/crm/operations-team');
+      setOpsTeam(response.data);
+    } catch (error) {
+      console.error('Failed to fetch ops team');
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/login');
+  };
+
+  const toggleLeadSelection = (leadId) => {
+    setSelectedLeads(prev => 
+      prev.includes(leadId) 
+        ? prev.filter(id => id !== leadId)
+        : [...prev, leadId]
+    );
+  };
+
+  const selectAllFilteredLeads = () => {
+    const filteredLeads = getFilteredLeads();
+    const allSelected = filteredLeads.every(lead => selectedLeads.includes(lead.id));
+    if (allSelected) {
+      setSelectedLeads([]);
+    } else {
+      setSelectedLeads(filteredLeads.map(lead => lead.id));
+    }
+  };
+
+  const handleBulkAssign = async () => {
+    if (!bulkAssignee || selectedLeads.length === 0) {
+      toast.error('Please select leads and an assignee');
+      return;
+    }
+    try {
+      const response = await api.put('/crm/bulk-assign', {
+        lead_ids: selectedLeads,
+        assigned_to: bulkAssignee
+      });
+      toast.success(response.data.message);
+      setSelectedLeads([]);
+      setBulkAssignee('');
+      fetchLeads();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to assign leads');
+    }
+  };
+
+  const handleCreateOpsUser = async () => {
+    if (!newOpsUser.email || !newOpsUser.password || !newOpsUser.full_name) {
+      toast.error('Please fill all required fields');
+      return;
+    }
+    setCreatingOps(true);
+    try {
+      await api.post('/auth/create-ops-user', newOpsUser);
+      toast.success('Operations user created successfully');
+      setShowAddOpsModal(false);
+      setNewOpsUser({ email: '', password: '', full_name: '', phone: '' });
+      fetchOpsTeam();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to create user');
+    } finally {
+      setCreatingOps(false);
+    }
+  };
+
+  const getFilteredLeads = () => {
+    return leads.filter(lead => {
+      const statusMatch = statusFilter === 'all' || lead.status === statusFilter;
+      const leadDate = new Date(lead.created_at);
+      const monthMatch = monthFilter === 'all' || 
+        (monthFilter === 'this_month' && leadDate.getMonth() === new Date().getMonth() && leadDate.getFullYear() === new Date().getFullYear()) ||
+        (monthFilter === 'last_month' && leadDate.getMonth() === new Date().getMonth() - 1) ||
+        (monthFilter === 'last_3_months' && leadDate >= new Date(new Date().setMonth(new Date().getMonth() - 3)));
+      return statusMatch && monthMatch;
+    });
   };
 
   if (loading) {

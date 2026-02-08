@@ -145,6 +145,22 @@ const LeadDetailPage = () => {
     }
   };
 
+  const fetchSourceInfo = async (sourceType, sourceId) => {
+    try {
+      if (sourceType === 'agent') {
+        const response = await api.get(`/agents/${sourceId}`);
+        setSourceInfo({ type: 'Agent', ...response.data });
+      } else if (sourceType === 'partner' || sourceType === 'retail_qr') {
+        const response = await api.get(`/partners/${sourceId}`);
+        setSourceInfo({ type: 'Partner', ...response.data });
+      }
+    } catch (error) {
+      console.error('Failed to fetch source info:', error);
+      // Set basic info even if fetch fails
+      setSourceInfo({ type: sourceType === 'agent' ? 'Agent' : 'Partner', id: sourceId });
+    }
+  };
+
   const handleSaveDetails = async () => {
     setSavingDetails(true);
     try {

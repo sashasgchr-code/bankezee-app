@@ -231,12 +231,12 @@ const LeadDetailPage = () => {
   const handleAddNote = async () => {
     if (!note.trim()) return;
     try {
-      await api.post(`/leads/${leadId}/notes`, { content: note });
+      await api.post(`/crm/${leadId}/notes`, { content: note });
       toast.success('Note added');
       setNote('');
       fetchLead();
     } catch (error) {
-      toast.error('Failed to add note');
+      toast.error(error.response?.data?.detail || 'Failed to add note');
     }
   };
 

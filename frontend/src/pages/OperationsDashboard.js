@@ -147,9 +147,14 @@ const OperationsDashboard = () => {
                 <SelectItem value="new">New</SelectItem>
                 <SelectItem value="contacted">Contacted</SelectItem>
                 <SelectItem value="documents_collected">Documents Collected</SelectItem>
+                <SelectItem value="not_eligible">Not Eligible</SelectItem>
                 <SelectItem value="sent_to_bank">Sent to Bank</SelectItem>
+                <SelectItem value="login">Login</SelectItem>
+                <SelectItem value="not_login">Not Login</SelectItem>
                 <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="declined">Declined</SelectItem>
                 <SelectItem value="disbursed">Disbursed</SelectItem>
+                <SelectItem value="not_disbursed">Not Disbursed</SelectItem>
                 <SelectItem value="rejected">Rejected</SelectItem>
               </SelectContent>
             </Select>

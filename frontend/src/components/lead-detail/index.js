@@ -2,7 +2,7 @@ export { default as EditableField, EditableSelect } from './EditableField';
 export { default as CustomerDetailsSection } from './CustomerDetailsSection';
 export { default as EmploymentDetailsSection } from './EmploymentDetailsSection';
 export { default as ExistingLoansSection } from './ExistingLoansSection';
-export { default as LoanRequirementsSection } from './LoanRequirementsSection';
+export { default as LoanRequirementsSection, LOAN_TYPES } from './LoanRequirementsSection';
 export { default as LeadSourceSection } from './LeadSourceSection';
 export { default as BankEligibilityCard } from './BankEligibilityCard';
 export { default as EligibilityTracker } from './EligibilityTracker';

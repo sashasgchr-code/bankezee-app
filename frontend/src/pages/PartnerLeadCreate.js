@@ -142,11 +142,13 @@ const PartnerLeadCreate = () => {
                     <SelectValue placeholder="Select loan requirement" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="reduce_emi">Reduce Home Loan EMI</SelectItem>
-                    <SelectItem value="merge_loans">Merge Multiple Loans</SelectItem>
-                    <SelectItem value="top_up">Top-up Loan</SelectItem>
-                    <SelectItem value="new_personal">New Personal Loan</SelectItem>
-                    <SelectItem value="new_home">New Home Loan</SelectItem>
+                    <SelectItem value="reduce_home_loan_emi">Reduce Home Loan EMI</SelectItem>
+                    <SelectItem value="merge_multiple_loans">Merge Multiple Loans</SelectItem>
+                    <SelectItem value="top_up_loan">Top-Up Loan</SelectItem>
+                    <SelectItem value="new_personal_loan">New Personal Loan</SelectItem>
+                    <SelectItem value="new_home_loan">New Home Loan</SelectItem>
+                    <SelectItem value="business_loan">Business Loan</SelectItem>
+                    <SelectItem value="vehicle_loan">Vehicle Loan</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

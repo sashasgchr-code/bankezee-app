@@ -262,11 +262,16 @@ const AgentLeadCreate = () => {
                         <SelectValue placeholder="Select loan type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="home_loan">Home Loan</SelectItem>
-                        <SelectItem value="personal_loan">Personal Loan</SelectItem>
-                        <SelectItem value="top_up">Top-up Loan</SelectItem>
-                        <SelectItem value="balance_transfer">Balance Transfer</SelectItem>
+                        <SelectItem value="reduce_home_loan_emi">Reduce Home Loan EMI</SelectItem>
+                        <SelectItem value="merge_multiple_loans">Merge Multiple Loans</SelectItem>
+                        <SelectItem value="top_up_loan">Top-up Loan</SelectItem>
+                        <SelectItem value="new_personal_loan">New Personal Loan</SelectItem>
+                        <SelectItem value="new_home_loan">New Home Loan</SelectItem>
+                        <SelectItem value="business_loan">Business Loan</SelectItem>
                         <SelectItem value="loan_against_property">Loan Against Property</SelectItem>
+                        <SelectItem value="car_loan">Car Loan</SelectItem>
+                        <SelectItem value="education_loan">Education Loan</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

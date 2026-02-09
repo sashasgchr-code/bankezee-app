@@ -22,17 +22,13 @@ db = client[os.environ['DB_NAME']]
 router = APIRouter()
 
 def get_frontend_url(request: Request) -> str:
-    """Get the frontend URL from environment or derive from request origin"""
-    # First check environment variable
-    frontend_url = os.getenv("FRONTEND_URL")
-    if frontend_url:
-        return frontend_url.rstrip('/')
-    
-    # Try to get from request origin/referer header
+    """Get the frontend URL from request origin - dynamically determines the correct frontend URL"""
+    # Try to get from request origin header first (most reliable for CORS requests)
     origin = request.headers.get("origin")
     if origin:
         return origin.rstrip('/')
     
+    # Try referer header
     referer = request.headers.get("referer")
     if referer:
         # Extract base URL from referer
@@ -40,10 +36,16 @@ def get_frontend_url(request: Request) -> str:
         parsed = urlparse(referer)
         return f"{parsed.scheme}://{parsed.netloc}"
     
-    # Fallback to constructing from request
-    # If request is coming to /api/..., the frontend is likely on the same domain without /api
+    # Fallback to x-forwarded headers (for proxied requests)
     scheme = request.headers.get("x-forwarded-proto", "https")
-    host = request.headers.get("host", "localhost:3000")
+    host = request.headers.get("x-forwarded-host") or request.headers.get("host", "localhost:3000")
+    
+    # Clean up host if it has port for standard ports
+    if host and ":443" in host:
+        host = host.replace(":443", "")
+    if host and ":80" in host:
+        host = host.replace(":80", "")
+    
     return f"{scheme}://{host}"
 
 @router.get("/generate/{id}")

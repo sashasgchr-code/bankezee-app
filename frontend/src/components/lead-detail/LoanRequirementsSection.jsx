@@ -1,14 +1,20 @@
 import { EditableField, EditableSelect } from './EditableField';
 
 const LOAN_TYPES = [
-  { value: 'home_loan', label: 'Home Loan' },
-  { value: 'personal_loan', label: 'Personal Loan' },
+  { value: 'reduce_home_loan_emi', label: 'Reduce Home Loan EMI' },
+  { value: 'merge_multiple_loans', label: 'Merge Multiple Loans' },
+  { value: 'top_up_loan', label: 'Top-up Loan' },
+  { value: 'new_personal_loan', label: 'New Personal Loan' },
+  { value: 'new_home_loan', label: 'New Home Loan' },
   { value: 'business_loan', label: 'Business Loan' },
+  { value: 'loan_against_property', label: 'Loan Against Property' },
   { value: 'car_loan', label: 'Car Loan' },
   { value: 'education_loan', label: 'Education Loan' },
-  { value: 'loan_against_property', label: 'Loan Against Property' },
   { value: 'other', label: 'Other' }
 ];
+
+// Export for use in other components
+export { LOAN_TYPES };
 
 const LoanRequirementsSection = ({ 
   details, 

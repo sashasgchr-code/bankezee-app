@@ -2,16 +2,20 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { FileText, TrendingUp, LogOut, LayoutDashboard, Eye, Clock } from 'lucide-react';
+import { FileText, LogOut, LayoutDashboard, Eye } from 'lucide-react';
+import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
+import { filterByTimePeriod, filterByLoanType, calculateDashboardStats } from '@/utils/constants';
 
 const OperationsDashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [leads, setLeads] = useState([]);
+  const [timeFilter, setTimeFilter] = useState('all');
+  const [loanTypeFilter, setLoanTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [earnings, setEarnings] = useState({ total_earnings: 0, monthly_earnings: 0 });
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
@@ -37,16 +41,14 @@ const OperationsDashboard = () => {
     navigate('/login');
   };
 
-  const filteredLeads = statusFilter === 'all' 
-    ? leads 
-    : leads.filter(l => l.status === statusFilter);
+  // Apply filters
+  let filteredLeads = filterByTimePeriod(leads, timeFilter);
+  filteredLeads = filterByLoanType(filteredLeads, loanTypeFilter);
+  if (statusFilter !== 'all') {
+    filteredLeads = filteredLeads.filter(l => l.status === statusFilter);
+  }
 
-  const stats = {
-    total: leads.length,
-    new: leads.filter(l => l.status === 'new').length,
-    inProgress: leads.filter(l => ['contacted', 'documents_collected', 'sent_to_bank'].includes(l.status)).length,
-    completed: leads.filter(l => ['approved', 'disbursed'].includes(l.status)).length,
-  };
+  const stats = calculateDashboardStats(filteredLeads);
 
   if (loading) {
     return (
@@ -65,102 +67,38 @@ const OperationsDashboard = () => {
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-slate-600">Welcome, {user.full_name}</span>
-          <Button
-            onClick={() => navigate('/crm')}
-            variant="outline"
-            className="border-slate-200"
-            data-testid="nav-crm-btn"
-          >
-            All Leads
-          </Button>
-          <Button
-            onClick={handleLogout}
-            variant="ghost"
-            className="text-slate-600"
-            data-testid="logout-btn"
-          >
+          <Button onClick={handleLogout} variant="ghost" className="text-slate-600" data-testid="logout-btn">
             <LogOut className="w-4 h-4 mr-2" />
             Logout
           </Button>
         </div>
       </nav>
 
-      <div className="px-6 md:px-12 lg:px-24 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <Card className="hover-lift" data-testid="stat-assigned">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Assigned to Me</CardTitle>
-              <FileText className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total}</div>
-              <p className="text-xs text-slate-600 mt-1">Total leads</p>
-            </CardContent>
-          </Card>
+      <div className="px-6 md:px-12 lg:px-24 py-8">
+        {/* Filters */}
+        <DashboardFilters
+          timeFilter={timeFilter}
+          onTimeFilterChange={setTimeFilter}
+          loanTypeFilter={loanTypeFilter}
+          onLoanTypeFilterChange={setLoanTypeFilter}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+        />
 
-          <Card className="hover-lift" data-testid="stat-new">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">New Leads</CardTitle>
-              <Clock className="h-4 w-4 text-yellow-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{stats.new}</div>
-              <p className="text-xs text-slate-600 mt-1">Pending action</p>
-            </CardContent>
-          </Card>
+        {/* Stats Cards */}
+        <DashboardStats stats={stats} earnings={earnings} />
 
-          <Card className="hover-lift" data-testid="stat-in-progress">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-              <TrendingUp className="h-4 w-4 text-blue-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{stats.inProgress}</div>
-              <p className="text-xs text-slate-600 mt-1">Being processed</p>
-            </CardContent>
-          </Card>
+        {/* Performance Overview */}
+        <PerformanceOverview leads={filteredLeads} stats={stats} />
 
-          <Card className="hover-lift" data-testid="stat-completed">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
-              <p className="text-xs text-slate-600 mt-1">Approved/Disbursed</p>
-            </CardContent>
-          </Card>
-        </div>
-
+        {/* Leads List */}
         <Card data-testid="assigned-leads-card">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>My Assigned Leads</CardTitle>
-              <CardDescription>Leads assigned to you for processing</CardDescription>
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48" data-testid="status-filter">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="new">New</SelectItem>
-                <SelectItem value="contacted">Contacted</SelectItem>
-                <SelectItem value="documents_collected">Documents Collected</SelectItem>
-                <SelectItem value="not_eligible">Not Eligible</SelectItem>
-                <SelectItem value="sent_to_bank">Sent to Bank</SelectItem>
-                <SelectItem value="login">Login</SelectItem>
-                <SelectItem value="not_login">Not Login</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="declined">Declined</SelectItem>
-                <SelectItem value="disbursed">Disbursed</SelectItem>
-                <SelectItem value="not_disbursed">Not Disbursed</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
+          <CardHeader>
+            <CardTitle>My Assigned Leads ({filteredLeads.length})</CardTitle>
+            <CardDescription>Leads assigned to you for processing</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-3 max-h-[500px] overflow-y-auto">
               {filteredLeads.length > 0 ? (
                 filteredLeads.map((lead) => (
                   <div
@@ -173,17 +111,15 @@ const OperationsDashboard = () => {
                       <p className="font-medium">{lead.full_name}</p>
                       <p className="text-sm text-slate-600">{lead.mobile} | {lead.city}</p>
                       <p className="text-xs text-slate-500 mt-1">
-                        {lead.requirement?.replace('_', ' ')} • Created: {new Date(lead.created_at).toLocaleDateString()}
+                        {new Date(lead.created_at).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className={`text-sm px-3 py-1 rounded-full capitalize ${
+                      <span className={`text-xs px-2 py-1 rounded-full capitalize ${
                         lead.status === 'disbursed' ? 'bg-green-100 text-green-800' :
                         lead.status === 'rejected' || lead.status === 'declined' || lead.status === 'not_eligible' ? 'bg-red-100 text-red-800' :
                         lead.status === 'approved' ? 'bg-blue-100 text-blue-800' :
                         lead.status === 'new' ? 'bg-yellow-100 text-yellow-800' :
-                        lead.status === 'login' ? 'bg-cyan-100 text-cyan-800' :
-                        lead.status === 'not_login' || lead.status === 'not_disbursed' ? 'bg-orange-100 text-orange-800' :
                         'bg-slate-100 text-slate-800'
                       }`}>
                         {lead.status.replace(/_/g, ' ')}
@@ -197,8 +133,8 @@ const OperationsDashboard = () => {
               ) : (
                 <div className="text-center py-12 text-slate-500">
                   <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg font-medium mb-2">No leads assigned yet</p>
-                  <p className="text-sm">Leads will appear here once they are assigned to you</p>
+                  <p className="text-lg font-medium mb-2">No leads found</p>
+                  <p className="text-sm">Adjust your filters or wait for leads to be assigned</p>
                 </div>
               )}
             </div>

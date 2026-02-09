@@ -82,11 +82,11 @@ async def generate_qr(id: str, request: Request):
     return StreamingResponse(img_io, media_type="image/png")
 
 @router.get("/data/{id}")
-async def get_qr_data(id: str):
+async def get_qr_data(id: str, request: Request):
     # Try agent first
     agent = await db.agents.find_one({"id": id}, {"_id": 0})
     if agent:
-        frontend_url = os.getenv("FRONTEND_URL", os.getenv("REACT_APP_BACKEND_URL", "http://localhost:3000").replace('/api', ''))
+        frontend_url = get_frontend_url(request)
         qr_url = f"{frontend_url}/lead-form?ref={agent['agent_code']}"
         
         qr = qrcode.QRCode(
@@ -116,7 +116,7 @@ async def get_qr_data(id: str):
     # Try partner
     partner = await db.partners.find_one({"id": id}, {"_id": 0})
     if partner:
-        frontend_url = os.getenv("FRONTEND_URL", os.getenv("REACT_APP_BACKEND_URL", "http://localhost:3000").replace('/api', ''))
+        frontend_url = get_frontend_url(request)
         qr_url = f"{frontend_url}/lead-form?ref={partner['referral_code']}"
         
         qr = qrcode.QRCode(

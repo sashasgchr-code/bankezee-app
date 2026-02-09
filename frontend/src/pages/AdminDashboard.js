@@ -7,15 +7,17 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { Users, FileText, DollarSign, TrendingUp, LogOut, LayoutDashboard, Eye, UserPlus, CheckSquare, X } from 'lucide-react';
+import { Users, LogOut, LayoutDashboard, Eye, UserPlus, CheckSquare, X } from 'lucide-react';
+import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
+import { filterByTimePeriod, filterByLoanType, calculateDashboardStats, LOAN_TYPES, TIME_FILTERS } from '@/utils/constants';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [dashboard, setDashboard] = useState(null);
   const [leads, setLeads] = useState([]);
+  const [timeFilter, setTimeFilter] = useState('all');
+  const [loanTypeFilter, setLoanTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [monthFilter, setMonthFilter] = useState('all');
   const [selectedLeads, setSelectedLeads] = useState([]);
   const [opsTeam, setOpsTeam] = useState([]);
   const [bulkAssignee, setBulkAssignee] = useState('');
@@ -25,28 +27,18 @@ const AdminDashboard = () => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
-    fetchDashboard();
     fetchLeads();
     fetchOpsTeam();
   }, []);
-
-  const fetchDashboard = async () => {
-    try {
-      const response = await api.get('/dashboard/admin');
-      setDashboard(response.data);
-    } catch (error) {
-      toast.error('Failed to load dashboard');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchLeads = async () => {
     try {
       const response = await api.get('/leads/');
       setLeads(response.data);
     } catch (error) {
-      console.error('Failed to fetch leads');
+      toast.error('Failed to load leads');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -74,7 +66,6 @@ const AdminDashboard = () => {
   };
 
   const selectAllFilteredLeads = () => {
-    const filteredLeads = getFilteredLeads();
     const allSelected = filteredLeads.every(lead => selectedLeads.includes(lead.id));
     if (allSelected) {
       setSelectedLeads([]);
@@ -121,17 +112,14 @@ const AdminDashboard = () => {
     }
   };
 
-  const getFilteredLeads = () => {
-    return leads.filter(lead => {
-      const statusMatch = statusFilter === 'all' || lead.status === statusFilter;
-      const leadDate = new Date(lead.created_at);
-      const monthMatch = monthFilter === 'all' || 
-        (monthFilter === 'this_month' && leadDate.getMonth() === new Date().getMonth() && leadDate.getFullYear() === new Date().getFullYear()) ||
-        (monthFilter === 'last_month' && leadDate.getMonth() === new Date().getMonth() - 1) ||
-        (monthFilter === 'last_3_months' && leadDate >= new Date(new Date().setMonth(new Date().getMonth() - 3)));
-      return statusMatch && monthMatch;
-    });
-  };
+  // Apply filters
+  let filteredLeads = filterByTimePeriod(leads, timeFilter);
+  filteredLeads = filterByLoanType(filteredLeads, loanTypeFilter);
+  if (statusFilter !== 'all') {
+    filteredLeads = filteredLeads.filter(l => l.status === statusFilter);
+  }
+
+  const stats = calculateDashboardStats(filteredLeads);
 
   if (loading) {
     return (
@@ -140,8 +128,6 @@ const AdminDashboard = () => {
       </div>
     );
   }
-
-  const filteredLeads = getFilteredLeads();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -222,188 +208,71 @@ const AdminDashboard = () => {
             <UserPlus className="w-4 h-4 mr-2" />
             Add Ops User
           </Button>
-          <Button
-            onClick={() => navigate('/crm')}
-            variant="outline"
-            className="border-slate-200"
-            data-testid="nav-crm-btn"
-          >
-            CRM
-          </Button>
-          <Button
-            onClick={handleLogout}
-            variant="ghost"
-            className="text-slate-600"
-            data-testid="logout-btn"
-          >
+          <Button onClick={handleLogout} variant="ghost" className="text-slate-600" data-testid="logout-btn">
             <LogOut className="w-4 h-4 mr-2" />
             Logout
           </Button>
         </div>
       </nav>
 
-      <div className="px-6 md:px-12 lg:px-24 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <Card className="hover-lift" data-testid="stat-total-leads">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
-              <FileText className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{dashboard?.total_leads || 0}</div>
-              <p className="text-xs text-slate-600 mt-1">All time</p>
-            </CardContent>
-          </Card>
+      <div className="px-6 md:px-12 lg:px-24 py-8">
+        {/* Filters */}
+        <DashboardFilters
+          timeFilter={timeFilter}
+          onTimeFilterChange={setTimeFilter}
+          loanTypeFilter={loanTypeFilter}
+          onLoanTypeFilterChange={setLoanTypeFilter}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+        />
 
-          <Card className="hover-lift" data-testid="stat-conversion-rate">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-              <TrendingUp className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{dashboard?.conversion_rate || 0}%</div>
-              <p className="text-xs text-slate-600 mt-1">Lead to disbursed</p>
-            </CardContent>
-          </Card>
+        {/* Stats Cards */}
+        <DashboardStats stats={stats} earnings={{ total_earnings: 0, monthly_earnings: 0 }} />
 
-          <Card className="hover-lift" data-testid="stat-total-agents">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Agents</CardTitle>
-              <Users className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{dashboard?.agents?.total || 0}</div>
-              <p className="text-xs text-slate-600 mt-1">{dashboard?.agents?.pending || 0} pending approval</p>
-            </CardContent>
-          </Card>
+        {/* Performance Overview */}
+        <PerformanceOverview leads={filteredLeads} stats={stats} />
 
-          <Card className="hover-lift" data-testid="stat-total-revenue">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">₹{dashboard?.revenue?.total_revenue?.toLocaleString() || 0}</div>
-              <p className="text-xs text-slate-600 mt-1">Commission: ₹{dashboard?.revenue?.total_commissions?.toLocaleString() || 0}</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card data-testid="leads-by-status-card">
-            <CardHeader>
-              <CardTitle>Leads by Status</CardTitle>
-              <CardDescription>Current status distribution</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {dashboard?.leads_by_status && Object.entries(dashboard.leads_by_status).map(([status, count]) => (
-                  <div key={status} className="flex justify-between items-center">
-                    <span className="text-sm capitalize text-slate-600">{status.replace('_', ' ')}</span>
-                    <span className="font-semibold">{count}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card data-testid="top-agents-card">
-            <CardHeader>
-              <CardTitle>Top Agents</CardTitle>
-              <CardDescription>Based on converted leads</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {dashboard?.top_agents?.slice(0, 5).map((agent, idx) => (
-                  <div key={agent.id} className="flex justify-between items-center">
-                    <div>
-                      <p className="text-sm font-medium">{agent.full_name}</p>
-                      <p className="text-xs text-slate-500">{agent.agent_code}</p>
-                    </div>
-                    <span className="font-semibold text-primary">{agent.performance?.converted_leads || 0} leads</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card className="mt-6" data-testid="recent-leads-card">
+        {/* Leads List */}
+        <Card data-testid="recent-leads-card">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>Recent Leads</CardTitle>
-              <CardDescription>All leads in the system {selectedLeads.length > 0 && `(${selectedLeads.length} selected)`}</CardDescription>
+              <CardTitle>Leads ({filteredLeads.length})</CardTitle>
+              <CardDescription>
+                {selectedLeads.length > 0 ? `${selectedLeads.length} selected` : 'All leads in the system'}
+              </CardDescription>
             </div>
-            <div className="flex gap-3 items-center flex-wrap">
-              {/* Bulk Assignment Controls */}
-              {selectedLeads.length > 0 && (
-                <div className="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-lg">
-                  <CheckSquare className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-primary">{selectedLeads.length} selected</span>
-                  <Select value={bulkAssignee} onValueChange={setBulkAssignee}>
-                    <SelectTrigger className="w-40 h-8 text-sm" data-testid="bulk-assignee-select">
-                      <SelectValue placeholder="Assign to..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {opsTeam.map((ops) => (
-                        <SelectItem key={ops.id} value={ops.id}>{ops.full_name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button 
-                    size="sm" 
-                    className="h-8 bg-primary text-primary-foreground" 
-                    onClick={handleBulkAssign}
-                    disabled={!bulkAssignee}
-                    data-testid="bulk-assign-btn"
-                  >
-                    Assign
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="h-8"
-                    onClick={() => setSelectedLeads([])}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              )}
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40" data-testid="status-filter">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="new">New</SelectItem>
-                  <SelectItem value="contacted">Contacted</SelectItem>
-                  <SelectItem value="documents_collected">Documents Collected</SelectItem>
-                  <SelectItem value="not_eligible">Not Eligible</SelectItem>
-                  <SelectItem value="sent_to_bank">Sent to Bank</SelectItem>
-                  <SelectItem value="login">Login</SelectItem>
-                  <SelectItem value="not_login">Not Login</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="declined">Declined</SelectItem>
-                  <SelectItem value="disbursed">Disbursed</SelectItem>
-                  <SelectItem value="not_disbursed">Not Disbursed</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={monthFilter} onValueChange={setMonthFilter}>
-                <SelectTrigger className="w-40" data-testid="month-filter">
-                  <SelectValue placeholder="Time" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="this_month">This Month</SelectItem>
-                  <SelectItem value="last_month">Last Month</SelectItem>
-                  <SelectItem value="last_3_months">Last 3 Months</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Bulk Assignment Controls */}
+            {selectedLeads.length > 0 && (
+              <div className="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-lg">
+                <CheckSquare className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-primary">{selectedLeads.length} selected</span>
+                <Select value={bulkAssignee} onValueChange={setBulkAssignee}>
+                  <SelectTrigger className="w-40 h-8 text-sm" data-testid="bulk-assignee-select">
+                    <SelectValue placeholder="Assign to..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {opsTeam.map((ops) => (
+                      <SelectItem key={ops.id} value={ops.id}>{ops.full_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button 
+                  size="sm" 
+                  className="h-8 bg-primary text-primary-foreground" 
+                  onClick={handleBulkAssign}
+                  disabled={!bulkAssignee}
+                  data-testid="bulk-assign-btn"
+                >
+                  Assign
+                </Button>
+                <Button size="sm" variant="ghost" className="h-8" onClick={() => setSelectedLeads([])}>
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
-            {/* Select All Header */}
+            {/* Select All */}
             {filteredLeads.length > 0 && (
               <div className="flex items-center gap-3 pb-3 mb-3 border-b">
                 <Checkbox 
@@ -414,9 +283,9 @@ const AdminDashboard = () => {
                 <span className="text-sm text-slate-600">Select all ({filteredLeads.length} leads)</span>
               </div>
             )}
-            <div className="space-y-3">
+            <div className="space-y-3 max-h-[500px] overflow-y-auto">
               {filteredLeads.length > 0 ? (
-                filteredLeads.slice(0, 20).map((lead) => (
+                filteredLeads.slice(0, 50).map((lead) => (
                   <div
                     key={lead.id}
                     className="flex items-center gap-3 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
@@ -426,7 +295,6 @@ const AdminDashboard = () => {
                       checked={selectedLeads.includes(lead.id)}
                       onCheckedChange={() => toggleLeadSelection(lead.id)}
                       onClick={(e) => e.stopPropagation()}
-                      data-testid={`lead-checkbox-${lead.id}`}
                     />
                     <div 
                       className="flex-1 flex justify-between items-center cursor-pointer"
@@ -436,19 +304,19 @@ const AdminDashboard = () => {
                         <p className="font-medium">{lead.full_name}</p>
                         <p className="text-sm text-slate-600">{lead.mobile} | {lead.city}</p>
                         <p className="text-xs text-slate-500 mt-1">
-                          Created: {new Date(lead.created_at).toLocaleDateString()}
+                          {new Date(lead.created_at).toLocaleDateString()}
                           {lead.assigned_to && <span className="ml-2 text-primary">• Assigned</span>}
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className={`text-sm px-3 py-1 rounded-full capitalize ${
+                        <span className={`text-xs px-2 py-1 rounded-full capitalize ${
                           lead.status === 'disbursed' ? 'bg-green-100 text-green-800' :
                           lead.status === 'rejected' ? 'bg-red-100 text-red-800' :
                           lead.status === 'approved' ? 'bg-blue-100 text-blue-800' :
                           lead.status === 'new' ? 'bg-yellow-100 text-yellow-800' :
                           'bg-slate-100 text-slate-800'
                         }`}>
-                          {lead.status.replace('_', ' ')}
+                          {lead.status.replace(/_/g, ' ')}
                         </span>
                         <Button variant="ghost" size="sm">
                           <Eye className="w-4 h-4" />
@@ -459,7 +327,7 @@ const AdminDashboard = () => {
                 ))
               ) : (
                 <div className="text-center py-8 text-slate-500">
-                  {leads.length === 0 ? "No leads yet" : "No leads match your filters"}
+                  No leads match your filters
                 </div>
               )}
             </div>

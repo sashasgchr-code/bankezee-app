@@ -94,7 +94,7 @@ const AgentDashboard = () => {
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-slate-600">Welcome, {user.full_name}</span>
-          <Button onClick={() => navigate('/agent/lead/new')} className="bg-primary text-primary-foreground">
+          <Button onClick={() => navigate('/agent/create-lead')} className="bg-primary text-primary-foreground">
             + New Lead
           </Button>
           <Button onClick={handleLogout} variant="ghost" className="text-slate-600">

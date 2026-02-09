@@ -98,6 +98,18 @@ const OperationsDashboard = () => {
             <CardDescription>Leads assigned to you for processing</CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Inline Filters */}
+            <div className="mb-4">
+              <DashboardFilters
+                timeFilter={timeFilter}
+                onTimeFilterChange={setTimeFilter}
+                loanTypeFilter={loanTypeFilter}
+                onLoanTypeFilterChange={setLoanTypeFilter}
+                statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+                showStatusFilter={true}
+              />
+            </div>
             <div className="space-y-3 max-h-[500px] overflow-y-auto">
               {filteredLeads.length > 0 ? (
                 filteredLeads.map((lead) => (

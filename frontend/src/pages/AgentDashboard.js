@@ -151,8 +151,21 @@ const AgentDashboard = () => {
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>My Leads ({filteredLeads.length})</CardTitle>
+              <CardDescription>Filter and view your leads</CardDescription>
             </CardHeader>
             <CardContent>
+              {/* Inline Filters */}
+              <div className="mb-4">
+                <DashboardFilters
+                  timeFilter={timeFilter}
+                  onTimeFilterChange={setTimeFilter}
+                  loanTypeFilter={loanTypeFilter}
+                  onLoanTypeFilterChange={setLoanTypeFilter}
+                  statusFilter={statusFilter}
+                  onStatusFilterChange={setStatusFilter}
+                  showStatusFilter={true}
+                />
+              </div>
               <div className="space-y-3 max-h-[400px] overflow-y-auto">
                 {filteredLeads.length > 0 ? (
                   filteredLeads.slice(0, 20).map((lead) => (

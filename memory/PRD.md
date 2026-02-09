@@ -93,9 +93,19 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 - Email notifications via Resend
 - Document upload to Google Drive
 
-## What's Implemented (as of Feb 8, 2026)
+## What's Implemented (as of Feb 9, 2026)
 
-### Session 3 Highlights (Current)
+### Session 4 Highlights (Current)
+1. **Loan Type Options Standardized ✅ NEW**
+   - Updated all loan type dropdowns across the entire application
+   - Now consistent 7 options: Reduce Home Loan EMI, Merge Multiple Loans, Top-Up Loan, New Personal Loan, New Home Loan, Business Loan, Vehicle Loan
+   - Applied to: Public Lead Form, Agent Lead Form, Partner Lead Form, Dashboard Filters, Lead Detail Page
+
+2. **QR Code Display Fix Verified ✅**
+   - Confirmed QR code is now visible on Agent and Partner dashboards
+   - Previous fix (qr_image_base64 key) working correctly
+
+### Session 3 Highlights
 1. **Bulk Lead Assignment (P1) ✅ NEW**
    - Checkboxes on each lead in Admin Dashboard
    - "Select All" checkbox for bulk selection

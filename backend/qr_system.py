@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
@@ -21,8 +21,33 @@ db = client[os.environ['DB_NAME']]
 
 router = APIRouter()
 
+def get_frontend_url(request: Request) -> str:
+    """Get the frontend URL from environment or derive from request origin"""
+    # First check environment variable
+    frontend_url = os.getenv("FRONTEND_URL")
+    if frontend_url:
+        return frontend_url.rstrip('/')
+    
+    # Try to get from request origin/referer header
+    origin = request.headers.get("origin")
+    if origin:
+        return origin.rstrip('/')
+    
+    referer = request.headers.get("referer")
+    if referer:
+        # Extract base URL from referer
+        from urllib.parse import urlparse
+        parsed = urlparse(referer)
+        return f"{parsed.scheme}://{parsed.netloc}"
+    
+    # Fallback to constructing from request
+    # If request is coming to /api/..., the frontend is likely on the same domain without /api
+    scheme = request.headers.get("x-forwarded-proto", "https")
+    host = request.headers.get("host", "localhost:3000")
+    return f"{scheme}://{host}"
+
 @router.get("/generate/{id}")
-async def generate_qr(id: str):
+async def generate_qr(id: str, request: Request):
     # Try agent first
     agent = await db.agents.find_one({"id": id}, {"_id": 0})
     if agent:

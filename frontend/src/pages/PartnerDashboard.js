@@ -58,8 +58,8 @@ const PartnerDashboard = () => {
   };
 
   const copyReferralLink = () => {
-    if (qrData?.lead_form_url) {
-      navigator.clipboard.writeText(qrData.lead_form_url);
+    if (qrData?.qr_url) {
+      navigator.clipboard.writeText(qrData.qr_url);
       toast.success('Referral link copied!');
     }
   };

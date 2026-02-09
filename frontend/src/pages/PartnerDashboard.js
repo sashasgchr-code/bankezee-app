@@ -125,10 +125,10 @@ const PartnerDashboard = () => {
               <CardDescription>Share to generate leads</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center">
-              {qrData?.qr_image ? (
+              {qrData?.qr_image_base64 ? (
                 <>
-                  <img src={qrData.qr_image} alt="QR Code" className="w-40 h-40 mb-4" />
-                  <p className="text-sm text-slate-600 mb-2">Code: <span className="font-mono font-bold text-primary">{partner?.referral_code}</span></p>
+                  <img src={qrData.qr_image_base64} alt="QR Code" className="w-40 h-40 mb-4" />
+                  <p className="text-sm text-slate-600 mb-2">Code: <span className="font-mono font-bold text-primary">{partner?.referral_code || qrData?.partner_code}</span></p>
                   <Button variant="outline" size="sm" onClick={copyReferralLink}>
                     <Copy className="w-4 h-4 mr-2" />
                     Copy Link

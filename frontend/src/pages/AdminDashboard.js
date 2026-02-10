@@ -283,21 +283,34 @@ const AdminDashboard = () => {
       </nav>
 
       <div className="px-6 md:px-12 lg:px-24 py-8">
-        {/* Filters */}
-        <DashboardFilters
-          timeFilter={timeFilter}
-          onTimeFilterChange={setTimeFilter}
-          loanTypeFilter={loanTypeFilter}
-          onLoanTypeFilterChange={setLoanTypeFilter}
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
-        />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <LayoutDashboard className="w-4 h-4" />
+              Dashboard
+            </TabsTrigger>
+            <TabsTrigger value="users" className="flex items-center gap-2">
+              <UserCog className="w-4 h-4" />
+              User Management
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Stats Cards */}
-        <DashboardStats stats={stats} earnings={{ total_earnings: 0, monthly_earnings: 0 }} />
+          <TabsContent value="dashboard">
+            {/* Filters */}
+            <DashboardFilters
+              timeFilter={timeFilter}
+              onTimeFilterChange={setTimeFilter}
+              loanTypeFilter={loanTypeFilter}
+              onLoanTypeFilterChange={setLoanTypeFilter}
+              statusFilter={statusFilter}
+              onStatusFilterChange={setStatusFilter}
+            />
 
-        {/* Performance Overview */}
-        <PerformanceOverview leads={filteredLeads} stats={stats} />
+            {/* Stats Cards */}
+            <DashboardStats stats={stats} earnings={{ total_earnings: 0, monthly_earnings: 0 }} />
+
+            {/* Performance Overview */}
+            <PerformanceOverview leads={filteredLeads} stats={stats} />
 
         {/* Leads List */}
         <Card data-testid="recent-leads-card">

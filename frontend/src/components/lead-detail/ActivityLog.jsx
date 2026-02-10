@@ -24,10 +24,11 @@ const ActivityLog = ({
     setUploadedFiles(documents || []);
   }, [documents]);
 
-  // Generate download URL for a document
+  // Generate download URL for a document with auth token
   const getDownloadUrl = (doc) => {
+    const token = localStorage.getItem('token');
     if (doc.file_path) {
-      return `${process.env.REACT_APP_BACKEND_URL}/api/storage/download/${doc.file_path}`;
+      return `${process.env.REACT_APP_BACKEND_URL}/api/storage/download/${doc.file_path}?token=${token}`;
     }
     return doc.download_url || '#';
   };

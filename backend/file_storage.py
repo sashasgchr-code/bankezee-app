@@ -8,6 +8,7 @@ import shutil
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
+from jose import jwt
 
 from auth import get_current_user, User
 
@@ -20,6 +21,10 @@ logger = logging.getLogger(__name__)
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
+
+# JWT settings
+SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "fallback-dev-key-not-for-production")
+ALGORITHM = "HS256"
 
 router = APIRouter(prefix="/storage", tags=["File Storage"])
 

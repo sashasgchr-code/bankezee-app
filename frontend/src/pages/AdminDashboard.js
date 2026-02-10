@@ -413,6 +413,15 @@ const AdminDashboard = () => {
                         <Button variant="ghost" size="sm">
                           <Eye className="w-4 h-4" />
                         </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={(e) => { e.stopPropagation(); handleDeleteLead(lead.id); }}
+                          disabled={deletingLead === lead.id}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -425,6 +434,150 @@ const AdminDashboard = () => {
             </div>
           </CardContent>
         </Card>
+          </TabsContent>
+
+          <TabsContent value="users">
+            {/* Operations Team Report */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building className="w-5 h-5 text-primary" />
+                  Operations Team ({opsUsersWithReports.length})
+                </CardTitle>
+                <CardDescription>View performance reports and manage ops users</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {opsUsersWithReports.length === 0 ? (
+                    <p className="text-center text-slate-500 py-4">No operations users found</p>
+                  ) : (
+                    opsUsersWithReports.map((ops) => (
+                      <div key={ops.id} className="p-4 border rounded-lg">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <p className="font-semibold text-lg">{ops.full_name}</p>
+                            <p className="text-sm text-slate-600">{ops.email}</p>
+                            {ops.phone && <p className="text-sm text-slate-500">{ops.phone}</p>}
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="text-red-500 border-red-200 hover:bg-red-50"
+                            onClick={() => handleDeleteUser(ops.id, 'operations')}
+                            disabled={deletingUser === ops.id}
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            {deletingUser === ops.id ? 'Deleting...' : 'Delete'}
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-3 md:grid-cols-6 gap-3 text-center">
+                          <div className="bg-slate-50 p-2 rounded">
+                            <p className="text-xl font-bold text-slate-700">{ops.report?.total_assigned || 0}</p>
+                            <p className="text-xs text-slate-500">Total</p>
+                          </div>
+                          <div className="bg-yellow-50 p-2 rounded">
+                            <p className="text-xl font-bold text-yellow-700">{ops.report?.new_leads || 0}</p>
+                            <p className="text-xs text-yellow-600">New</p>
+                          </div>
+                          <div className="bg-blue-50 p-2 rounded">
+                            <p className="text-xl font-bold text-blue-700">{ops.report?.in_progress || 0}</p>
+                            <p className="text-xs text-blue-600">In Progress</p>
+                          </div>
+                          <div className="bg-indigo-50 p-2 rounded">
+                            <p className="text-xl font-bold text-indigo-700">{ops.report?.approved || 0}</p>
+                            <p className="text-xs text-indigo-600">Approved</p>
+                          </div>
+                          <div className="bg-green-50 p-2 rounded">
+                            <p className="text-xl font-bold text-green-700">{ops.report?.disbursed || 0}</p>
+                            <p className="text-xs text-green-600">Disbursed</p>
+                          </div>
+                          <div className="bg-red-50 p-2 rounded">
+                            <p className="text-xl font-bold text-red-700">{ops.report?.rejected || 0}</p>
+                            <p className="text-xs text-red-600">Rejected</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Agents List */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-primary" />
+                  Sales Agents ({allAgents.length})
+                </CardTitle>
+                <CardDescription>Manage sales agents</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                  {allAgents.length === 0 ? (
+                    <p className="text-center text-slate-500 py-4">No agents found</p>
+                  ) : (
+                    allAgents.map((agent) => (
+                      <div key={agent.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                        <div className="flex-1">
+                          <p className="font-medium">{agent.full_name}</p>
+                          <p className="text-sm text-slate-600">{agent.phone} | Code: {agent.agent_code}</p>
+                          <p className="text-xs text-slate-500">{agent.email}</p>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleDeleteUser(agent.id, 'agent')}
+                          disabled={deletingUser === agent.id}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Partners List */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Briefcase className="w-5 h-5 text-primary" />
+                  Partners ({allPartners.length})
+                </CardTitle>
+                <CardDescription>Manage partners</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                  {allPartners.length === 0 ? (
+                    <p className="text-center text-slate-500 py-4">No partners found</p>
+                  ) : (
+                    allPartners.map((partner) => (
+                      <div key={partner.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                        <div className="flex-1">
+                          <p className="font-medium">{partner.name || partner.full_name}</p>
+                          <p className="text-sm text-slate-600">{partner.mobile || partner.phone} | Code: {partner.referral_code}</p>
+                          <p className="text-xs text-slate-500">{partner.email} | {partner.company_name || 'Individual'}</p>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleDeleteUser(partner.id, 'partner')}
+                          disabled={deletingUser === partner.id}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

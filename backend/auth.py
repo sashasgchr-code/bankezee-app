@@ -283,3 +283,104 @@ async def verify_otp(request: OTPVerification):
 @router.get("/me")
 async def get_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+# ==================== ADMIN MANAGEMENT ENDPOINTS ====================
+
+@router.get("/admin/ops-users")
+async def get_ops_users_with_reports(current_user: User = Depends(get_current_user)):
+    """Get all operations users with their performance reports"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Get all ops users
+    ops_users = await db.users.find({"role": "operations"}, {"_id": 0, "password": 0}).to_list(100)
+    
+    # Get reports for each ops user
+    for user in ops_users:
+        user_id = user["id"]
+        
+        # Count leads assigned to this user
+        total_assigned = await db.leads.count_documents({"assigned_to": user_id})
+        
+        # Count by status
+        new_leads = await db.leads.count_documents({"assigned_to": user_id, "status": "new"})
+        in_progress = await db.leads.count_documents({"assigned_to": user_id, "status": {"$in": ["contacted", "documents_collected", "processing"]}})
+        approved = await db.leads.count_documents({"assigned_to": user_id, "status": "approved"})
+        disbursed = await db.leads.count_documents({"assigned_to": user_id, "status": "disbursed"})
+        rejected = await db.leads.count_documents({"assigned_to": user_id, "status": "rejected"})
+        
+        user["report"] = {
+            "total_assigned": total_assigned,
+            "new_leads": new_leads,
+            "in_progress": in_progress,
+            "approved": approved,
+            "disbursed": disbursed,
+            "rejected": rejected
+        }
+    
+    return ops_users
+
+
+@router.get("/admin/all-users")
+async def get_all_users(current_user: User = Depends(get_current_user)):
+    """Get all users grouped by role"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Get users by role
+    ops_users = await db.users.find({"role": "operations"}, {"_id": 0, "password": 0}).to_list(100)
+    agents = await db.agents.find({}, {"_id": 0}).to_list(100)
+    partners = await db.partners.find({}, {"_id": 0}).to_list(100)
+    
+    return {
+        "operations": ops_users,
+        "agents": agents,
+        "partners": partners
+    }
+
+
+@router.delete("/admin/users/{user_id}")
+async def delete_user(
+    user_id: str,
+    user_type: str,  # 'operations', 'agent', 'partner'
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a user (ops, agent, or partner)"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    if user_type == "operations":
+        # Delete from users collection
+        result = await db.users.delete_one({"id": user_id, "role": "operations"})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Operations user not found")
+        
+        # Unassign leads from this ops user
+        await db.leads.update_many(
+            {"assigned_to": user_id},
+            {"$set": {"assigned_to": None}}
+        )
+        
+    elif user_type == "agent":
+        # Delete from agents collection
+        result = await db.agents.delete_one({"id": user_id})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        # Also delete from users collection if exists
+        await db.users.delete_one({"id": user_id, "role": "sales_agent"})
+        
+    elif user_type == "partner":
+        # Delete from partners collection
+        result = await db.partners.delete_one({"id": user_id})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Partner not found")
+        
+        # Also delete from users collection if exists
+        await db.users.delete_one({"id": user_id, "role": "partner"})
+        
+    else:
+        raise HTTPException(status_code=400, detail="Invalid user_type. Must be 'operations', 'agent', or 'partner'")
+    
+    return {"message": f"{user_type.capitalize()} user deleted successfully", "user_id": user_id}

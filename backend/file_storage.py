@@ -78,6 +78,7 @@ async def upload_file(
         # Generate unique file ID
         file_id = str(uuid.uuid4())
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        uploaded_at = datetime.now(timezone.utc).isoformat()
         
         # Create lead-specific directory if lead_id provided
         if lead_id:
@@ -97,22 +98,37 @@ async def upload_file(
         logger.info(f"File uploaded: {safe_name} by {current_user.id}")
         
         # Generate URLs
-        base_url = os.environ.get("FRONTEND_URL", "")
         relative_path = str(file_path.relative_to(STORAGE_DIR))
         
-        return {
-            "success": True,
+        # Document metadata to return and store
+        doc_metadata = {
             "file_id": file_id,
             "file_name": safe_name,
             "original_name": file.filename,
             "file_path": relative_path,
-            "download_url": f"{base_url}/api/storage/download/{relative_path}",
             "size": len(content),
             "mime_type": file.content_type,
-            "uploaded_at": datetime.now(timezone.utc).isoformat(),
+            "uploaded_at": uploaded_at,
             "uploaded_by": current_user.id,
             "lead_id": lead_id,
             "document_type": document_type
+        }
+        
+        # Save document metadata to MongoDB if lead_id provided
+        if lead_id:
+            # Check if lead exists
+            lead = await db.leads.find_one({"id": lead_id})
+            if lead:
+                # Add document to lead's documents array
+                await db.leads.update_one(
+                    {"id": lead_id},
+                    {"$push": {"documents": doc_metadata}}
+                )
+                logger.info(f"Document metadata saved to lead {lead_id}")
+        
+        return {
+            "success": True,
+            **doc_metadata
         }
         
     except Exception as e:

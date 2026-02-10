@@ -139,9 +139,26 @@ async def upload_file(
 @router.get("/download/{file_path:path}")
 async def download_file(
     file_path: str,
-    current_user: User = Depends(get_current_user)
+    token: str = None,
+    current_user: User = None
 ):
-    """Download a file by path"""
+    """Download a file by path - supports both header auth and token query param"""
+    # Try to get user from token query param if no current_user
+    if not current_user and token:
+        try:
+            from jose import jwt
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            user_id = payload.get("sub")
+            if user_id:
+                user_doc = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
+                if user_doc:
+                    current_user = User(**user_doc)
+        except Exception as e:
+            logger.warning(f"Token validation failed: {e}")
+    
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
     full_path = STORAGE_DIR / file_path
     
     if not full_path.exists():

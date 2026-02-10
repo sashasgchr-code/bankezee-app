@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { FileText, Upload, Download, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import api from '@/utils/api';
 import { toast } from 'sonner';
 
@@ -17,7 +17,20 @@ const ActivityLog = ({
   onDocumentsChange
 }) => {
   const [uploading, setUploading] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState(documents || []);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  
+  // Sync documents from props when they change (e.g., on page load)
+  useEffect(() => {
+    setUploadedFiles(documents || []);
+  }, [documents]);
+
+  // Generate download URL for a document
+  const getDownloadUrl = (doc) => {
+    if (doc.file_path) {
+      return `${process.env.REACT_APP_BACKEND_URL}/api/storage/download/${doc.file_path}`;
+    }
+    return doc.download_url || '#';
+  };
 
   const handleUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -35,8 +48,9 @@ const ActivityLog = ({
       });
       
       toast.success('Document uploaded successfully');
-      setUploadedFiles(prev => [...prev, response.data]);
-      if (onDocumentsChange) onDocumentsChange([...uploadedFiles, response.data]);
+      const newDocs = [...uploadedFiles, response.data];
+      setUploadedFiles(newDocs);
+      if (onDocumentsChange) onDocumentsChange(newDocs);
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to upload document');
     } finally {
@@ -49,7 +63,9 @@ const ActivityLog = ({
     try {
       await api.delete(`/storage/files/${filePath}`);
       toast.success('Document deleted');
-      setUploadedFiles(prev => prev.filter(f => f.file_path !== filePath));
+      const newDocs = uploadedFiles.filter(f => f.file_path !== filePath);
+      setUploadedFiles(newDocs);
+      if (onDocumentsChange) onDocumentsChange(newDocs);
     } catch (error) {
       toast.error('Failed to delete document');
     }
@@ -71,13 +87,13 @@ const ActivityLog = ({
           ) : (
             <div className="space-y-2">
               {uploadedFiles.map((doc, idx) => (
-                <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded">
+                <div key={doc.file_id || idx} className="flex items-center justify-between p-2 bg-slate-50 rounded">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{doc.original_name || doc.file_name}</p>
                     <p className="text-xs text-slate-500">{doc.document_type} • {((doc.size || 0) / 1024).toFixed(1)}KB</p>
                   </div>
                   <div className="flex gap-1">
-                    <a href={doc.download_url} target="_blank" rel="noopener noreferrer">
+                    <a href={getDownloadUrl(doc)} target="_blank" rel="noopener noreferrer">
                       <Button variant="ghost" size="sm">
                         <Download className="w-4 h-4" />
                       </Button>

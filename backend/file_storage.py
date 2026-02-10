@@ -1,5 +1,7 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
+from fastapi import APIRouter, HTTPException, UploadFile, File, Depends, Form
 from fastapi.responses import FileResponse
+from motor.motor_asyncio import AsyncIOMotorClient
+from dotenv import load_dotenv
 import os
 import uuid
 import shutil
@@ -9,7 +11,15 @@ from pathlib import Path
 
 from auth import get_current_user, User
 
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
+
 logger = logging.getLogger(__name__)
+
+# MongoDB connection
+mongo_url = os.environ['MONGO_URL']
+client = AsyncIOMotorClient(mongo_url)
+db = client[os.environ['DB_NAME']]
 
 router = APIRouter(prefix="/storage", tags=["File Storage"])
 
@@ -36,12 +46,12 @@ MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 @router.post("/upload")
 async def upload_file(
     file: UploadFile = File(...),
-    lead_id: str = None,
-    document_type: str = "general",
+    lead_id: str = Form(None),
+    document_type: str = Form("general"),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Upload a document to local storage
+    Upload a document to local storage and save metadata to MongoDB
     - file: The file to upload
     - lead_id: Optional lead ID to associate the document with
     - document_type: Type of document (e.g., 'id_proof', 'income_proof', 'bank_statement')

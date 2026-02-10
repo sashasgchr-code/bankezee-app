@@ -168,3 +168,33 @@ async def assign_lead(
         raise HTTPException(status_code=404, detail="Lead not found")
     
     return {"message": "Lead assigned successfully"}
+
+
+@router.delete("/{lead_id}")
+async def delete_lead(
+    lead_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a lead (Admin only)"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Check if lead exists
+    lead = await db.leads.find_one({"id": lead_id})
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    
+    # Delete the lead
+    result = await db.leads.delete_one({"id": lead_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=500, detail="Failed to delete lead")
+    
+    # Also delete any associated documents from storage
+    import shutil
+    from pathlib import Path
+    lead_docs_dir = Path("/app/uploads") / lead_id
+    if lead_docs_dir.exists():
+        shutil.rmtree(lead_docs_dir)
+    
+    return {"message": "Lead deleted successfully", "lead_id": lead_id}

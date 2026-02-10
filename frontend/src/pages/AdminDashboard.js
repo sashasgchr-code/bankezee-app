@@ -38,6 +38,13 @@ const AdminDashboard = () => {
     fetchOpsTeam();
   }, []);
 
+  useEffect(() => {
+    if (activeTab === 'users') {
+      fetchOpsUsersWithReports();
+      fetchAllUsers();
+    }
+  }, [activeTab]);
+
   const fetchLeads = async () => {
     try {
       const response = await api.get('/leads/');
@@ -55,6 +62,59 @@ const AdminDashboard = () => {
       setOpsTeam(response.data);
     } catch (error) {
       console.error('Failed to fetch ops team');
+    }
+  };
+
+  const fetchOpsUsersWithReports = async () => {
+    try {
+      const response = await api.get('/auth/admin/ops-users');
+      setOpsUsersWithReports(response.data);
+    } catch (error) {
+      console.error('Failed to fetch ops reports');
+    }
+  };
+
+  const fetchAllUsers = async () => {
+    try {
+      const response = await api.get('/auth/admin/all-users');
+      setAllAgents(response.data.agents || []);
+      setAllPartners(response.data.partners || []);
+    } catch (error) {
+      console.error('Failed to fetch all users');
+    }
+  };
+
+  const handleDeleteUser = async (userId, userType) => {
+    if (!window.confirm(`Are you sure you want to delete this ${userType}? This action cannot be undone.`)) {
+      return;
+    }
+    setDeletingUser(userId);
+    try {
+      await api.delete(`/auth/admin/users/${userId}?user_type=${userType}`);
+      toast.success(`${userType.charAt(0).toUpperCase() + userType.slice(1)} deleted successfully`);
+      fetchOpsUsersWithReports();
+      fetchAllUsers();
+      fetchOpsTeam();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to delete user');
+    } finally {
+      setDeletingUser(null);
+    }
+  };
+
+  const handleDeleteLead = async (leadId) => {
+    if (!window.confirm('Are you sure you want to delete this lead? This will also delete all associated documents. This action cannot be undone.')) {
+      return;
+    }
+    setDeletingLead(leadId);
+    try {
+      await api.delete(`/leads/${leadId}`);
+      toast.success('Lead deleted successfully');
+      fetchLeads();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to delete lead');
+    } finally {
+      setDeletingLead(null);
     }
   };
 

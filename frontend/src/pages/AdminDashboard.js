@@ -5,9 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { Users, LogOut, LayoutDashboard, Eye, UserPlus, CheckSquare, X } from 'lucide-react';
+import { Users, LogOut, LayoutDashboard, Eye, UserPlus, CheckSquare, X, Trash2, UserCog, Building, Briefcase } from 'lucide-react';
 import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
 import { filterByTimePeriod, filterByLoanType, calculateDashboardStats, LOAN_TYPES, TIME_FILTERS } from '@/utils/constants';
 
@@ -24,6 +25,12 @@ const AdminDashboard = () => {
   const [showAddOpsModal, setShowAddOpsModal] = useState(false);
   const [newOpsUser, setNewOpsUser] = useState({ email: '', password: '', full_name: '', phone: '' });
   const [creatingOps, setCreatingOps] = useState(false);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [opsUsersWithReports, setOpsUsersWithReports] = useState([]);
+  const [allAgents, setAllAgents] = useState([]);
+  const [allPartners, setAllPartners] = useState([]);
+  const [deletingUser, setDeletingUser] = useState(null);
+  const [deletingLead, setDeletingLead] = useState(null);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {

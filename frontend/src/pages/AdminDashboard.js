@@ -915,46 +915,51 @@ const AdminDashboard = () => {
                   <Users className="w-5 h-5 text-primary" />
                   Sales Agents ({allAgents.length})
                 </CardTitle>
-                <CardDescription>Manage sales agents</CardDescription>
+                <CardDescription>Manage sales agents - Click "View Details" to see all registration information</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                <div className="space-y-3 max-h-[600px] overflow-y-auto">
                   {allAgents.length === 0 ? (
                     <p className="text-center text-slate-500 py-4">No agents found</p>
                   ) : (
                     allAgents.map((agent) => (
-                      <div key={agent.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                        <div className="flex-1">
-                          <p className="font-medium">{agent.full_name}</p>
-                          <p className="text-sm text-slate-600">{agent.phone} | Code: {agent.agent_code}</p>
-                          <p className="text-xs text-slate-500">{agent.email}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {agent.id_card_url && (
-                            <a 
-                              href={agent.id_card_url.startsWith('/api') 
-                                ? `${process.env.REACT_APP_BACKEND_URL}${agent.id_card_url}` 
-                                : agent.id_card_url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              data-testid={`agent-id-card-${agent.id}`}
+                      <div key={agent.id} className="bg-slate-50 rounded-lg border border-slate-100">
+                        <div className="flex items-center justify-between p-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium">{agent.full_name}</p>
+                              <span className={`text-xs px-2 py-0.5 rounded ${agent.is_approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                {agent.is_approved ? 'Approved' : 'Pending'}
+                              </span>
+                            </div>
+                            <p className="text-sm text-slate-600">{agent.phone} | Code: {agent.agent_code}</p>
+                            <p className="text-xs text-slate-500">{agent.email}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-slate-600"
+                              onClick={() => toggleUserDetails(`agent-${agent.id}`)}
+                              data-testid={`view-details-agent-${agent.id}`}
                             >
-                              <Button variant="outline" size="sm" className="text-blue-600">
-                                <FileText className="w-4 h-4 mr-1" />
-                                ID Card
-                              </Button>
-                            </a>
-                          )}
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => handleDeleteUser(agent.id, 'agent')}
-                            disabled={deletingUser === agent.id}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                              {expandedUser === `agent-${agent.id}` ? <ChevronUp className="w-4 h-4 mr-1" /> : <ChevronDown className="w-4 h-4 mr-1" />}
+                              {expandedUser === `agent-${agent.id}` ? 'Hide' : 'View'} Details
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => handleDeleteUser(agent.id, 'agent')}
+                              disabled={deletingUser === agent.id}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </div>
+                        {expandedUser === `agent-${agent.id}` && (
+                          <UserDetailCard user={agent} type="agent" onClose={() => setExpandedUser(null)} />
+                        )}
                       </div>
                     ))
                   )}

@@ -327,6 +327,15 @@ const AdminDashboard = () => {
         <div className="flex items-center gap-4">
           <span className="text-sm text-slate-600">Welcome, {user.full_name}</span>
           <Button
+            onClick={handleExportLeads}
+            variant="outline"
+            disabled={exporting}
+            data-testid="export-leads-btn"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            {exporting ? 'Exporting...' : 'Export All Leads'}
+          </Button>
+          <Button
             onClick={() => setShowAddOpsModal(true)}
             className="bg-primary text-primary-foreground"
             data-testid="add-ops-btn"

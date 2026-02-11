@@ -231,7 +231,7 @@ const LeadDetailPage = () => {
   const handleAddNote = async () => {
     if (!note.trim()) return;
     try {
-      await api.post(`/crm/${leadId}/notes`, { content: note });
+      await api.post(`/crm/${leadId}/notes`, { note: note });
       toast.success('Note added');
       setNote('');
       fetchLead();

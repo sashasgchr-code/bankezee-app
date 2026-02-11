@@ -6,14 +6,14 @@ Build a full-stack web application for a fintech company called Bankezee. The pl
 - **Core Modules:**
     - **User Management:** Role-based sign-up, login, and dashboards. Admin can create Ops accounts, view all users, and delete users.
     - **Lead Generation:** Public, Agent, and Partner lead forms.
-    - **QR Code System:** Unique QR codes for Agents/Partners to tag leads. The URL should be environment-aware (production vs. preview).
+    - **QR Code System:** Unique QR codes for Agents/Partners to tag leads.
     - **CRM:** Full lead management system with status tracking, lead assignment, bulk assignment, and lead deletion.
     - **Eligibility Tracking:** Operations team can track a lead's eligibility with multiple banks.
     - **Dashboards:** Role-specific dashboards with advanced analytics, filtering, and lead lists.
-    - **Commission Tracking:** System to calculate and display agent/partner payouts. Deleting a lead should also remove associated commissions.
-    - **Document Upload:** A system for uploading and associating documents with leads. Documents must persist and be downloadable by authorized users. Agent/Partner ID cards should be viewable by Admin.
-    - **Notes:** A feature for Ops/Admin to add notes to a lead, visible to Agents/Partners.
-    - **Lead Export:** Admin can download all lead data in CSV format.
+    - **Commission Tracking:** System to calculate and display agent/partner payouts.
+    - **Document Upload:** A system for uploading and associating documents with leads. Agent/Partner ID cards should be viewable by Admin.
+    - **Notes:** A feature for Ops/Admin to add notes to a lead.
+    - **Lead Export:** Admin can download lead data in CSV format.
 - **Tech & UI:**
     - Modern, responsive UI with a Green + Gray color palette.
     - FastAPI backend, React frontend, MongoDB database.
@@ -22,128 +22,109 @@ Build a full-stack web application for a fintech company called Bankezee. The pl
 **User's preferred language**: English
 
 **what currently exists?**
-A comprehensive full-stack CRM application featuring role-based access (Admin, Operations, Agent, Partner) via a unified email/password login system. The application supports the full lead lifecycle, including creation via public forms or QR codes, assignment, and status tracking. Dashboards for all roles provide KPIs, charts, and advanced filtering.
+A comprehensive full-stack CRM application featuring role-based access (Admin, Operations, Agent, Partner). The application supports the full lead lifecycle, from creation to status tracking. Key features include:
 
-Recent major updates include:
-- A full administrative User Management section for viewing and deleting users.
-- Functionality for admins to delete leads and export all lead data to CSV.
-- A complete overhaul of the login system, removing OTP in favor of a standard email/password flow for all roles.
-- A persistent document upload system where files are saved to the server and metadata is stored in MongoDB, ensuring they remain after a page refresh and are downloadable.
-- A fix for QR code generation, which now correctly points to the production or preview URL based on the request's origin.
-- The addition of filters directly within the leads list view on all dashboards.
+- **Enhanced Dashboards (Admin/Ops):** Feature-rich dashboards with advanced filtering by time period (including Today and custom date ranges), loan type, lead status, and source (Agent/Partner).
+- **User Management & Approval:** An Approval Queue on the Admin dashboard allows for one-click approval/rejection of new agents and partners. Admins can also view all registration details (including KYC and bank info) for both pending and approved users.
+- **Enhanced CSV Exports:**
+    - **Disbursed Leads Export:** Admins and Ops can export a CSV of only Disbursed leads, with date filters and detailed columns for disbursed amount and commissions.
+    - **Stats Export:** Admins and Ops can export a performance CSV for agents and partners, broken down by every individual lead status.
+- **Updated CRM Logic:**
+    - **New Lead Statuses:** The lead lifecycle now includes more granular statuses like Sent for Eligibility, Underwriting, and Query/Hold.
+    - **Application ID:** An Application ID field now dynamically appears in the Bank Eligibility section when Login Done is set to Yes.
+- **Loan Types:** Balance Transfer has been added as a loan type across all forms and filters.
 
 **Last working item**:
-- **Last item agent was working:** The agent was fixing a blank screen issue on the Partner Registration page. The problem was identified as an incorrect route path in the  router configuration and the corresponding links in . The agent corrected the path from  to  and verified with a screenshot that the registration form now loads correctly.
+- **Last item agent was working:** The agent was updating the Export Stats CSV feature on both the Admin and Operations dashboards. The goal was to include individual columns for all 17+ lead statuses to provide a granular breakdown of agent/partner performance. The agent modified the frontend components to generate the correct CSV header and data rows.
 - **Status**: IN PROGRESS
 - **Agent Testing Done**: N
-- **Which testing method agent to use?** Frontend testing agent. The agent should perform an end-to-end test of the new partner registration flow: fill out the form, upload an ID card, submit, and then attempt to log in with the newly created credentials to ensure the entire flow is functional.
+- **Which testing method agent to use?** Manual testing. The next agent should log in, use the Export Stats feature, and verify the contents of the downloaded CSV file by inspecting its headers and data rows to ensure all new status columns are present and populated correctly.
 - **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
-- **Issue 1:** Full verification of the new user registration flows (P0)
-- **Issue 2:** Critical deployment blocker with  environment variable (P1)
-- **Issue 3:** Admin ability to view agent/partner ID cards (P2)
-- **Issue 4:** Deleting a lead does not update dashboard stats in real-time (P2)
-- **Issue 5:** Unoptimized database queries from health check (P3)
+- **Issue 1:** Verify Export Stats CSV includes all status columns (P0)
+- **Issue 2:** Full verification of ID card viewing functionality (P1)
+- **Issue 3:** Unoptimized database queries affecting performance (P2)
 
 **Issues Detail:**
-- **Issue 1:** Full verification of the new user registration flows
-    - **Attempted fixes:** The agent fixed the routing issue that caused the Partner Registration page to be blank. The agent also implemented password fields and ID card uploads for both Agent and Partner registration.
+- **Issue 1:** Verify Export Stats CSV includes all status columns
+    - **Attempted fixes:** The agent updated  and  to add all lead statuses to the CSV export header and data mapping. A UI screenshot confirmed the modal works, but the file content was not verified.
     - **Next debug checklist:**
-        1.  Use the frontend testing agent to navigate to the Register as Partner page.
-        2.  Fill in all fields, including email, a new password, and upload a test ID card file.
-        3.  Submit the form and check for a success message.
-        4.  Navigate to the login page and attempt to log in with the newly created partner's credentials.
-        5.  Verify successful login and navigation to the Partner Dashboard.
-        6.  Repeat the process for Register as Agent.
-    - **Why fix this issue and what will be achieved with the fix?** The registration flow is critical for onboarding new agents and partners. It must be fully functional.
+        1. Log in as an Admin or Ops user.
+        2. Navigate to the dashboard and click the Export Stats button.
+        3. Use the modal to trigger the download.
+        4. Inspect the downloaded CSV file. Verify the header contains a column for every lead status (New, Contacted, Docs Collected, Sent for Eligibility, Sent for Login, etc.).
+    - **Why fix this issue and what will be achieved with the fix?** To confirm that the user's request for a detailed performance export is fully and correctly implemented.
     - **Status:** IN PROGRESS
-    - **Is recurring issue?** N
-    - **Should Test frontend/backend/both after fix?** both
-    - **Blocked on other issue:** None
-
-- **Issue 2:** Critical deployment blocker with  environment variable
-    - **Attempted fixes:** The deployment agent flagged a hardcoded  in . The agent removed it, which broke the preview environment (causing a ). The agent then reverted the change by adding  back to the  file. This is a temporary hack.
-    - **Next debug checklist:**
-        1.  Modify all backend files that access  (e.g., , , ) to use .
-        2.  This allows the preview environment to use the default 'test_database' while letting the production environment override it without causing a crash.
-        3.  Remove  from .
-        4.  Restart the backend and test a core function like login to ensure the app still works in the preview environment.
-    - **Why fix this issue and what will be achieved with the fix?** This will resolve a critical deployment blocker and make the application's configuration more robust and environment-agnostic.
-    - **Status:** NOT STARTED
-    - **Is recurring issue?** Y
-    - **Should Test frontend/backend/both after fix?** backend
-    - **Blocked on other issue:** None
-
-- **Issue 3:** Admin ability to view agent/partner ID cards
-    - **Attempted fixes:** The agent added a link/button to the User Management tab in the Admin Dashboard intended to show the ID card. The backend endpoint for public file uploads was also created.
-    - **Next debug checklist:**
-        1.  Ensure the registration flow correctly saves the  to the user/agent/partner document in MongoDB.
-        2.  Verify the Admin dashboard fetches this .
-        3.  The View ID link should point to a secure download endpoint (like the one created for lead documents) that uses the file path to retrieve and display the ID card image/PDF.
-    - **Why fix this issue and what will be achieved with the fix?** This is a user-requested feature for admin verification of new agents/partners.
-    - **Status:** IN PROGRESS
-    - **Is recurring issue?** N
-    - **Should Test frontend/backend/both after fix?** both
-    - **Blocked on other issue:** Depends on Issue 1 (registration flow).
-
-- **Issue 4:** Deleting a lead does not update dashboard stats in real-time
-    - **Attempted fixes:** The agent implemented the backend logic to delete the lead from the  collection and the corresponding commission from the  collection.
-    - **Next debug checklist:**
-        1.  After a lead is deleted, the frontend state for leads and dashboard stats needs to be updated without a page refresh.
-        2.  Modify the  function in  to filter out the deleted lead from the  state and then recalculate the stats.
-    - **Why fix this issue and what will be achieved with the fix?** This improves user experience by providing immediate feedback and ensuring data consistency on the dashboard.
-    - **Status:** NOT STARTED
     - **Is recurring issue?** N
     - **Should Test frontend/backend/both after fix?** frontend
     - **Blocked on other issue:** None
 
-- **Issue 5:** Unoptimized database queries from health check
-    - **Attempted fixes:** None. The agent acknowledged the issue reported by the deployment agent but did not address it.
+- **Issue 2:** Full verification of ID card viewing functionality
+    - **Attempted fixes:** The agent fixed a bug where the ID card URL was relative. The fix prepends the backend URL to the path. However, this flow has not been tested with a user who has an ID card uploaded.
     - **Next debug checklist:**
-        1.  Review the 11 queries flagged by the health check.
-        2.  Common optimizations include adding projections () to exclude unnecessary fields and using  and  for pagination, especially in the main  endpoint.
-    - **Why fix this issue and what will be achieved with the fix?** Improves application performance and scalability, especially as the number of leads grows.
-    - **Status:** NOT STARTED
+        1. Register a new Agent or Partner and ensure an ID card file is uploaded during the process.
+        2. Log in as an Admin.
+        3. Navigate to the Users tab.
+        4. Find the newly registered user and click the View ID button.
+        5. Confirm that the ID card (image/PDF) opens correctly in a new tab.
+    - **Why fix this issue and what will be achieved with the fix?** This is a core feature for the admin's user verification workflow.
+    - **Status:** USER VERIFICATION PENDING
     - **Is recurring issue?** N
+    - **Should Test frontend/backend/both after fix?** both
+    - **Blocked on other issue:** None
+
+- **Issue 3:** Unoptimized database queries affecting performance
+    - **Attempted fixes:** None. This was identified in a previous session's health check but was not addressed.
+    - **Next debug checklist:**
+        1. Review database-heavy endpoints, particularly  and .
+        2. In the corresponding backend files (, ), add projections () to MongoDB queries to fetch only the necessary data.
+        3. Check if indexes are needed for frequently filtered fields like  and .
+    - **Why fix this issue and what will be achieved with the fix?** To improve backend performance and ensure the application remains scalable.
+    - **Status:** NOT STARTED
+    - **Is recurring issue?** Y
     - **Should Test frontend/backend/both after fix?** backend
     - **Blocked on other issue:** None
 
 **In progress Task List**:
-- None, all are covered under the issue list.
+- None.
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks:**
-    - **(P0) Implement Document Upload to Google Drive:** The current document upload system uses local server storage. Once the user provides a Google Workspace account, the backend needs to be switched from  to the  module.
+    - **(P0) Implement Document Upload to Google Drive:** Switch the backend document storage from the local  module to the  module once user credentials are provided.
+    - **(P1) Commission Payout Reports:** Create a new feature for generating and viewing commission payout reports for agents and partners.
+    - **(P2) Bulk User Approval:** Implement a feature to allow admins to approve multiple pending users at once from the Approval Queue.
 - **Future Tasks:**
-    - **(P1) Activate Notifications System:** The user has deferred activating the Twilio (SMS) and Resend (Email) integrations. This task will involve implementing the logic to trigger notifications on events like lead assignment and status changes.
+    - **(P2) Activate Notifications System:** Implement Twilio (SMS) and Resend (Email) notifications for events like lead assignment, status changes, and user approval/rejection.
 
 **Completed work in this session**
-- **Admin Management Suite:**
-    - Implemented a User Management tab on the Admin Dashboard to view Ops, Agents, and Partners.
-    - Added functionality for Admins to delete users and leads. The lead deletion logic also removes associated commission records.
-- **Lead Data Export:** Admins can now export all lead data, including status history and user details, to a CSV file.
-- **Login System Overhaul:** Removed the OTP verification flow entirely. All users (Admin, Ops, Agent, Partner) now log in using a standard email and password.
-- **Registration Flow Update:** Updated Agent and Partner registration pages to include password creation and ID card upload. Set a default password for existing users who lacked one.
-- **Document Persistence & Download Fix:**
-    - Modified the file upload endpoint to save document metadata to the lead record in MongoDB, ensuring documents persist on refresh.
-    - Fixed the document download feature by passing a short-lived auth token in the URL, allowing secure, authenticated file access.
-- **QR Code URL Fix:** Corrected QR code generation logic to be environment-aware, using the request's origin to create the URL. This ensures production QR codes link to the production site, not the preview site.
-- **UI/UX Enhancements:**
-    - Added filter components (Time, Loan Type, Status) directly into the My Leads section on all dashboards.
-    - Fixed the New Lead button on the Agent dashboard, which was pointing to an incorrect URL.
-    - Fixed the Notes feature on the Lead Detail page by correcting the API request payload.
-- **Bug Verification:** Confirmed that leads generated via QR code are correctly attributed and appear on all relevant dashboards.
+- **E2E Registration Flow Testing:** Used the testing agent to find and fix critical bugs in the agent registration and approval backend logic.
+- ** Deployment Blocker Fixed:** Refactored 12 backend files to use  with a default value, resolving a critical deployment issue.
+- **Admin Approval Queue:** Implemented a new Approvals tab on the Admin dashboard with a pending count badge and one-click approve/reject functionality.
+- **View All Registration Details:** Added an expandable View Details section for Admins to see full registration data (KYC, Bank Details) for all users.
+- **Massive Dashboard & Filter Enhancements:**
+    - Added new time filters (Today, Custom Range) and a source filter (Agent/Partner) to Admin and Ops dashboards.
+    - Added several new lead statuses (Sent for Eligibility, Underwriting, etc.) to the CRM lifecycle and filters.
+- **Enhanced CSV Exports:**
+    - Reworked the lead export to focus on Disbursed leads, adding date filters and financial details. This feature was extended to the Ops dashboard.
+    - Created a new Export Stats feature for agent/partner performance, which was just updated to include a column for every lead status.
+- **CRM UI/UX Updates:**
+    - Added Balance Transfer as a new loan type across the application.
+    - Replaced Eligible Tenure with ROI% in the eligibility section.
+    - Implemented a conditional Application ID input field that appears in the Bank Eligibility card only when Login Done is set to Yes.
 
 **Earlier issues found/mentioned but not fixed**
-- **Issue 1:** The deployment health check reported 11 unoptimized database queries that could impact performance.
-    - **Debug checklist:** Review backend endpoints like  and apply MongoDB best practices such as projections (to limit fields) and pagination.
-    - **Why to solve this issue and what will be achieved with this?** To improve backend performance and scalability.
+- **Issue 1:** Unoptimized database queries from health check.
+    - **Debug checklist:** Review backend endpoints (, etc.) and add projections to MongoDB queries to limit the fields returned.
+    - **Why to solve this issue and what will be achieved with this?** Improves application performance and scalability.
     - **Should Test frontend/backend/both after fix:** backend
     - **Is recurring issue?** Y
 
 **Known issue recurrence from previous fork**
-- None.
+- **Issue recurrence in previous fork:**  environment variable causing deployment failures.
+- **Recurrence count:** 2+
+- **Status:** RESOLVED
+- **Note:** The agent successfully implemented a permanent fix by using  across all backend files, making the application robust to this missing variable.
 
 **Code Architecture**
 
@@ -151,68 +132,66 @@ Recent major updates include:
 **Key Technical Concepts**
 - **Frontend:** React, Tailwind CSS, Shadcn/UI, Axios, Recharts.
 - **Backend:** FastAPI, MongoDB (via  async driver), Local File Storage.
-- **Authentication:** JWT tokens (email/password). The dependency on Passlib for hashing/verification is crucial.
+- **Authentication:** JWT tokens (email/password).
 
 **key DB schema**
-- **users:** . The  field is now used for all roles.
-- **leads:** . The  array now stores notes. The  array stores metadata for uploads.
+- **users:** 
+- **leads:** 
 - **commissions:** 
-- **documents:** (This collection is not used; metadata is stored inside the  collection).
 
 **changes in tech stack**
 - None.
 
 **All files of reference**
-- **/app/frontend/src/pages/AdminDashboard.js**: Heavily modified to add User Management tabs, delete functions, and lead export.
-- **/app/frontend/src/pages/LoginPage.js**: Completely refactored to remove OTP and use a single email/password form.
-- **/app/backend/auth.py**: Modified to handle email/password login, user deletion, and password setting for existing users.
-- **/app/backend/qr_system.py**: Logic updated to use request origin for generating QR code URLs.
-- **/app/backend/file_storage.py**: Updated to save document metadata to MongoDB and handle token-based authenticated downloads.
-- **/app/backend/leads.py**: Updated to handle lead deletion (including commissions) and lead data export.
-- **/app/frontend/src/pages/AgentRegistration.js**: Updated to include password and handle ID card upload.
-- **/app/frontend/src/pages/PartnerRegistration.js**: Updated with password and ID card upload; was the subject of the last fix.
-- **/app/backend/.env**: Modified to add  and requires a robust fix for .
+- **/app/frontend/src/pages/AdminDashboard.js**: The main hub for most new features: Approval Queue, User Details view, enhanced filters, and both new CSV export modals.
+- **/app/frontend/src/pages/OperationsDashboard.js**: Mirrored the filter and export enhancements from the Admin dashboard.
+- **/app/frontend/src/pages/LeadDetailPage.js**: Logic was heavily updated to handle the new Application ID field and new lead statuses.
+- **/app/frontend/src/components/dashboard/DashboardFilters.jsx**: Completely overhauled to support custom date ranges and filtering by agent/partner source.
+- **/app/frontend/src/components/lead-detail/BankEligibilityCard.jsx**: Updated to replace Tenure with ROI% and to conditionally display the Application ID field.
+- **/app/frontend/src/utils/constants.js**: Updated with new loan types, new lead statuses, and new time filter options.
+- **/app/backend/leads.py**: Endpoint  was modified to handle date filters, status filters, and to join user/bank data.
+- **/app/backend/crm.py**: Status update endpoint was modified to handle the new lead statuses.
 
 **Areas that need refactoring**:
-- **Environment Variable Handling:** The way  is accessed across multiple backend files is not robust. It should be centralized or use  with a default to prevent crashes when the variable isn't set in production.
+- **Database Queries:** The application still has unoptimized database queries that were flagged by a health check. These should be addressed by adding projections to limit the data fetched from MongoDB.
 
 **key api endpoints**
--  (DELETE Method)
+- : Now accepts , , and  query parameters.
 - 
 - 
 - 
 - 
 - 
--  (Now accepts  query param)
--  (Now unified for all roles)
--  &  (Updated to handle password and ID card)
+- 
 
 **Critical Info for New Agent**
-- **Your immediate priority is to test the Agent and Partner registration flows end-to-end.** The pages were just fixed and updated, but the full cycle of register -> login has not been verified.
-- **The  environment variable is a critical deployment blocker.** The current fix was a revert that only works for the preview environment. A proper solution using  is required before the next deployment attempt.
-- The entire application now uses **email/password authentication**. The OTP login flow has been completely removed. Existing partner accounts were programmatically given a default password of .
-- A large number of new admin capabilities were just added (user/lead deletion, lead export, viewing user reports). These have been tested via API and screenshots but would benefit from user verification.
+- **Your immediate priority is to verify the last implemented feature**: the Export Stats CSV. You need to download the file and confirm it contains a separate column for every lead status as requested by the user.
+- The application's filtering capabilities have been significantly expanded. The Admin and Ops dashboards now support filtering by custom date ranges and by the lead source (specific agents or partners).
+- The  environment variable issue, which was a recurring deployment blocker, has been permanently fixed.
+- Many new lead statuses have been added. Be mindful of this expanded status lifecycle when working on CRM-related tasks.
+- A testing agent was used at the beginning of this session to fix the registration flow, and a test report exists at .
 
 **documents and test reports created in this job**
-- None.
+- **/app/memory/PRD.md** (updated multiple times)
+- **/app/test_reports/iteration_6.json**
 
 **Last 10 User Messages and any pending HUMAN messages**
-1. **User:** Requested several new admin features: view all ops users with reports, delete users (ops, agents, partners), and delete leads.
-2. **User:** Reported that uploaded documents disappear on refresh.
-3. **User:** Reported that filters are needed in the view all leads section of all dashboards.
-4. **User:** Reported that the QR code on the live site () was incorrectly linking to the preview environment URL.
-5. **User:** Confirmed that the QR code was still taking them to the preview form and requested the fix for partners as well.
-6. **User:** Asked to deploy the changes and run a health check.
-7. **User:** Reported that after submitting a lead via QR code, it's not appearing on any dashboards.
-8. **User:** Reported that the New Lead button on the agent dashboard leads to a blank page.
-9. **User:** Instructed the agent to make the changes recommended by the deployment health check.
-10. **User:** Asked the agent to run a health check in preparation for deployment.
+1. **User request:** Export stats for *all* statuses in the CSV. (Status: IN PROGRESS, needs file verification)
+2. **User clarification:** The Application ID field should appear in the bank eligibility card when Login Done is Yes. (Status: COMPLETED)
+3. **User request (5 parts):** 1) Enhance time filters, 2) Add agent/partner filter, 3) Add stats export, 4) Add application ID on login, 5) Add more status options. (Status: COMPLETED)
+4. **User request:** Add the disbursed leads export feature to the Ops dashboard. (Status: COMPLETED)
+5. **User request:** Change lead export to only disbursed leads with date filters and more financial details. (Status: COMPLETED)
+6. **User request:** Enhance CSV export to include agent/partner name, status history, and bank details. (Status: COMPLETED)
+7. **User request:** Add a way for an admin to see all details from registration forms. (Status: COMPLETED)
+8. **User feedback:** Approved the agent's suggestion to build an Approval Queue. (Status: COMPLETED)
+9. **User action:** Recharged account. (N/A)
+10. **User feedback:** yes proceed. (Initial approval for the work plan)
 
 **Project Health Check:**
 - **Broken:** None. The application is functional in the preview environment.
 - **Mocked:**
     - Notifications System (SMS/Email via Twilio/Resend).
-    - Document Upload to Google Drive (the system currently uses local server storage).
+    - Document Upload to Google Drive (currently uses local server storage).
 
 **3rd Party Integrations**
 - **qrcode (Python Library):** Implemented and working.
@@ -222,9 +201,9 @@ Recent major updates include:
 - **Resend (Email):** Planned/Mocked.
 
 **Testing status**
-- **Testing agent used after significant changes:** NO
+- **Testing agent used after significant changes:** YES (at the beginning of the session for registration flows)
 - **Troubleshoot agent used after agent stuck in loop:** NO
-- **Test files created:** None
+- **Test files created:** None.
 - **Known regressions:** None.
 
 **Credentials to test flow:**
@@ -233,7 +212,5 @@ Recent major updates include:
 - **Existing Agent/Partner Login:** Use their email and the default password  if they were created before the login system change. New agents/partners will set their own password during registration.
 
 **What agent forgot to execute**
-- The agent did not perform an end-to-end test of the new partner/agent registration flow after fixing the UI and adding new fields.
-- The agent implemented a temporary hack for the  environment variable issue instead of a permanent, robust solution.
-- The final implementation and verification of an admin viewing a user's uploaded ID card was not completed.
-- The agent did not address the non-critical performance issue of unoptimized database queries flagged by the health check.</analysis>
+- The agent did not address the non-critical performance issue of unoptimized database queries flagged in a previous session.
+- The agent did not perform a full verification of the last implemented feature by downloading the Export Stats CSV and checking its content.</analysis>

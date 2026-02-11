@@ -21,13 +21,17 @@ db = client[os.environ['DB_NAME']]
 
 router = APIRouter()
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 class AgentRegistration(BaseModel):
     full_name: str
     phone: str
     email: EmailStr
+    password: str
     city: str
     bank_details: Optional[dict] = None
     referral_code: Optional[str] = None
+    id_card_url: Optional[str] = None
 
 class AgentApproval(BaseModel):
     agent_id: str
@@ -42,6 +46,7 @@ async def register_agent(agent_data: AgentRegistration):
     
     agent_id = str(uuid.uuid4())
     agent_code = f"AGT{agent_id[:8].upper()}"
+    hashed_password = pwd_context.hash(agent_data.password)
     
     agent_doc = {
         "id": agent_id,
@@ -52,6 +57,7 @@ async def register_agent(agent_data: AgentRegistration):
         "city": agent_data.city,
         "bank_details": agent_data.bank_details,
         "referral_code": agent_data.referral_code,
+        "id_card_url": agent_data.id_card_url,
         "is_approved": False,
         "is_active": True,
         "team_leader_id": None,
@@ -66,12 +72,17 @@ async def register_agent(agent_data: AgentRegistration):
     
     await db.agents.insert_one(agent_doc)
     
-    # Also store agent_id in users collection for easy lookup
-    await db.users.update_one(
-        {"email": agent_data.email},
-        {"$set": {"agent_id": agent_id}},
-        upsert=False
-    )
+    # Create user account for login
+    user_doc = {
+        "id": agent_id,
+        "email": agent_data.email,
+        "password": hashed_password,
+        "full_name": agent_data.full_name,
+        "phone": agent_data.phone,
+        "role": "sales_agent",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.users.insert_one(user_doc)
     
     return {
         "message": "Agent registration submitted. Awaiting approval. You can login after approval.",

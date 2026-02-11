@@ -163,6 +163,9 @@ const AdminDashboard = () => {
   const [deletingUser, setDeletingUser] = useState(null);
   const [deletingLead, setDeletingLead] = useState(null);
   const [exporting, setExporting] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportFromDate, setExportFromDate] = useState('');
+  const [exportToDate, setExportToDate] = useState('');
   const [pendingAgents, setPendingAgents] = useState([]);
   const [pendingPartners, setPendingPartners] = useState([]);
   const [approvingUser, setApprovingUser] = useState(null);

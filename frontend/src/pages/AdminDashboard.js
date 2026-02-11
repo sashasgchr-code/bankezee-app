@@ -305,13 +305,13 @@ const AdminDashboard = () => {
     setExporting(true);
     try {
       // Build query params for date filter
-      let url = '/leads/export/disbursed';
+      let apiUrl = '/leads/export/disbursed';
       const params = new URLSearchParams();
       if (exportFromDate) params.append('from_date', exportFromDate);
       if (exportToDate) params.append('to_date', exportToDate);
-      if (params.toString()) url += '?' + params.toString();
+      if (params.toString()) apiUrl += '?' + params.toString();
       
-      const response = await api.get(url);
+      const response = await api.get(apiUrl);
       const data = response.data;
       
       if (data.leads.length === 0) {
@@ -381,13 +381,13 @@ const AdminDashboard = () => {
       
       const csvContent = csvRows.join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = window.URL.createObjectURL(blob);
+      const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
+      a.href = downloadUrl;
       const dateRange = exportFromDate && exportToDate ? `_${exportFromDate}_to_${exportToDate}` : '';
       a.download = `bankezee_disbursed_leads${dateRange}_${new Date().toISOString().split('T')[0]}.csv`;
       a.click();
-      window.URL.revokeObjectURL(url);
+      window.URL.revokeObjectURL(downloadUrl);
       
       toast.success(`Exported ${data.leads.length} disbursed leads | Total: ₹${data.total_disbursed_amount.toLocaleString()} | Commission: ₹${data.total_commission.toLocaleString()}`);
       setShowExportModal(false);

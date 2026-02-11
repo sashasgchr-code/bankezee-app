@@ -22,7 +22,7 @@ const EMPTY_ELIGIBILITY = {
   bank_name: '',
   is_eligible: '',
   eligible_amount: '',
-  eligible_tenure: '',
+  eligible_roi: '',
   not_eligible_reason: '',
   login_done: '',
   login_bank: '',

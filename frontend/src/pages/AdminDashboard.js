@@ -409,6 +409,179 @@ const AdminDashboard = () => {
     }
   };
 
+  // Export Agent/Partner Stats
+  const handleExportStats = async () => {
+    setExportingStats(true);
+    try {
+      // Fetch all leads and filter by date
+      const response = await api.get('/leads/');
+      let allLeads = response.data;
+      
+      // Apply date filter if set
+      if (statsExportFromDate || statsExportToDate) {
+        allLeads = allLeads.filter(lead => {
+          const leadDate = new Date(lead.created_at);
+          if (statsExportFromDate && leadDate < new Date(statsExportFromDate)) return false;
+          if (statsExportToDate) {
+            const toDate = new Date(statsExportToDate);
+            toDate.setHours(23, 59, 59, 999);
+            if (leadDate > toDate) return false;
+          }
+          return true;
+        });
+      }
+
+      // Calculate stats per agent
+      const agentStats = {};
+      const partnerStats = {};
+
+      for (const lead of allLeads) {
+        if (lead.source === 'agent' && lead.source_id) {
+          if (!agentStats[lead.source_id]) {
+            const agent = allAgents.find(a => a.id === lead.source_id);
+            agentStats[lead.source_id] = {
+              name: agent?.full_name || 'Unknown',
+              code: agent?.agent_code || '',
+              phone: agent?.phone || '',
+              email: agent?.email || '',
+              totalLeads: 0,
+              newLeads: 0,
+              inProgress: 0,
+              approved: 0,
+              disbursed: 0,
+              rejected: 0,
+              totalDisbursedAmount: 0,
+              totalCommission: 0
+            };
+          }
+          const stats = agentStats[lead.source_id];
+          stats.totalLeads++;
+          if (lead.status === 'new') stats.newLeads++;
+          else if (['contacted', 'documents_collected', 'sent_for_eligibility', 'sent_for_login', 'login', 'sent_for_approval', 'underwriting', 'fi', 'query_hold'].includes(lead.status)) stats.inProgress++;
+          else if (lead.status === 'approved') stats.approved++;
+          else if (lead.status === 'disbursed') {
+            stats.disbursed++;
+            const disbursedElig = lead.eligibilities?.find(e => e.disbursed === true);
+            stats.totalDisbursedAmount += disbursedElig?.disbursed_amount || 0;
+            stats.totalCommission += disbursedElig?.commission_amount || 0;
+          }
+          else if (['not_eligible', 'not_login', 'declined', 'not_disbursed', 'rejected'].includes(lead.status)) stats.rejected++;
+        }
+
+        if (lead.source === 'partner' && lead.source_id) {
+          if (!partnerStats[lead.source_id]) {
+            const partner = allPartners.find(p => p.id === lead.source_id);
+            partnerStats[lead.source_id] = {
+              name: partner?.name || partner?.full_name || 'Unknown',
+              code: partner?.referral_code || '',
+              phone: partner?.mobile || partner?.phone || '',
+              email: partner?.email || '',
+              totalLeads: 0,
+              newLeads: 0,
+              inProgress: 0,
+              approved: 0,
+              disbursed: 0,
+              rejected: 0,
+              totalDisbursedAmount: 0,
+              totalCommission: 0
+            };
+          }
+          const stats = partnerStats[lead.source_id];
+          stats.totalLeads++;
+          if (lead.status === 'new') stats.newLeads++;
+          else if (['contacted', 'documents_collected', 'sent_for_eligibility', 'sent_for_login', 'login', 'sent_for_approval', 'underwriting', 'fi', 'query_hold'].includes(lead.status)) stats.inProgress++;
+          else if (lead.status === 'approved') stats.approved++;
+          else if (lead.status === 'disbursed') {
+            stats.disbursed++;
+            const disbursedElig = lead.eligibilities?.find(e => e.disbursed === true);
+            stats.totalDisbursedAmount += disbursedElig?.disbursed_amount || 0;
+            stats.totalCommission += disbursedElig?.commission_amount || 0;
+          }
+          else if (['not_eligible', 'not_login', 'declined', 'not_disbursed', 'rejected'].includes(lead.status)) stats.rejected++;
+        }
+      }
+
+      // Build CSV
+      const headers = ['Type', 'Name', 'Code', 'Phone', 'Email', 'Total Leads', 'New', 'In Progress', 'Approved', 'Disbursed', 'Rejected', 'Disbursed Amount (₹)', 'Commission (₹)'];
+      const csvRows = [headers.join(',')];
+
+      // Add agent stats
+      Object.values(agentStats).forEach(stats => {
+        csvRows.push([
+          'Agent',
+          `"${stats.name}"`,
+          stats.code,
+          stats.phone,
+          stats.email,
+          stats.totalLeads,
+          stats.newLeads,
+          stats.inProgress,
+          stats.approved,
+          stats.disbursed,
+          stats.rejected,
+          stats.totalDisbursedAmount,
+          stats.totalCommission
+        ].join(','));
+      });
+
+      // Add partner stats
+      Object.values(partnerStats).forEach(stats => {
+        csvRows.push([
+          'Partner',
+          `"${stats.name}"`,
+          stats.code,
+          stats.phone,
+          stats.email,
+          stats.totalLeads,
+          stats.newLeads,
+          stats.inProgress,
+          stats.approved,
+          stats.disbursed,
+          stats.rejected,
+          stats.totalDisbursedAmount,
+          stats.totalCommission
+        ].join(','));
+      });
+
+      // Add totals
+      const totalAgents = Object.values(agentStats);
+      const totalPartners = Object.values(partnerStats);
+      const agentTotals = totalAgents.reduce((acc, s) => ({
+        totalLeads: acc.totalLeads + s.totalLeads,
+        disbursed: acc.disbursed + s.disbursed,
+        totalDisbursedAmount: acc.totalDisbursedAmount + s.totalDisbursedAmount,
+        totalCommission: acc.totalCommission + s.totalCommission
+      }), { totalLeads: 0, disbursed: 0, totalDisbursedAmount: 0, totalCommission: 0 });
+      const partnerTotals = totalPartners.reduce((acc, s) => ({
+        totalLeads: acc.totalLeads + s.totalLeads,
+        disbursed: acc.disbursed + s.disbursed,
+        totalDisbursedAmount: acc.totalDisbursedAmount + s.totalDisbursedAmount,
+        totalCommission: acc.totalCommission + s.totalCommission
+      }), { totalLeads: 0, disbursed: 0, totalDisbursedAmount: 0, totalCommission: 0 });
+
+      csvRows.push('');
+      csvRows.push(`"AGENT TOTALS",,,,,${agentTotals.totalLeads},,,,${agentTotals.disbursed},,${agentTotals.totalDisbursedAmount},${agentTotals.totalCommission}`);
+      csvRows.push(`"PARTNER TOTALS",,,,,${partnerTotals.totalLeads},,,,${partnerTotals.disbursed},,${partnerTotals.totalDisbursedAmount},${partnerTotals.totalCommission}`);
+
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      const dateRange = statsExportFromDate && statsExportToDate ? `_${statsExportFromDate}_to_${statsExportToDate}` : '';
+      a.download = `bankezee_agent_partner_stats${dateRange}_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(downloadUrl);
+
+      toast.success(`Exported stats for ${totalAgents.length} agents and ${totalPartners.length} partners`);
+      setShowStatsExportModal(false);
+    } catch (error) {
+      toast.error('Failed to export stats');
+    } finally {
+      setExportingStats(false);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');

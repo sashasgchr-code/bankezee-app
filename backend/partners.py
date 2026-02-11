@@ -3,6 +3,7 @@ from pydantic import BaseModel, EmailStr
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 from pathlib import Path
+from passlib.context import CryptContext
 import os
 import uuid
 from datetime import datetime, timezone
@@ -21,32 +22,40 @@ db = client[os.environ['DB_NAME']]
 
 router = APIRouter()
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 class PartnerRegistration(BaseModel):
     name: str
+    email: EmailStr
+    password: str
     mobile: str
     city: str
     occupation: Optional[str] = None
     pan_number: Optional[str] = None
     bank_details: Optional[dict] = None
+    id_card_url: Optional[str] = None
 
 @router.post("/register")
 async def register_partner(partner_data: PartnerRegistration):
-    existing = await db.partners.find_one({"mobile": partner_data.mobile}, {"_id": 0})
+    existing = await db.partners.find_one({"$or": [{"mobile": partner_data.mobile}, {"email": partner_data.email}]}, {"_id": 0})
     if existing:
-        raise HTTPException(status_code=400, detail="Mobile number already registered")
+        raise HTTPException(status_code=400, detail="Email or mobile number already registered")
     
     partner_id = str(uuid.uuid4())
     referral_code = f"PTR{partner_id[:8].upper()}"
+    hashed_password = pwd_context.hash(partner_data.password)
     
     partner_doc = {
         "id": partner_id,
         "referral_code": referral_code,
         "name": partner_data.name,
+        "email": partner_data.email,
         "mobile": partner_data.mobile,
         "city": partner_data.city,
         "occupation": partner_data.occupation,
         "pan_number": partner_data.pan_number,
         "bank_details": partner_data.bank_details,
+        "id_card_url": partner_data.id_card_url,
         "is_active": True,
         "is_approved": False,
         "wallet_balance": 0,
@@ -60,9 +69,9 @@ async def register_partner(partner_data: PartnerRegistration):
     
     # Create user account with same ID
     user_doc = {
-        "id": partner_id,  # Use same ID
-        "email": f"partner_{partner_id[:8]}@bankezee.com",
-        "password": "",
+        "id": partner_id,
+        "email": partner_data.email,
+        "password": hashed_password,
         "full_name": partner_data.name,
         "phone": partner_data.mobile,
         "role": "partner",
@@ -76,7 +85,7 @@ async def register_partner(partner_data: PartnerRegistration):
     await db.users.insert_one(user_doc)
     
     return {
-        "message": "Retail Partner registration successful. Awaiting admin approval. You can login with OTP after approval.",
+        "message": "Retail Partner registration successful. Awaiting admin approval. You can login after approval.",
         "partner_id": partner_id,
         "referral_code": referral_code,
         "login_instructions": "Use OTP login with your mobile number after admin approval"

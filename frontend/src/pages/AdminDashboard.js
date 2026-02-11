@@ -92,6 +92,39 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchPendingApprovals = async () => {
+    try {
+      const [agentsRes, partnersRes] = await Promise.all([
+        api.get('/agents/?status=pending'),
+        api.get('/partners/')
+      ]);
+      setPendingAgents(agentsRes.data.filter(a => !a.is_approved));
+      setPendingPartners(partnersRes.data.filter(p => !p.is_approved));
+    } catch (error) {
+      console.error('Failed to fetch pending approvals');
+    }
+  };
+
+  const handleApproveUser = async (userId, userType, approved) => {
+    setApprovingUser(userId);
+    try {
+      if (userType === 'agent') {
+        await api.post('/agents/approve', { agent_id: userId, approved });
+      } else if (userType === 'partner') {
+        await api.post(`/partners/approve/${userId}?approved=${approved}`);
+      }
+      toast.success(`${userType.charAt(0).toUpperCase() + userType.slice(1)} ${approved ? 'approved' : 'rejected'} successfully`);
+      fetchPendingApprovals();
+      fetchAllUsers();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || `Failed to ${approved ? 'approve' : 'reject'} ${userType}`);
+    } finally {
+      setApprovingUser(null);
+    }
+  };
+
+  const pendingCount = pendingAgents.length + pendingPartners.length;
+
   const handleDeleteUser = async (userId, userType) => {
     if (!window.confirm(`Are you sure you want to delete this ${userType}? This action cannot be undone.`)) {
       return;

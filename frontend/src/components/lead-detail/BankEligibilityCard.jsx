@@ -71,11 +71,11 @@ const BankEligibilityCard = ({
               )}
             </div>
             <div>
-              <p className="text-xs text-slate-500 mb-1">Eligible Tenure (months)</p>
+              <p className="text-xs text-slate-500 mb-1">ROI (%)</p>
               {canEdit ? (
-                <Input type="number" value={elig.eligible_tenure || ''} onChange={(e) => updateField('eligible_tenure', e.target.value)} className="h-9 bg-white" placeholder="Months" />
+                <Input type="number" step="0.01" value={elig.eligible_roi || ''} onChange={(e) => updateField('eligible_roi', e.target.value)} className="h-9 bg-white" placeholder="%" />
               ) : (
-                <p className="font-medium">{elig.eligible_tenure || '-'}</p>
+                <p className="font-medium">{elig.eligible_roi ? `${elig.eligible_roi}%` : '-'}</p>
               )}
             </div>
           </>

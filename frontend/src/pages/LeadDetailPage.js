@@ -213,13 +213,8 @@ const LeadDetailPage = () => {
 
   const handleStatusUpdate = async () => {
     try {
-      const payload = { status: newStatus };
-      if (applicationId) {
-        payload.application_id = applicationId;
-      }
-      await api.put(`/crm/${leadId}/status`, payload);
+      await api.put(`/crm/${leadId}/status`, { status: newStatus });
       toast.success('Status updated successfully');
-      setApplicationId('');
       fetchLead();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to update status');

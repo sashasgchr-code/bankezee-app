@@ -170,6 +170,16 @@ const AdminDashboard = () => {
   const [pendingPartners, setPendingPartners] = useState([]);
   const [approvingUser, setApprovingUser] = useState(null);
   const [expandedUser, setExpandedUser] = useState(null);
+  // New filter states
+  const [filterFromDate, setFilterFromDate] = useState('');
+  const [filterToDate, setFilterToDate] = useState('');
+  const [sourceFilter, setSourceFilter] = useState('all');
+  const [sourceIdFilter, setSourceIdFilter] = useState('all');
+  // Stats export modal
+  const [showStatsExportModal, setShowStatsExportModal] = useState(false);
+  const [statsExportFromDate, setStatsExportFromDate] = useState('');
+  const [statsExportToDate, setStatsExportToDate] = useState('');
+  const [exportingStats, setExportingStats] = useState(false);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const toggleUserDetails = (userId) => {
@@ -180,6 +190,7 @@ const AdminDashboard = () => {
     fetchLeads();
     fetchOpsTeam();
     fetchPendingApprovals();
+    fetchAllUsers();
   }, []);
 
   useEffect(() => {

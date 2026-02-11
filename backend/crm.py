@@ -22,6 +22,7 @@ router = APIRouter()
 
 class StatusUpdate(BaseModel):
     status: str
+    application_id: Optional[str] = None
 
 class NoteAdd(BaseModel):
     note: str

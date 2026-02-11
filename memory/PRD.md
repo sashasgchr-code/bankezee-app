@@ -203,6 +203,16 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
      - Dashboard Filters (Admin, Ops, Agent, Partner)
    - Files updated: `constants.js`, `LoanRequirementsSection.jsx`, `LeadFormPage.js`, `AgentLeadCreate.js`, `PartnerLeadCreate.js`
 
+6. **Export Disbursed Leads with Date Filter (Enhancement) ✅ NEW**
+   - Changed export to only include disbursed leads (not all leads)
+   - Added date range filter (From Date / To Date)
+   - CSV now includes:
+     - Lead details (ID, Name, Mobile, Email, City, Loan Type)
+     - Agent/Partner details (Name, Code, Phone, Email, PAN, Bank Details)
+     - **Disbursement Info**: Disbursed Bank, Disbursed Amount, ROI %, Commission %, Commission Amount
+   - Summary row at bottom shows totals
+   - Modal UI with date pickers for easy filtering
+
 ### Bugs Fixed
 1. **Agent Registration Flow Fix (P0) ✅**
    - Fixed critical bug where agent user documents were missing `is_active` and `is_approved` fields

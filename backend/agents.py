@@ -119,6 +119,11 @@ async def approve_agent(
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Agent not found")
     
+    # Also update the user document for login
+    await db.users.update_one(
+        {"id": approval.agent_id, "role": "sales_agent"},
+        {"$set": {"is_approved": approval.approved}}
+    
     return {"message": "Agent approval status updated"}
 
 @router.get("/")

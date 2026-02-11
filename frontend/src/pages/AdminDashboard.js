@@ -119,6 +119,64 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleExportLeads = async () => {
+    setExporting(true);
+    try {
+      const response = await api.get('/leads/export/all');
+      const data = response.data;
+      
+      // Convert to CSV
+      const headers = ['ID', 'Full Name', 'Mobile', 'City', 'Email', 'Loan Type', 'Ticket Size', 'Status', 'Created At', 
+                       'Source', 'Source Name', 'Source Code', 'Source Phone', 'Source Email',
+                       'Assigned To', 'Assigned To Email', 'Bank Eligibilities', 'Activities Count'];
+      
+      const csvRows = [headers.join(',')];
+      
+      for (const lead of data.leads) {
+        const sourceDetails = lead.source_details || {};
+        const assignedDetails = lead.assigned_to_details || {};
+        const eligibilities = (lead.eligibilities || []).map(e => `${e.bank_name}:${e.is_eligible}`).join('; ');
+        
+        const row = [
+          lead.id,
+          `"${lead.full_name || ''}"`,
+          lead.mobile || '',
+          `"${lead.city || ''}"`,
+          lead.email || '',
+          lead.loan_type || lead.requirement || '',
+          lead.ticket_size || '',
+          lead.status || '',
+          lead.created_at || '',
+          lead.source || '',
+          `"${sourceDetails.full_name || sourceDetails.name || ''}"`,
+          sourceDetails.agent_code || sourceDetails.referral_code || '',
+          sourceDetails.phone || sourceDetails.mobile || '',
+          sourceDetails.email || '',
+          `"${assignedDetails.full_name || ''}"`,
+          assignedDetails.email || '',
+          `"${eligibilities}"`,
+          (lead.activities || []).length
+        ];
+        csvRows.push(row.join(','));
+      }
+      
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `leads_export_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(`Exported ${data.total_leads} leads`);
+    } catch (error) {
+      toast.error('Failed to export leads');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');

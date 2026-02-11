@@ -8,9 +8,140 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { Users, LogOut, LayoutDashboard, Eye, UserPlus, CheckSquare, X, Trash2, UserCog, Building, Briefcase, Download, FileText, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Users, LogOut, LayoutDashboard, Eye, UserPlus, CheckSquare, X, Trash2, UserCog, Building, Briefcase, Download, FileText, Clock, CheckCircle, XCircle, ChevronDown, ChevronUp, CreditCard, User, MapPin, Phone, Mail, Hash, Building2 } from 'lucide-react';
 import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
 import { filterByTimePeriod, filterByLoanType, calculateDashboardStats, LOAN_TYPES, TIME_FILTERS } from '@/utils/constants';
+
+// Detail Card Component for showing all user info
+const UserDetailCard = ({ user, type, onClose }) => {
+  const bankDetails = user.bank_details || {};
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+  
+  const getIdCardUrl = (url) => {
+    if (!url) return null;
+    return url.startsWith('/api') ? `${backendUrl}${url}` : url;
+  };
+
+  return (
+    <div className="mt-3 p-4 bg-white border border-slate-200 rounded-lg shadow-sm" data-testid={`user-detail-${user.id}`}>
+      <div className="flex justify-between items-start mb-4">
+        <h4 className="font-semibold text-slate-800">Complete Details</h4>
+        <Button variant="ghost" size="sm" onClick={onClose}>
+          <X className="w-4 h-4" />
+        </Button>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Basic Info */}
+        <div className="space-y-2">
+          <h5 className="text-sm font-medium text-slate-600 flex items-center gap-1">
+            <User className="w-4 h-4" /> Basic Information
+          </h5>
+          <div className="bg-slate-50 p-3 rounded-lg space-y-1 text-sm">
+            <p><span className="text-slate-500">Name:</span> <span className="font-medium">{user.full_name || user.name}</span></p>
+            <p><span className="text-slate-500">Email:</span> <span className="font-medium">{user.email}</span></p>
+            <p><span className="text-slate-500">Phone:</span> <span className="font-medium">{user.phone || user.mobile}</span></p>
+            <p><span className="text-slate-500">City:</span> <span className="font-medium">{user.city || 'N/A'}</span></p>
+            {type === 'partner' && user.occupation && (
+              <p><span className="text-slate-500">Occupation:</span> <span className="font-medium">{user.occupation}</span></p>
+            )}
+            <p><span className="text-slate-500">Code:</span> <span className="font-medium text-primary">{user.agent_code || user.referral_code}</span></p>
+            <p><span className="text-slate-500">Registered:</span> <span className="font-medium">{new Date(user.created_at).toLocaleString()}</span></p>
+          </div>
+        </div>
+
+        {/* KYC Details */}
+        <div className="space-y-2">
+          <h5 className="text-sm font-medium text-slate-600 flex items-center gap-1">
+            <CreditCard className="w-4 h-4" /> KYC Details
+          </h5>
+          <div className="bg-slate-50 p-3 rounded-lg space-y-1 text-sm">
+            <p><span className="text-slate-500">PAN Number:</span> <span className="font-medium">{user.pan_number || 'N/A'}</span></p>
+            <p><span className="text-slate-500">Status:</span> 
+              <span className={`ml-1 px-2 py-0.5 rounded text-xs ${user.is_approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                {user.is_approved ? 'Approved' : 'Pending'}
+              </span>
+            </p>
+            {user.id_card_url && (
+              <div className="pt-2">
+                <a 
+                  href={getIdCardUrl(user.id_card_url)} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  <FileText className="w-4 h-4" />
+                  View ID Card / Document
+                </a>
+              </div>
+            )}
+            {!user.id_card_url && (
+              <p className="text-slate-400 italic">No ID document uploaded</p>
+            )}
+          </div>
+        </div>
+
+        {/* Bank Details */}
+        <div className="space-y-2">
+          <h5 className="text-sm font-medium text-slate-600 flex items-center gap-1">
+            <Building2 className="w-4 h-4" /> Bank Details
+          </h5>
+          <div className="bg-slate-50 p-3 rounded-lg space-y-1 text-sm">
+            <p><span className="text-slate-500">Bank Name:</span> <span className="font-medium">{bankDetails.bank_name || 'N/A'}</span></p>
+            <p><span className="text-slate-500">Account Holder:</span> <span className="font-medium">{bankDetails.account_holder_name || 'N/A'}</span></p>
+            <p><span className="text-slate-500">Account Number:</span> <span className="font-medium">{bankDetails.account_number || 'N/A'}</span></p>
+            <p><span className="text-slate-500">IFSC Code:</span> <span className="font-medium">{bankDetails.ifsc_code || 'N/A'}</span></p>
+          </div>
+        </div>
+      </div>
+
+      {/* Performance Stats for approved users */}
+      {user.is_approved && (type === 'agent' ? user.performance : true) && (
+        <div className="mt-4 pt-4 border-t">
+          <h5 className="text-sm font-medium text-slate-600 mb-2">Performance</h5>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {type === 'agent' && user.performance && (
+              <>
+                <div className="bg-blue-50 p-2 rounded text-center">
+                  <p className="text-lg font-bold text-blue-700">{user.performance.total_leads || 0}</p>
+                  <p className="text-xs text-blue-600">Total Leads</p>
+                </div>
+                <div className="bg-green-50 p-2 rounded text-center">
+                  <p className="text-lg font-bold text-green-700">{user.performance.converted_leads || 0}</p>
+                  <p className="text-xs text-green-600">Converted</p>
+                </div>
+                <div className="bg-purple-50 p-2 rounded text-center">
+                  <p className="text-lg font-bold text-purple-700">₹{(user.performance.total_commission || 0).toLocaleString()}</p>
+                  <p className="text-xs text-purple-600">Commission</p>
+                </div>
+              </>
+            )}
+            {type === 'partner' && (
+              <>
+                <div className="bg-blue-50 p-2 rounded text-center">
+                  <p className="text-lg font-bold text-blue-700">{user.total_leads || 0}</p>
+                  <p className="text-xs text-blue-600">Total Leads</p>
+                </div>
+                <div className="bg-green-50 p-2 rounded text-center">
+                  <p className="text-lg font-bold text-green-700">{user.approved_cases || 0}</p>
+                  <p className="text-xs text-green-600">Approved Cases</p>
+                </div>
+                <div className="bg-purple-50 p-2 rounded text-center">
+                  <p className="text-lg font-bold text-purple-700">₹{(user.total_earnings || 0).toLocaleString()}</p>
+                  <p className="text-xs text-purple-600">Total Earnings</p>
+                </div>
+                <div className="bg-orange-50 p-2 rounded text-center">
+                  <p className="text-lg font-bold text-orange-700">₹{(user.wallet_balance || 0).toLocaleString()}</p>
+                  <p className="text-xs text-orange-600">Wallet Balance</p>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -35,7 +166,12 @@ const AdminDashboard = () => {
   const [pendingAgents, setPendingAgents] = useState([]);
   const [pendingPartners, setPendingPartners] = useState([]);
   const [approvingUser, setApprovingUser] = useState(null);
+  const [expandedUser, setExpandedUser] = useState(null);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+  const toggleUserDetails = (userId) => {
+    setExpandedUser(expandedUser === userId ? null : userId);
+  };
 
   useEffect(() => {
     fetchLeads();

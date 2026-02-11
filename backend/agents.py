@@ -3,6 +3,7 @@ from pydantic import BaseModel, EmailStr
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 from pathlib import Path
+from passlib.context import CryptContext
 import os
 import uuid
 from datetime import datetime, timezone

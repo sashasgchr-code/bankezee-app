@@ -974,46 +974,51 @@ const AdminDashboard = () => {
                   <Briefcase className="w-5 h-5 text-primary" />
                   Partners ({allPartners.length})
                 </CardTitle>
-                <CardDescription>Manage partners</CardDescription>
+                <CardDescription>Manage partners - Click "View Details" to see all registration information</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                <div className="space-y-3 max-h-[600px] overflow-y-auto">
                   {allPartners.length === 0 ? (
                     <p className="text-center text-slate-500 py-4">No partners found</p>
                   ) : (
                     allPartners.map((partner) => (
-                      <div key={partner.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                        <div className="flex-1">
-                          <p className="font-medium">{partner.name || partner.full_name}</p>
-                          <p className="text-sm text-slate-600">{partner.mobile || partner.phone} | Code: {partner.referral_code}</p>
-                          <p className="text-xs text-slate-500">{partner.email} | {partner.company_name || 'Individual'}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {partner.id_card_url && (
-                            <a 
-                              href={partner.id_card_url.startsWith('/api') 
-                                ? `${process.env.REACT_APP_BACKEND_URL}${partner.id_card_url}` 
-                                : partner.id_card_url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              data-testid={`partner-id-card-${partner.id}`}
+                      <div key={partner.id} className="bg-slate-50 rounded-lg border border-slate-100">
+                        <div className="flex items-center justify-between p-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium">{partner.name || partner.full_name}</p>
+                              <span className={`text-xs px-2 py-0.5 rounded ${partner.is_approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                {partner.is_approved ? 'Approved' : 'Pending'}
+                              </span>
+                            </div>
+                            <p className="text-sm text-slate-600">{partner.mobile || partner.phone} | Code: {partner.referral_code}</p>
+                            <p className="text-xs text-slate-500">{partner.email} | {partner.occupation || 'N/A'}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-slate-600"
+                              onClick={() => toggleUserDetails(`partner-${partner.id}`)}
+                              data-testid={`view-details-partner-${partner.id}`}
                             >
-                              <Button variant="outline" size="sm" className="text-blue-600">
-                                <FileText className="w-4 h-4 mr-1" />
-                                ID Card
-                              </Button>
-                            </a>
-                          )}
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => handleDeleteUser(partner.id, 'partner')}
-                            disabled={deletingUser === partner.id}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                              {expandedUser === `partner-${partner.id}` ? <ChevronUp className="w-4 h-4 mr-1" /> : <ChevronDown className="w-4 h-4 mr-1" />}
+                              {expandedUser === `partner-${partner.id}` ? 'Hide' : 'View'} Details
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => handleDeleteUser(partner.id, 'partner')}
+                              disabled={deletingUser === partner.id}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </div>
+                        {expandedUser === `partner-${partner.id}` && (
+                          <UserDetailCard user={partner} type="partner" onClose={() => setExpandedUser(null)} />
+                        )}
                       </div>
                     ))
                   )}

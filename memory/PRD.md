@@ -160,43 +160,68 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 
 ## Code Architecture (After Refactor)
 
-```
-/app/
-├── backend/
-│   ├── server.py
-│   ├── auth.py
-│   ├── agents.py
-│   ├── partners.py
-│   ├── leads.py
-│   ├── crm.py
-│   ├── qr_system.py
-│   └── tests/
-│       └── test_bulk_assign_and_ops_user.py
-├── frontend/
-│   └── src/
-│       ├── App.js
-│       ├── index.css
-│       ├── components/
-│       │   ├── ui/             # Shadcn UI components
-│       │   └── lead-detail/    # NEW: Modular lead detail components
-│       │       ├── index.js
-│       │       ├── EditableField.jsx
-│       │       ├── CustomerDetailsSection.jsx
-│       │       ├── EmploymentDetailsSection.jsx
-│       │       ├── ExistingLoansSection.jsx
-│       │       ├── LoanRequirementsSection.jsx
-│       │       ├── LeadSourceSection.jsx
-│       │       ├── BankEligibilityCard.jsx
-│       │       ├── EligibilityTracker.jsx
-│       │       ├── StatusUpdateCard.jsx
-│       │       ├── LeadAssignmentCard.jsx
-│       │       └── ActivityLog.jsx
-│       └── pages/
-│           ├── LeadDetailPage.js  # Refactored: 986 → 438 lines
-│           └── ...
-└── memory/
-    └── PRD.md
-```
+
+## Session 5 Highlights (December 12, 2025)
+
+### Bugs Fixed
+1. **Agent Registration Flow Fix (P0) ✅**
+   - Fixed critical bug where agent user documents were missing `is_active` and `is_approved` fields
+   - Agent approval now syncs both `agents` and `users` collections
+   - Full registration → approval → login flow verified via testing agent
+
+2. **DB_NAME Environment Variable Fix (P1) ✅**
+   - Fixed deployment blocker by changing `os.environ['DB_NAME']` to `os.environ.get('DB_NAME', 'test_database')`
+   - Updated in all 12 backend files (auth.py, leads.py, agents.py, partners.py, etc.)
+   - Removed hardcoded DB_NAME from backend/.env
+   - Application now works correctly in both preview and production environments
+
+3. **Admin ID Card Viewing (P2) ✅**
+   - ID Card buttons now properly construct full URLs with backend URL prefix
+   - Handles both relative paths (`/api/storage/public/...`) and absolute URLs
+
+4. **Real-time Dashboard Stats Update (P2) ✅**
+   - Lead deletion now updates UI immediately via state update
+   - No more full page refresh needed after deleting a lead
+
+### Testing
+- Testing agent ran 16 backend tests + frontend UI tests - all passed
+- Test report: `/app/test_reports/iteration_6.json`
+
+## Pending/Future Tasks
+
+### P0 - Critical
+- None
+
+### P1 - High Priority
+- None
+
+### P2 - Medium Priority  
+- Database query optimization (11 queries flagged by health check)
+
+### P3 - Deferred (Awaiting External Setup)
+- **Google Drive Integration** - Document storage (user will provide Google Workspace account)
+- **Twilio SMS** - Real OTP notifications (user will provide API keys)
+- **Resend Email** - Email notifications (user will provide API keys)
+
+## Test Credentials
+- **Admin:** admin@bankezee.com / admin123
+- **Operations:** ops@bankezee.com / ops123
+- **New Agent/Partner:** Create via registration, then approve via admin, password set during registration
+
+## API Endpoints Added/Modified
+
+### Session 5
+- `DELETE /api/leads/{lead_id}` - Delete lead (with cascade to commissions)
+- `GET /api/leads/export/all` - Export all leads to CSV
+- `DELETE /api/auth/admin/users/{user_id}` - Delete user (ops/agent/partner)
+- `GET /api/auth/admin/all-users` - Get all users by role
+- `POST /api/storage/upload-public` - Public file upload for ID cards (no auth)
+- `GET /api/storage/public/{path}` - Serve public files (ID cards)
+
+## Mocked Features
+- **SMS OTP via Twilio** (use code 123456 for testing)
+- **Email notifications via Resend**
+- **Document Upload to Google Drive** (using local file storage instead)
 
 ## Database Schema
 

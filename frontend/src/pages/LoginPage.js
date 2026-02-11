@@ -98,14 +98,14 @@ const LoginPage = () => {
             <p className="mb-2">Don't have an account?</p>
             <div className="flex justify-center gap-4">
               <button
-                onClick={() => navigate('/agent/register')}
+                onClick={() => navigate('/agent-registration')}
                 className="text-primary hover:underline"
               >
                 Register as Agent
               </button>
               <span className="text-slate-300">|</span>
               <button
-                onClick={() => navigate('/partner/register')}
+                onClick={() => navigate('/partner-registration')}
                 className="text-primary hover:underline"
               >
                 Register as Partner

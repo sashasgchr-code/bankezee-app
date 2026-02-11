@@ -13,6 +13,8 @@ const PartnerRegistration = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
+    email: '',
+    password: '',
     mobile: '',
     city: '',
     occupation: '',
@@ -33,12 +35,27 @@ const PartnerRegistration = () => {
     setLoading(true);
     
     try {
+      // First upload ID card if provided
+      let idCardUrl = null;
+      if (formData.id_proof) {
+        const idFormData = new FormData();
+        idFormData.append('file', formData.id_proof);
+        idFormData.append('document_type', 'partner_id_card');
+        const uploadResponse = await api.post('/storage/upload-public', idFormData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        idCardUrl = uploadResponse.data.file_url;
+      }
+
       const registrationData = {
         name: formData.name,
+        email: formData.email,
+        password: formData.password,
         mobile: formData.mobile,
         city: formData.city,
         occupation: formData.occupation,
         pan_number: formData.pan_number,
+        id_card_url: idCardUrl,
         bank_details: {
           bank_name: formData.bank_name,
           account_number: formData.account_number,

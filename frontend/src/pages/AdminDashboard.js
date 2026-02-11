@@ -40,12 +40,16 @@ const AdminDashboard = () => {
   useEffect(() => {
     fetchLeads();
     fetchOpsTeam();
+    fetchPendingApprovals();
   }, []);
 
   useEffect(() => {
     if (activeTab === 'users') {
       fetchOpsUsersWithReports();
       fetchAllUsers();
+    }
+    if (activeTab === 'approvals') {
+      fetchPendingApprovals();
     }
   }, [activeTab]);
 

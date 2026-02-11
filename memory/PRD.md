@@ -163,6 +163,15 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 
 ## Session 5 Highlights (December 12, 2025)
 
+### Features Added
+1. **Approval Queue Tab (Enhancement) ✅ NEW**
+   - New "Approvals" tab on Admin Dashboard with pending count badge
+   - Lists all pending agents and partners awaiting approval
+   - One-click Approve/Reject buttons for fast workflow
+   - Shows user details: name, email, phone, code, city, registration date
+   - ID Card viewing button if uploaded
+   - Real-time badge updates after approval/rejection
+
 ### Bugs Fixed
 1. **Agent Registration Flow Fix (P0) ✅**
    - Fixed critical bug where agent user documents were missing `is_active` and `is_approved` fields

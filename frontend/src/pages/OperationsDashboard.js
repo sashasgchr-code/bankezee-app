@@ -46,6 +46,90 @@ const OperationsDashboard = () => {
     navigate('/login');
   };
 
+  const handleExportLeads = async () => {
+    setExporting(true);
+    try {
+      let apiUrl = '/leads/export/disbursed';
+      const params = new URLSearchParams();
+      if (exportFromDate) params.append('from_date', exportFromDate);
+      if (exportToDate) params.append('to_date', exportToDate);
+      if (params.toString()) apiUrl += '?' + params.toString();
+      
+      const response = await api.get(apiUrl);
+      const data = response.data;
+      
+      if (data.leads.length === 0) {
+        toast.error('No disbursed leads found for the selected date range');
+        setExporting(false);
+        return;
+      }
+      
+      const headers = [
+        'Lead ID', 'Full Name', 'Mobile', 'Email', 'City', 'Loan Type', 'Created At',
+        'Source Type', 'Source Name', 'Source Code', 'Source Phone', 'Source Email', 'Source PAN',
+        'Source Bank Name', 'Source Account Holder', 'Source Account Number', 'Source IFSC',
+        'Disbursed Bank', 'Disbursed Amount (₹)', 'ROI (%)', 'Commission (%)', 'Commission Amount (₹)',
+        'Assigned To'
+      ];
+      
+      const csvRows = [headers.join(',')];
+      
+      for (const lead of data.leads) {
+        const sourceDetails = lead.source_details || {};
+        const assignedDetails = lead.assigned_to_details || {};
+        const bankDetails = sourceDetails.bank_details || {};
+        const disbursement = lead.disbursement_info || {};
+        
+        const row = [
+          lead.id,
+          `"${(lead.full_name || '').replace(/"/g, '""')}"`,
+          lead.mobile || '',
+          lead.email || '',
+          `"${(lead.city || '').replace(/"/g, '""')}"`,
+          lead.loan_type || lead.requirement || '',
+          lead.created_at || '',
+          lead.source || '',
+          `"${(sourceDetails.full_name || sourceDetails.name || '').replace(/"/g, '""')}"`,
+          sourceDetails.agent_code || sourceDetails.referral_code || '',
+          sourceDetails.phone || sourceDetails.mobile || '',
+          sourceDetails.email || '',
+          sourceDetails.pan_number || '',
+          `"${(bankDetails.bank_name || '').replace(/"/g, '""')}"`,
+          `"${(bankDetails.account_holder_name || '').replace(/"/g, '""')}"`,
+          bankDetails.account_number || '',
+          bankDetails.ifsc_code || '',
+          `"${(disbursement.disbursed_bank || '').replace(/"/g, '""')}"`,
+          disbursement.disbursed_amount || 0,
+          disbursement.disbursed_roi || '',
+          disbursement.commission_percentage || 0,
+          disbursement.commission_amount || 0,
+          `"${(assignedDetails.full_name || '').replace(/"/g, '""')}"`
+        ];
+        csvRows.push(row.join(','));
+      }
+      
+      csvRows.push('');
+      csvRows.push(`"SUMMARY",,,,,,,,,,,,,,,,,"Total Disbursed:",${data.total_disbursed_amount},"Total Commission:",${data.total_commission},`);
+      
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      const dateRange = exportFromDate && exportToDate ? `_${exportFromDate}_to_${exportToDate}` : '';
+      a.download = `bankezee_disbursed_leads${dateRange}_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(downloadUrl);
+      
+      toast.success(`Exported ${data.leads.length} disbursed leads | Total: ₹${data.total_disbursed_amount.toLocaleString()} | Commission: ₹${data.total_commission.toLocaleString()}`);
+      setShowExportModal(false);
+    } catch (error) {
+      toast.error('Failed to export leads');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   // Apply filters
   let filteredLeads = filterByTimePeriod(leads, timeFilter);
   filteredLeads = filterByLoanType(filteredLeads, loanTypeFilter);

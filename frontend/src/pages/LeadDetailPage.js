@@ -283,6 +283,7 @@ const LeadDetailPage = () => {
         not_eligible_reason: e.not_eligible_reason || null,
         login_done: e.login_done === 'yes' ? true : e.login_done === 'no' ? false : null,
         login_bank: e.login_bank || null,
+        application_id: e.application_id || null,
         login_rejection_reason: e.login_rejection_reason || null,
         approval_status: e.approval_status || null,
         approved_bank: e.approved_bank || null,

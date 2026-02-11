@@ -151,8 +151,9 @@ async def update_lead_status(
 ):
     valid_statuses = [
         "new", "contacted", "documents_collected", "not_eligible", 
-        "sent_to_bank", "login", "not_login", "approved", "declined",
-        "disbursed", "not_disbursed", "rejected"
+        "sent_for_eligibility", "sent_for_login", "login", "not_login",
+        "sent_for_approval", "underwriting", "fi", "query_hold",
+        "approved", "declined", "disbursed", "not_disbursed", "rejected"
     ]
     if status_update.status not in valid_statuses:
         raise HTTPException(status_code=400, detail=f"Invalid status. Valid statuses: {', '.join(valid_statuses)}")
@@ -161,17 +162,30 @@ async def update_lead_status(
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
     
+    update_data = {
+        "status": status_update.status,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Add application_id if provided
+    if status_update.application_id:
+        update_data["application_id"] = status_update.application_id
+    
+    activity_message = f"Status changed to {status_update.status}"
+    if status_update.application_id:
+        activity_message += f" (Application ID: {status_update.application_id})"
+    
     result = await db.leads.update_one(
         {"id": lead_id},
         {
-            "$set": {
-                "status": status_update.status,
-                "updated_at": datetime.now(timezone.utc).isoformat()
-            },
+            "$set": update_data,
             "$push": {
                 "activities": {
                     "type": "status_change",
-                    "message": f"Status changed to {status_update.status}",
+                    "message": activity_message,
+                    "from_status": lead.get("status"),
+                    "to_status": status_update.status,
+                    "application_id": status_update.application_id,
                     "by": current_user.id,
                     "timestamp": datetime.now(timezone.utc).isoformat()
                 }

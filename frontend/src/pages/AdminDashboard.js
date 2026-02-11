@@ -716,51 +716,52 @@ const AdminDashboard = () => {
                 ) : (
                   <div className="space-y-3">
                     {pendingAgents.map((agent) => (
-                      <div key={agent.id} className="flex items-center justify-between p-4 bg-orange-50 border border-orange-100 rounded-lg" data-testid={`pending-agent-${agent.id}`}>
-                        <div className="flex-1">
-                          <p className="font-semibold text-slate-800">{agent.full_name}</p>
-                          <p className="text-sm text-slate-600">{agent.email} • {agent.phone}</p>
-                          <p className="text-xs text-slate-500">
-                            Code: {agent.agent_code} • City: {agent.city} • Registered: {new Date(agent.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {agent.id_card_url && (
-                            <a 
-                              href={agent.id_card_url.startsWith('/api') 
-                                ? `${process.env.REACT_APP_BACKEND_URL}${agent.id_card_url}` 
-                                : agent.id_card_url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
+                      <div key={agent.id} className="bg-orange-50 border border-orange-100 rounded-lg" data-testid={`pending-agent-${agent.id}`}>
+                        <div className="flex items-center justify-between p-4">
+                          <div className="flex-1">
+                            <p className="font-semibold text-slate-800">{agent.full_name}</p>
+                            <p className="text-sm text-slate-600">{agent.email} • {agent.phone}</p>
+                            <p className="text-xs text-slate-500">
+                              Code: {agent.agent_code} • City: {agent.city} • Registered: {new Date(agent.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-slate-600"
+                              onClick={() => toggleUserDetails(agent.id)}
+                              data-testid={`view-agent-${agent.id}`}
                             >
-                              <Button variant="outline" size="sm" className="text-blue-600">
-                                <FileText className="w-4 h-4 mr-1" />
-                                ID
-                              </Button>
-                            </a>
-                          )}
-                          <Button 
-                            size="sm" 
-                            className="bg-green-600 hover:bg-green-700 text-white"
-                            onClick={() => handleApproveUser(agent.id, 'agent', true)}
-                            disabled={approvingUser === agent.id}
-                            data-testid={`approve-agent-${agent.id}`}
-                          >
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            {approvingUser === agent.id ? 'Approving...' : 'Approve'}
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            className="text-red-600 border-red-200 hover:bg-red-50"
-                            onClick={() => handleApproveUser(agent.id, 'agent', false)}
-                            disabled={approvingUser === agent.id}
-                            data-testid={`reject-agent-${agent.id}`}
-                          >
-                            <XCircle className="w-4 h-4 mr-1" />
-                            Reject
-                          </Button>
+                              {expandedUser === agent.id ? <ChevronUp className="w-4 h-4 mr-1" /> : <ChevronDown className="w-4 h-4 mr-1" />}
+                              {expandedUser === agent.id ? 'Hide' : 'View'} Details
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                              onClick={() => handleApproveUser(agent.id, 'agent', true)}
+                              disabled={approvingUser === agent.id}
+                              data-testid={`approve-agent-${agent.id}`}
+                            >
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              {approvingUser === agent.id ? 'Approving...' : 'Approve'}
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="text-red-600 border-red-200 hover:bg-red-50"
+                              onClick={() => handleApproveUser(agent.id, 'agent', false)}
+                              disabled={approvingUser === agent.id}
+                              data-testid={`reject-agent-${agent.id}`}
+                            >
+                              <XCircle className="w-4 h-4 mr-1" />
+                              Reject
+                            </Button>
+                          </div>
                         </div>
+                        {expandedUser === agent.id && (
+                          <UserDetailCard user={agent} type="agent" onClose={() => setExpandedUser(null)} />
+                        )}
                       </div>
                     ))}
                   </div>

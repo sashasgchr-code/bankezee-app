@@ -367,6 +367,63 @@ const OperationsDashboard = () => {
         </div>
       )}
 
+      {/* Export Stats Modal */}
+      {showStatsExportModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-primary" />
+                Export Agent/Partner Stats
+              </CardTitle>
+              <CardDescription>Export performance stats for my assigned leads</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-slate-700 block mb-1">From Date</label>
+                  <Input
+                    type="date"
+                    value={statsExportFromDate}
+                    onChange={(e) => setStatsExportFromDate(e.target.value)}
+                    className="w-full"
+                    data-testid="stats-from-date"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700 block mb-1">To Date</label>
+                  <Input
+                    type="date"
+                    value={statsExportToDate}
+                    onChange={(e) => setStatsExportToDate(e.target.value)}
+                    className="w-full"
+                    data-testid="stats-to-date"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-slate-500">Leave dates empty to export all-time stats</p>
+              <div className="flex gap-3 pt-2">
+                <Button 
+                  onClick={() => setShowStatsExportModal(false)} 
+                  variant="outline" 
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleExportStats} 
+                  className="flex-1 bg-primary"
+                  disabled={exportingStats}
+                  data-testid="confirm-stats-export-btn"
+                >
+                  {exportingStats ? 'Exporting...' : 'Export Stats CSV'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <div className="px-6 md:px-12 lg:px-24 py-8">
         {/* Filters */}
         <DashboardFilters
@@ -376,6 +433,17 @@ const OperationsDashboard = () => {
           onLoanTypeFilterChange={setLoanTypeFilter}
           statusFilter={statusFilter}
           onStatusFilterChange={setStatusFilter}
+          fromDate={filterFromDate}
+          toDate={filterToDate}
+          onFromDateChange={setFilterFromDate}
+          onToDateChange={setFilterToDate}
+          sourceFilter={sourceFilter}
+          onSourceFilterChange={(v) => { setSourceFilter(v); setSourceIdFilter('all'); }}
+          sourceIdFilter={sourceIdFilter}
+          onSourceIdFilterChange={setSourceIdFilter}
+          agents={allAgents}
+          partners={allPartners}
+          showSourceFilter={true}
         />
 
         {/* Stats Cards */}
@@ -391,18 +459,6 @@ const OperationsDashboard = () => {
             <CardDescription>Leads assigned to you for processing</CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Inline Filters */}
-            <div className="mb-4">
-              <DashboardFilters
-                timeFilter={timeFilter}
-                onTimeFilterChange={setTimeFilter}
-                loanTypeFilter={loanTypeFilter}
-                onLoanTypeFilterChange={setLoanTypeFilter}
-                statusFilter={statusFilter}
-                onStatusFilterChange={setStatusFilter}
-                showStatusFilter={true}
-              />
-            </div>
             <div className="space-y-3 max-h-[500px] overflow-y-auto">
               {filteredLeads.length > 0 ? (
                 filteredLeads.map((lead) => (

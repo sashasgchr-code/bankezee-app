@@ -445,10 +445,22 @@ const AdminDashboard = () => {
               phone: agent?.phone || '',
               email: agent?.email || '',
               totalLeads: 0,
-              newLeads: 0,
-              inProgress: 0,
+              new: 0,
+              contacted: 0,
+              documents_collected: 0,
+              sent_for_eligibility: 0,
+              sent_for_login: 0,
+              login: 0,
+              sent_for_approval: 0,
+              underwriting: 0,
+              fi: 0,
+              query_hold: 0,
               approved: 0,
               disbursed: 0,
+              not_eligible: 0,
+              not_login: 0,
+              declined: 0,
+              not_disbursed: 0,
               rejected: 0,
               totalDisbursedAmount: 0,
               totalCommission: 0
@@ -456,16 +468,14 @@ const AdminDashboard = () => {
           }
           const stats = agentStats[lead.source_id];
           stats.totalLeads++;
-          if (lead.status === 'new') stats.newLeads++;
-          else if (['contacted', 'documents_collected', 'sent_for_eligibility', 'sent_for_login', 'login', 'sent_for_approval', 'underwriting', 'fi', 'query_hold'].includes(lead.status)) stats.inProgress++;
-          else if (lead.status === 'approved') stats.approved++;
-          else if (lead.status === 'disbursed') {
-            stats.disbursed++;
+          if (stats[lead.status] !== undefined) {
+            stats[lead.status]++;
+          }
+          if (lead.status === 'disbursed') {
             const disbursedElig = lead.eligibilities?.find(e => e.disbursed === true);
             stats.totalDisbursedAmount += disbursedElig?.disbursed_amount || 0;
             stats.totalCommission += disbursedElig?.commission_amount || 0;
           }
-          else if (['not_eligible', 'not_login', 'declined', 'not_disbursed', 'rejected'].includes(lead.status)) stats.rejected++;
         }
 
         if (lead.source === 'partner' && lead.source_id) {
@@ -477,10 +487,22 @@ const AdminDashboard = () => {
               phone: partner?.mobile || partner?.phone || '',
               email: partner?.email || '',
               totalLeads: 0,
-              newLeads: 0,
-              inProgress: 0,
+              new: 0,
+              contacted: 0,
+              documents_collected: 0,
+              sent_for_eligibility: 0,
+              sent_for_login: 0,
+              login: 0,
+              sent_for_approval: 0,
+              underwriting: 0,
+              fi: 0,
+              query_hold: 0,
               approved: 0,
               disbursed: 0,
+              not_eligible: 0,
+              not_login: 0,
+              declined: 0,
+              not_disbursed: 0,
               rejected: 0,
               totalDisbursedAmount: 0,
               totalCommission: 0
@@ -488,21 +510,26 @@ const AdminDashboard = () => {
           }
           const stats = partnerStats[lead.source_id];
           stats.totalLeads++;
-          if (lead.status === 'new') stats.newLeads++;
-          else if (['contacted', 'documents_collected', 'sent_for_eligibility', 'sent_for_login', 'login', 'sent_for_approval', 'underwriting', 'fi', 'query_hold'].includes(lead.status)) stats.inProgress++;
-          else if (lead.status === 'approved') stats.approved++;
-          else if (lead.status === 'disbursed') {
-            stats.disbursed++;
+          if (stats[lead.status] !== undefined) {
+            stats[lead.status]++;
+          }
+          if (lead.status === 'disbursed') {
             const disbursedElig = lead.eligibilities?.find(e => e.disbursed === true);
             stats.totalDisbursedAmount += disbursedElig?.disbursed_amount || 0;
             stats.totalCommission += disbursedElig?.commission_amount || 0;
           }
-          else if (['not_eligible', 'not_login', 'declined', 'not_disbursed', 'rejected'].includes(lead.status)) stats.rejected++;
         }
       }
 
-      // Build CSV
-      const headers = ['Type', 'Name', 'Code', 'Phone', 'Email', 'Total Leads', 'New', 'In Progress', 'Approved', 'Disbursed', 'Rejected', 'Disbursed Amount (₹)', 'Commission (₹)'];
+      // Build CSV with all status columns
+      const headers = [
+        'Type', 'Name', 'Code', 'Phone', 'Email', 'Total Leads',
+        'New', 'Contacted', 'Docs Collected', 'Sent for Eligibility', 'Sent for Login', 'Login',
+        'Sent for Approval', 'Underwriting', 'FI', 'Query/Hold',
+        'Approved', 'Disbursed',
+        'Not Eligible', 'Not Login', 'Declined', 'Not Disbursed', 'Rejected',
+        'Disbursed Amount (₹)', 'Commission (₹)'
+      ];
       const csvRows = [headers.join(',')];
 
       // Add agent stats
@@ -514,10 +541,22 @@ const AdminDashboard = () => {
           stats.phone,
           stats.email,
           stats.totalLeads,
-          stats.newLeads,
-          stats.inProgress,
+          stats.new,
+          stats.contacted,
+          stats.documents_collected,
+          stats.sent_for_eligibility,
+          stats.sent_for_login,
+          stats.login,
+          stats.sent_for_approval,
+          stats.underwriting,
+          stats.fi,
+          stats.query_hold,
           stats.approved,
           stats.disbursed,
+          stats.not_eligible,
+          stats.not_login,
+          stats.declined,
+          stats.not_disbursed,
           stats.rejected,
           stats.totalDisbursedAmount,
           stats.totalCommission
@@ -533,10 +572,22 @@ const AdminDashboard = () => {
           stats.phone,
           stats.email,
           stats.totalLeads,
-          stats.newLeads,
-          stats.inProgress,
+          stats.new,
+          stats.contacted,
+          stats.documents_collected,
+          stats.sent_for_eligibility,
+          stats.sent_for_login,
+          stats.login,
+          stats.sent_for_approval,
+          stats.underwriting,
+          stats.fi,
+          stats.query_hold,
           stats.approved,
           stats.disbursed,
+          stats.not_eligible,
+          stats.not_login,
+          stats.declined,
+          stats.not_disbursed,
           stats.rejected,
           stats.totalDisbursedAmount,
           stats.totalCommission

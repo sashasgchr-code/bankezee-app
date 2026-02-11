@@ -123,6 +123,7 @@ async def approve_agent(
     await db.users.update_one(
         {"id": approval.agent_id, "role": "sales_agent"},
         {"$set": {"is_approved": approval.approved}}
+    )
     
     return {"message": "Agent approval status updated"}
 

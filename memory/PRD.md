@@ -180,6 +180,15 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
      - **Bank Details**: Bank Name, Account Holder, Account Number, IFSC Code
    - For approved users, also shows Performance metrics (Total Leads, Converted, Commission)
 
+3. **Enhanced CSV Export with Agent/Partner Details (Enhancement) ✅ NEW**
+   - Export now includes 25 columns with comprehensive data:
+     - **Lead Info**: ID, Name, Mobile, Email, City, Loan Type, Ticket Size, Status, Created At
+     - **Source (Agent/Partner)**: Type, Name, Code, Phone, Email, City, PAN
+     - **Source Bank Details**: Bank Name, Account Holder, Account Number, IFSC Code
+     - **Assignment**: Ops User Name, Email
+     - **Status History**: All status changes with timestamps
+     - **Bank Eligibilities**: Per-bank eligibility status
+
 ### Bugs Fixed
 1. **Agent Registration Flow Fix (P0) ✅**
    - Fixed critical bug where agent user documents were missing `is_active` and `is_approved` fields

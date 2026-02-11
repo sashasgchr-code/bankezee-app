@@ -172,6 +172,14 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
    - ID Card viewing button if uploaded
    - Real-time badge updates after approval/rejection
 
+2. **View All Registration Details (Enhancement) ✅ NEW**
+   - "View Details" button on each agent/partner in Approvals tab and Users tab
+   - Expandable card showing complete registration info:
+     - **Basic Information**: Name, Email, Phone, City, Code, Registration date
+     - **KYC Details**: PAN Number, Approval Status, ID Card link
+     - **Bank Details**: Bank Name, Account Holder, Account Number, IFSC Code
+   - For approved users, also shows Performance metrics (Total Leads, Converted, Commission)
+
 ### Bugs Fixed
 1. **Agent Registration Flow Fix (P0) ✅**
    - Fixed critical bug where agent user documents were missing `is_active` and `is_approved` fields

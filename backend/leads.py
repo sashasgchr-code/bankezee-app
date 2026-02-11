@@ -203,18 +203,33 @@ async def delete_lead(
     return {"message": "Lead deleted successfully", "lead_id": lead_id}
 
 
-@router.get("/export/all")
-async def export_all_leads(
+@router.get("/export/disbursed")
+async def export_disbursed_leads(
+    from_date: str = None,
+    to_date: str = None,
     current_user: User = Depends(get_current_user)
 ):
-    """Export all leads with complete details for Admin/Ops (CSV format data)"""
+    """Export disbursed leads with date filter for Admin/Ops (CSV format data)"""
     if current_user.role not in ["admin", "operations"]:
         raise HTTPException(status_code=403, detail="Admin or Operations access required")
     
-    # Get all leads with full details
-    leads = await db.leads.find({}, {"_id": 0}).to_list(10000)
+    # Build query filter for disbursed leads
+    query = {"status": "disbursed"}
     
-    # Enrich with agent/partner details including bank details
+    # Add date range filter if provided
+    if from_date or to_date:
+        date_filter = {}
+        if from_date:
+            date_filter["$gte"] = from_date + "T00:00:00"
+        if to_date:
+            date_filter["$lte"] = to_date + "T23:59:59"
+        if date_filter:
+            query["created_at"] = date_filter
+    
+    # Get disbursed leads with full details
+    leads = await db.leads.find(query, {"_id": 0}).to_list(10000)
+    
+    # Enrich with agent/partner details and extract disbursement info
     for lead in leads:
         # Get source details (agent or partner) with bank details
         if lead.get("source_id"):
@@ -236,19 +251,33 @@ async def export_all_leads(
             ops_user = await db.users.find_one({"id": lead["assigned_to"]}, {"_id": 0, "full_name": 1, "email": 1})
             lead["assigned_to_details"] = ops_user
         
-        # Extract status history from activities
-        status_history = []
-        for activity in lead.get("activities", []):
-            if activity.get("type") == "status_change":
-                status_history.append({
-                    "from": activity.get("from_status", ""),
-                    "to": activity.get("to_status", ""),
-                    "timestamp": activity.get("timestamp", ""),
-                    "by": activity.get("user", "")
-                })
-        lead["status_history"] = status_history
+        # Extract disbursement details from eligibilities
+        disbursement_info = {
+            "disbursed_bank": None,
+            "disbursed_amount": 0,
+            "disbursed_roi": None,
+            "commission_percentage": 0,
+            "commission_amount": 0
+        }
+        
+        for elig in lead.get("eligibilities", []):
+            if elig.get("disbursed") == True:
+                disbursement_info["disbursed_bank"] = elig.get("disbursed_bank") or elig.get("bank_name")
+                disbursement_info["disbursed_amount"] = elig.get("disbursed_amount", 0) or 0
+                disbursement_info["disbursed_roi"] = elig.get("disbursed_roi")
+                disbursement_info["commission_percentage"] = elig.get("commission_percentage", 0) or 0
+                disbursement_info["commission_amount"] = elig.get("commission_amount", 0) or 0
+                break
+        
+        lead["disbursement_info"] = disbursement_info
+    
+    # Calculate totals
+    total_disbursed_amount = sum(lead.get("disbursement_info", {}).get("disbursed_amount", 0) for lead in leads)
+    total_commission = sum(lead.get("disbursement_info", {}).get("commission_amount", 0) for lead in leads)
     
     return {
         "total_leads": len(leads),
+        "total_disbursed_amount": total_disbursed_amount,
+        "total_commission": total_commission,
         "leads": leads
     }

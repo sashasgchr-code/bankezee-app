@@ -120,7 +120,7 @@ const LeadDetailPage = () => {
         login_done: e.login_done === true ? 'yes' : e.login_done === false ? 'no' : '',
         disbursed: e.disbursed === true ? 'yes' : e.disbursed === false ? 'no' : '',
         eligible_amount: e.eligible_amount || '',
-        eligible_tenure: e.eligible_tenure || '',
+        eligible_roi: e.eligible_roi || '',
         not_eligible_reason: e.not_eligible_reason || '',
         approved_amount: e.approved_amount || '',
         approved_tenure: e.approved_tenure || '',

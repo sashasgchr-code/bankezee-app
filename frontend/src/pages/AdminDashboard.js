@@ -304,51 +304,84 @@ const AdminDashboard = () => {
       const response = await api.get('/leads/export/all');
       const data = response.data;
       
-      // Convert to CSV
-      const headers = ['ID', 'Full Name', 'Mobile', 'City', 'Email', 'Loan Type', 'Ticket Size', 'Status', 'Created At', 
-                       'Source', 'Source Name', 'Source Code', 'Source Phone', 'Source Email',
-                       'Assigned To', 'Assigned To Email', 'Bank Eligibilities', 'Activities Count'];
+      // Convert to CSV with comprehensive headers
+      const headers = [
+        // Lead Basic Info
+        'Lead ID', 'Full Name', 'Mobile', 'Email', 'City', 'Loan Type', 'Ticket Size', 'Current Status', 'Created At',
+        // Source (Agent/Partner) Info
+        'Source Type', 'Source Name', 'Source Code', 'Source Phone', 'Source Email', 'Source City', 'Source PAN',
+        // Source Bank Details
+        'Source Bank Name', 'Source Account Holder', 'Source Account Number', 'Source IFSC',
+        // Assignment
+        'Assigned To', 'Assigned To Email',
+        // Bank Eligibilities
+        'Bank Eligibilities',
+        // Status History
+        'Status History',
+        // Activities Count
+        'Total Activities'
+      ];
       
       const csvRows = [headers.join(',')];
       
       for (const lead of data.leads) {
         const sourceDetails = lead.source_details || {};
         const assignedDetails = lead.assigned_to_details || {};
-        const eligibilities = (lead.eligibilities || []).map(e => `${e.bank_name}:${e.is_eligible}`).join('; ');
+        const bankDetails = sourceDetails.bank_details || {};
+        const eligibilities = (lead.eligibilities || []).map(e => `${e.bank_name}:${e.is_eligible ? 'Eligible' : 'Not Eligible'}`).join('; ');
+        
+        // Format status history
+        const statusHistory = (lead.status_history || [])
+          .map(s => `${s.from || 'new'} → ${s.to} (${s.timestamp ? new Date(s.timestamp).toLocaleString() : ''})`)
+          .join(' | ');
         
         const row = [
+          // Lead Basic Info
           lead.id,
-          `"${lead.full_name || ''}"`,
+          `"${(lead.full_name || '').replace(/"/g, '""')}"`,
           lead.mobile || '',
-          `"${lead.city || ''}"`,
           lead.email || '',
+          `"${(lead.city || '').replace(/"/g, '""')}"`,
           lead.loan_type || lead.requirement || '',
           lead.ticket_size || '',
           lead.status || '',
           lead.created_at || '',
+          // Source Info
           lead.source || '',
-          `"${sourceDetails.full_name || sourceDetails.name || ''}"`,
+          `"${(sourceDetails.full_name || sourceDetails.name || '').replace(/"/g, '""')}"`,
           sourceDetails.agent_code || sourceDetails.referral_code || '',
           sourceDetails.phone || sourceDetails.mobile || '',
           sourceDetails.email || '',
-          `"${assignedDetails.full_name || ''}"`,
+          sourceDetails.city || '',
+          sourceDetails.pan_number || '',
+          // Source Bank Details
+          `"${(bankDetails.bank_name || '').replace(/"/g, '""')}"`,
+          `"${(bankDetails.account_holder_name || '').replace(/"/g, '""')}"`,
+          bankDetails.account_number || '',
+          bankDetails.ifsc_code || '',
+          // Assignment
+          `"${(assignedDetails.full_name || '').replace(/"/g, '""')}"`,
           assignedDetails.email || '',
-          `"${eligibilities}"`,
+          // Eligibilities
+          `"${eligibilities.replace(/"/g, '""')}"`,
+          // Status History
+          `"${statusHistory.replace(/"/g, '""')}"`,
+          // Activities Count
           (lead.activities || []).length
         ];
         csvRows.push(row.join(','));
       }
       
       const csvContent = csvRows.join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `leads_export_${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `bankezee_leads_export_${new Date().toISOString().split('T')[0]}.csv`;
       a.click();
       window.URL.revokeObjectURL(url);
       
-      toast.success(`Exported ${data.total_leads} leads`);
+      toast.success(`Exported ${data.total_leads} leads with agent/partner details`);
     } catch (error) {
       toast.error('Failed to export leads');
     } finally {

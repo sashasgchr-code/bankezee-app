@@ -644,8 +644,9 @@ const AdminDashboard = () => {
   };
 
   // Apply filters
-  let filteredLeads = filterByTimePeriod(leads, timeFilter);
+  let filteredLeads = filterByTimePeriod(leads, timeFilter, filterFromDate, filterToDate);
   filteredLeads = filterByLoanType(filteredLeads, loanTypeFilter);
+  filteredLeads = filterBySource(filteredLeads, sourceFilter, sourceIdFilter === 'all' ? null : sourceIdFilter);
   if (statusFilter !== 'all') {
     filteredLeads = filteredLeads.filter(l => l.status === statusFilter);
   }

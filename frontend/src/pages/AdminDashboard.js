@@ -111,7 +111,10 @@ const AdminDashboard = () => {
     try {
       await api.delete(`/leads/${leadId}`);
       toast.success('Lead deleted successfully');
-      fetchLeads();
+      // Update state directly for immediate UI feedback
+      setLeads(prevLeads => prevLeads.filter(lead => lead.id !== leadId));
+      // Also remove from selected leads if present
+      setSelectedLeads(prev => prev.filter(id => id !== leadId));
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to delete lead');
     } finally {

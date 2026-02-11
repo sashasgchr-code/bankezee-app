@@ -548,13 +548,13 @@ const AdminDashboard = () => {
         <div className="flex items-center gap-4">
           <span className="text-sm text-slate-600">Welcome, {user.full_name}</span>
           <Button
-            onClick={handleExportLeads}
+            onClick={() => setShowExportModal(true)}
             variant="outline"
             disabled={exporting}
             data-testid="export-leads-btn"
           >
             <Download className="w-4 h-4 mr-2" />
-            {exporting ? 'Exporting...' : 'Export All Leads'}
+            Export Disbursed
           </Button>
           <Button
             onClick={() => setShowAddOpsModal(true)}
@@ -570,6 +570,63 @@ const AdminDashboard = () => {
           </Button>
         </div>
       </nav>
+
+      {/* Export Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Download className="w-5 h-5 text-primary" />
+                Export Disbursed Leads
+              </CardTitle>
+              <CardDescription>Export disbursed leads with commission details</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-slate-700 block mb-1">From Date</label>
+                  <Input
+                    type="date"
+                    value={exportFromDate}
+                    onChange={(e) => setExportFromDate(e.target.value)}
+                    className="w-full"
+                    data-testid="export-from-date"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700 block mb-1">To Date</label>
+                  <Input
+                    type="date"
+                    value={exportToDate}
+                    onChange={(e) => setExportToDate(e.target.value)}
+                    className="w-full"
+                    data-testid="export-to-date"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-slate-500">Leave dates empty to export all disbursed leads</p>
+              <div className="flex gap-3 pt-2">
+                <Button 
+                  onClick={() => setShowExportModal(false)} 
+                  variant="outline" 
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleExportLeads} 
+                  className="flex-1 bg-primary"
+                  disabled={exporting}
+                  data-testid="confirm-export-btn"
+                >
+                  {exporting ? 'Exporting...' : 'Export CSV'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <div className="px-6 md:px-12 lg:px-24 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

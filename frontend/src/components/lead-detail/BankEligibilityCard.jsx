@@ -123,6 +123,16 @@ const BankEligibilityCard = ({
                 )}
               </div>
             )}
+            {elig.login_done === 'yes' && (
+              <div>
+                <p className="text-xs text-slate-500 mb-1">Application ID</p>
+                {canEdit ? (
+                  <Input value={elig.application_id || ''} onChange={(e) => updateField('application_id', e.target.value)} className="h-9 bg-white" placeholder="Enter App ID" />
+                ) : (
+                  <p className="font-medium">{elig.application_id || '-'}</p>
+                )}
+              </div>
+            )}
             {elig.login_done === 'no' && (
               <div className="col-span-3">
                 <p className="text-xs text-slate-500 mb-1">Login Rejection Reason</p>

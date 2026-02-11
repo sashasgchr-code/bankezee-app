@@ -730,33 +730,45 @@ const AdminDashboard = () => {
           <LayoutDashboard className="w-6 h-6 text-primary" />
           <h1 className="text-2xl font-bold" style={{ fontFamily: 'Manrope, sans-serif' }}>Admin Dashboard</h1>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <span className="text-sm text-slate-600">Welcome, {user.full_name}</span>
           <Button
             onClick={() => setShowExportModal(true)}
             variant="outline"
+            size="sm"
             disabled={exporting}
             data-testid="export-leads-btn"
           >
-            <Download className="w-4 h-4 mr-2" />
+            <Download className="w-4 h-4 mr-1" />
             Export Disbursed
+          </Button>
+          <Button
+            onClick={() => setShowStatsExportModal(true)}
+            variant="outline"
+            size="sm"
+            disabled={exportingStats}
+            data-testid="export-stats-btn"
+          >
+            <BarChart3 className="w-4 h-4 mr-1" />
+            Export Stats
           </Button>
           <Button
             onClick={() => setShowAddOpsModal(true)}
             className="bg-primary text-primary-foreground"
+            size="sm"
             data-testid="add-ops-btn"
           >
-            <UserPlus className="w-4 h-4 mr-2" />
-            Add Ops User
+            <UserPlus className="w-4 h-4 mr-1" />
+            Add Ops
           </Button>
-          <Button onClick={handleLogout} variant="ghost" className="text-slate-600" data-testid="logout-btn">
-            <LogOut className="w-4 h-4 mr-2" />
+          <Button onClick={handleLogout} variant="ghost" size="sm" className="text-slate-600" data-testid="logout-btn">
+            <LogOut className="w-4 h-4 mr-1" />
             Logout
           </Button>
         </div>
       </nav>
 
-      {/* Export Modal */}
+      {/* Export Disbursed Modal */}
       {showExportModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <Card className="w-full max-w-md">

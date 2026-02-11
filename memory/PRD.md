@@ -194,6 +194,15 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
    - Updated field name, input type (now decimal), and placeholder
    - Updated data model from `eligible_tenure` to `eligible_roi`
 
+5. **Added "Balance Transfer" Loan Type (Enhancement) ✅ NEW**
+   - Added to all loan type dropdowns across the application:
+     - Public Lead Form (`/lead-form`)
+     - Agent Lead Create Form
+     - Partner Lead Create Form
+     - Lead Detail Page (Loan Requirements section)
+     - Dashboard Filters (Admin, Ops, Agent, Partner)
+   - Files updated: `constants.js`, `LoanRequirementsSection.jsx`, `LeadFormPage.js`, `AgentLeadCreate.js`, `PartnerLeadCreate.js`
+
 ### Bugs Fixed
 1. **Agent Registration Flow Fix (P0) ✅**
    - Fixed critical bug where agent user documents were missing `is_active` and `is_approved` fields

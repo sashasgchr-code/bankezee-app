@@ -556,6 +556,153 @@ const AdminDashboard = () => {
         </Card>
           </TabsContent>
 
+          <TabsContent value="approvals">
+            <div className="mb-4">
+              <h2 className="text-xl font-semibold text-slate-800">Pending Approvals</h2>
+              <p className="text-sm text-slate-500">Review and approve new agent and partner registrations</p>
+            </div>
+
+            {/* Pending Agents */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-orange-500" />
+                  Pending Agents ({pendingAgents.length})
+                </CardTitle>
+                <CardDescription>Agents awaiting approval</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {pendingAgents.length === 0 ? (
+                  <div className="text-center py-6 text-slate-500">
+                    <CheckCircle className="w-12 h-12 mx-auto mb-2 text-green-300" />
+                    <p>No pending agent approvals</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {pendingAgents.map((agent) => (
+                      <div key={agent.id} className="flex items-center justify-between p-4 bg-orange-50 border border-orange-100 rounded-lg" data-testid={`pending-agent-${agent.id}`}>
+                        <div className="flex-1">
+                          <p className="font-semibold text-slate-800">{agent.full_name}</p>
+                          <p className="text-sm text-slate-600">{agent.email} • {agent.phone}</p>
+                          <p className="text-xs text-slate-500">
+                            Code: {agent.agent_code} • City: {agent.city} • Registered: {new Date(agent.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {agent.id_card_url && (
+                            <a 
+                              href={agent.id_card_url.startsWith('/api') 
+                                ? `${process.env.REACT_APP_BACKEND_URL}${agent.id_card_url}` 
+                                : agent.id_card_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                            >
+                              <Button variant="outline" size="sm" className="text-blue-600">
+                                <FileText className="w-4 h-4 mr-1" />
+                                ID
+                              </Button>
+                            </a>
+                          )}
+                          <Button 
+                            size="sm" 
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                            onClick={() => handleApproveUser(agent.id, 'agent', true)}
+                            disabled={approvingUser === agent.id}
+                            data-testid={`approve-agent-${agent.id}`}
+                          >
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            {approvingUser === agent.id ? 'Approving...' : 'Approve'}
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="text-red-600 border-red-200 hover:bg-red-50"
+                            onClick={() => handleApproveUser(agent.id, 'agent', false)}
+                            disabled={approvingUser === agent.id}
+                            data-testid={`reject-agent-${agent.id}`}
+                          >
+                            <XCircle className="w-4 h-4 mr-1" />
+                            Reject
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Pending Partners */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Briefcase className="w-5 h-5 text-orange-500" />
+                  Pending Partners ({pendingPartners.length})
+                </CardTitle>
+                <CardDescription>Partners awaiting approval</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {pendingPartners.length === 0 ? (
+                  <div className="text-center py-6 text-slate-500">
+                    <CheckCircle className="w-12 h-12 mx-auto mb-2 text-green-300" />
+                    <p>No pending partner approvals</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {pendingPartners.map((partner) => (
+                      <div key={partner.id} className="flex items-center justify-between p-4 bg-orange-50 border border-orange-100 rounded-lg" data-testid={`pending-partner-${partner.id}`}>
+                        <div className="flex-1">
+                          <p className="font-semibold text-slate-800">{partner.name || partner.full_name}</p>
+                          <p className="text-sm text-slate-600">{partner.email} • {partner.mobile || partner.phone}</p>
+                          <p className="text-xs text-slate-500">
+                            Code: {partner.referral_code} • City: {partner.city} • Registered: {new Date(partner.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {partner.id_card_url && (
+                            <a 
+                              href={partner.id_card_url.startsWith('/api') 
+                                ? `${process.env.REACT_APP_BACKEND_URL}${partner.id_card_url}` 
+                                : partner.id_card_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                            >
+                              <Button variant="outline" size="sm" className="text-blue-600">
+                                <FileText className="w-4 h-4 mr-1" />
+                                ID
+                              </Button>
+                            </a>
+                          )}
+                          <Button 
+                            size="sm" 
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                            onClick={() => handleApproveUser(partner.id, 'partner', true)}
+                            disabled={approvingUser === partner.id}
+                            data-testid={`approve-partner-${partner.id}`}
+                          >
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            {approvingUser === partner.id ? 'Approving...' : 'Approve'}
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="text-red-600 border-red-200 hover:bg-red-50"
+                            onClick={() => handleApproveUser(partner.id, 'partner', false)}
+                            disabled={approvingUser === partner.id}
+                            data-testid={`reject-partner-${partner.id}`}
+                          >
+                            <XCircle className="w-4 h-4 mr-1" />
+                            Reject
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="users">
             {/* Operations Team Report */}
             <Card className="mb-6">

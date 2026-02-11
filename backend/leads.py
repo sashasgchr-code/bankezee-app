@@ -175,7 +175,7 @@ async def delete_lead(
     lead_id: str,
     current_user: User = Depends(get_current_user)
 ):
-    """Delete a lead (Admin only)"""
+    """Delete a lead (Admin only) - also removes associated commissions"""
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
     
@@ -190,6 +190,9 @@ async def delete_lead(
     if result.deleted_count == 0:
         raise HTTPException(status_code=500, detail="Failed to delete lead")
     
+    # Delete associated commissions
+    await db.commissions.delete_many({"lead_id": lead_id})
+    
     # Also delete any associated documents from storage
     import shutil
     from pathlib import Path
@@ -198,3 +201,36 @@ async def delete_lead(
         shutil.rmtree(lead_docs_dir)
     
     return {"message": "Lead deleted successfully", "lead_id": lead_id}
+
+
+@router.get("/export/all")
+async def export_all_leads(
+    current_user: User = Depends(get_current_user)
+):
+    """Export all leads with complete details for Admin/Ops (CSV format data)"""
+    if current_user.role not in ["admin", "operations"]:
+        raise HTTPException(status_code=403, detail="Admin or Operations access required")
+    
+    # Get all leads with full details
+    leads = await db.leads.find({}, {"_id": 0}).to_list(10000)
+    
+    # Enrich with agent/partner details
+    for lead in leads:
+        # Get source details (agent or partner)
+        if lead.get("source_id"):
+            if lead.get("source") == "agent":
+                agent = await db.agents.find_one({"id": lead["source_id"]}, {"_id": 0, "full_name": 1, "agent_code": 1, "phone": 1, "email": 1})
+                lead["source_details"] = agent
+            elif lead.get("source") == "partner":
+                partner = await db.partners.find_one({"id": lead["source_id"]}, {"_id": 0, "name": 1, "referral_code": 1, "mobile": 1, "email": 1})
+                lead["source_details"] = partner
+        
+        # Get assigned ops user details
+        if lead.get("assigned_to"):
+            ops_user = await db.users.find_one({"id": lead["assigned_to"]}, {"_id": 0, "full_name": 1, "email": 1})
+            lead["assigned_to_details"] = ops_user
+    
+    return {
+        "total_leads": len(leads),
+        "leads": leads
+    }

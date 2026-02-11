@@ -594,7 +594,14 @@ const AdminDashboard = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           {agent.id_card_url && (
-                            <a href={agent.id_card_url} target="_blank" rel="noopener noreferrer">
+                            <a 
+                              href={agent.id_card_url.startsWith('/api') 
+                                ? `${process.env.REACT_APP_BACKEND_URL}${agent.id_card_url}` 
+                                : agent.id_card_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              data-testid={`agent-id-card-${agent.id}`}
+                            >
                               <Button variant="outline" size="sm" className="text-blue-600">
                                 <FileText className="w-4 h-4 mr-1" />
                                 ID Card
@@ -641,7 +648,14 @@ const AdminDashboard = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           {partner.id_card_url && (
-                            <a href={partner.id_card_url} target="_blank" rel="noopener noreferrer">
+                            <a 
+                              href={partner.id_card_url.startsWith('/api') 
+                                ? `${process.env.REACT_APP_BACKEND_URL}${partner.id_card_url}` 
+                                : partner.id_card_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              data-testid={`partner-id-card-${partner.id}`}
+                            >
                               <Button variant="outline" size="sm" className="text-blue-600">
                                 <FileText className="w-4 h-4 mr-1" />
                                 ID Card

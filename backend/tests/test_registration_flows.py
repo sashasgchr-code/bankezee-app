@@ -7,14 +7,20 @@ import requests
 import os
 import uuid
 from datetime import datetime
+import time
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 
-# Test data with unique identifiers
-TEST_TIMESTAMP = datetime.now().strftime("%Y%m%d%H%M%S")
-TEST_PARTNER_EMAIL = f"testpartner_{TEST_TIMESTAMP}@example.com"
-TEST_AGENT_EMAIL = f"testagent_{TEST_TIMESTAMP}@example.com"
+# Test data with unique identifiers - use uuid for uniqueness
+TEST_UUID = str(uuid.uuid4())[:8]
+TEST_PARTNER_EMAIL = f"testpartner_{TEST_UUID}@example.com"
+TEST_AGENT_EMAIL = f"testagent_{TEST_UUID}@example.com"
 TEST_PASSWORD = "TestPassword123"
+TEST_MOBILE = f"+91{int(time.time()) % 10000000000}"
+
+# Global storage for test data
+test_data = {}
+
 
 class TestPartnerRegistration:
     """Partner Registration Flow Tests"""
@@ -22,10 +28,10 @@ class TestPartnerRegistration:
     def test_partner_registration_success(self):
         """Test successful partner registration"""
         partner_data = {
-            "name": f"Test Partner {TEST_TIMESTAMP}",
+            "name": f"Test Partner {TEST_UUID}",
             "email": TEST_PARTNER_EMAIL,
             "password": TEST_PASSWORD,
-            "mobile": f"+91{TEST_TIMESTAMP[:10]}",
+            "mobile": TEST_MOBILE,
             "city": "Mumbai",
             "occupation": "Business Owner",
             "pan_number": "ABCDE1234F",
@@ -34,7 +40,7 @@ class TestPartnerRegistration:
                 "bank_name": "HDFC Bank",
                 "account_number": "1234567890123",
                 "ifsc_code": "HDFC0001234",
-                "account_holder_name": f"Test Partner {TEST_TIMESTAMP}"
+                "account_holder_name": f"Test Partner {TEST_UUID}"
             }
         }
         
@@ -49,9 +55,9 @@ class TestPartnerRegistration:
         assert data["referral_code"].startswith("PTR"), "Referral code should start with PTR"
         
         # Store for later tests
-        pytest.partner_id = data["partner_id"]
-        pytest.partner_referral_code = data["referral_code"]
-        print(f"Partner registered with ID: {pytest.partner_id}, Referral Code: {pytest.partner_referral_code}")
+        test_data["partner_id"] = data["partner_id"]
+        test_data["partner_referral_code"] = data["referral_code"]
+        print(f"Partner registered with ID: {test_data['partner_id']}, Referral Code: {test_data['partner_referral_code']}")
     
     def test_partner_duplicate_email_rejected(self):
         """Test that duplicate email is rejected"""
@@ -83,8 +89,8 @@ class TestAgentRegistration:
     def test_agent_registration_success(self):
         """Test successful agent registration"""
         agent_data = {
-            "full_name": f"Test Agent {TEST_TIMESTAMP}",
-            "phone": f"+91{TEST_TIMESTAMP[:10]}1",
+            "full_name": f"Test Agent {TEST_UUID}",
+            "phone": f"+91{int(time.time()) % 10000000000 + 1}",
             "email": TEST_AGENT_EMAIL,
             "city": "Bangalore",
             "password": TEST_PASSWORD,
@@ -93,7 +99,7 @@ class TestAgentRegistration:
                 "bank_name": "SBI",
                 "account_number": "9876543210123",
                 "ifsc_code": "SBIN0001234",
-                "account_holder_name": f"Test Agent {TEST_TIMESTAMP}"
+                "account_holder_name": f"Test Agent {TEST_UUID}"
             }
         }
         
@@ -108,9 +114,9 @@ class TestAgentRegistration:
         assert data["agent_code"].startswith("AGT"), "Agent code should start with AGT"
         
         # Store for later tests
-        pytest.agent_id = data["agent_id"]
-        pytest.agent_code = data["agent_code"]
-        print(f"Agent registered with ID: {pytest.agent_id}, Code: {pytest.agent_code}")
+        test_data["agent_id"] = data["agent_id"]
+        test_data["agent_code"] = data["agent_code"]
+        print(f"Agent registered with ID: {test_data['agent_id']}, Code: {test_data['agent_code']}")
     
     def test_agent_duplicate_email_rejected(self):
         """Test that duplicate email is rejected"""
@@ -156,7 +162,7 @@ class TestLoginFlows:
         assert data["user"]["role"] == "admin", "User role should be admin"
         
         # Store admin token for later tests
-        pytest.admin_token = data["token"]
+        test_data["admin_token"] = data["token"]
         print(f"Admin logged in successfully, role: {data['user']['role']}")
     
     def test_unapproved_partner_login_rejected(self):
@@ -182,8 +188,7 @@ class TestLoginFlows:
         response = requests.post(f"{BASE_URL}/api/auth/login", json=login_data)
         print(f"Unapproved Agent Login Response: {response.status_code} - {response.text}")
         
-        # Note: Agent registration creates user without is_approved field initially
-        # This should return 403 for pending approval
+        # Should return 403 for pending approval
         assert response.status_code == 403, f"Expected 403 for unapproved user, got {response.status_code}"
     
     def test_invalid_credentials_rejected(self):
@@ -204,7 +209,7 @@ class TestAdminApproval:
     
     def test_admin_can_view_all_users(self):
         """Test admin can view all users"""
-        headers = {"Authorization": f"Bearer {pytest.admin_token}"}
+        headers = {"Authorization": f"Bearer {test_data['admin_token']}"}
         
         response = requests.get(f"{BASE_URL}/api/auth/admin/all-users", headers=headers)
         print(f"All Users Response: {response.status_code}")
@@ -220,11 +225,11 @@ class TestAdminApproval:
     
     def test_admin_approve_partner(self):
         """Test admin can approve a partner"""
-        headers = {"Authorization": f"Bearer {pytest.admin_token}"}
+        headers = {"Authorization": f"Bearer {test_data['admin_token']}"}
         
         # Approve the partner
         response = requests.post(
-            f"{BASE_URL}/api/partners/approve/{pytest.partner_id}?approved=true",
+            f"{BASE_URL}/api/partners/approve/{test_data['partner_id']}?approved=true",
             headers=headers
         )
         print(f"Approve Partner Response: {response.status_code} - {response.text}")
@@ -234,11 +239,11 @@ class TestAdminApproval:
     
     def test_admin_approve_agent(self):
         """Test admin can approve an agent"""
-        headers = {"Authorization": f"Bearer {pytest.admin_token}"}
+        headers = {"Authorization": f"Bearer {test_data['admin_token']}"}
         
         # Approve the agent
         approval_data = {
-            "agent_id": pytest.agent_id,
+            "agent_id": test_data["agent_id"],
             "approved": True
         }
         
@@ -267,7 +272,7 @@ class TestAdminApproval:
         assert "token" in data, "Response should contain token"
         assert data["user"]["role"] == "partner", "User role should be partner"
         
-        pytest.partner_token = data["token"]
+        test_data["partner_token"] = data["token"]
         print(f"Partner logged in successfully after approval")
     
     def test_approved_agent_can_login(self):
@@ -278,13 +283,7 @@ class TestAdminApproval:
         }
         
         response = requests.post(f"{BASE_URL}/api/auth/login", json=login_data)
-        print(f"Approved Agent Login Response: {response.status_code}")
-        
-        # Agent might not have is_approved set properly - let's check
-        if response.status_code == 403:
-            print("Agent still pending approval - checking if is_approved was set")
-            # This indicates a potential bug in agent approval flow
-            pytest.skip("Agent approval may not be updating user document correctly")
+        print(f"Approved Agent Login Response: {response.status_code} - {response.text}")
         
         assert response.status_code == 200, f"Expected 200 after approval, got {response.status_code}: {response.text}"
         
@@ -292,7 +291,7 @@ class TestAdminApproval:
         assert "token" in data, "Response should contain token"
         assert data["user"]["role"] == "sales_agent", "User role should be sales_agent"
         
-        pytest.agent_token = data["token"]
+        test_data["agent_token"] = data["token"]
         print(f"Agent logged in successfully after approval")
 
 
@@ -323,8 +322,8 @@ class TestFileUpload:
         assert data.get("success") == True, "Upload should be successful"
         assert "file_url" in data, "Response should contain file_url"
         
-        pytest.uploaded_file_url = data["file_url"]
-        print(f"File uploaded successfully: {pytest.uploaded_file_url}")
+        test_data["uploaded_file_url"] = data["file_url"]
+        print(f"File uploaded successfully: {test_data['uploaded_file_url']}")
     
     def test_storage_status(self):
         """Test storage status endpoint"""
@@ -355,7 +354,7 @@ class TestOpsLogin:
         data = response.json()
         assert data["user"]["role"] == "operations", "User role should be operations"
         
-        pytest.ops_token = data["token"]
+        test_data["ops_token"] = data["token"]
         print(f"Ops user logged in successfully")
 
 

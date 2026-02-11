@@ -304,25 +304,34 @@ const AdminDashboard = () => {
   const handleExportLeads = async () => {
     setExporting(true);
     try {
-      const response = await api.get('/leads/export/all');
+      // Build query params for date filter
+      let url = '/leads/export/disbursed';
+      const params = new URLSearchParams();
+      if (exportFromDate) params.append('from_date', exportFromDate);
+      if (exportToDate) params.append('to_date', exportToDate);
+      if (params.toString()) url += '?' + params.toString();
+      
+      const response = await api.get(url);
       const data = response.data;
       
-      // Convert to CSV with comprehensive headers
+      if (data.leads.length === 0) {
+        toast.error('No disbursed leads found for the selected date range');
+        setExporting(false);
+        return;
+      }
+      
+      // Convert to CSV with disbursement-focused headers
       const headers = [
         // Lead Basic Info
-        'Lead ID', 'Full Name', 'Mobile', 'Email', 'City', 'Loan Type', 'Ticket Size', 'Current Status', 'Created At',
+        'Lead ID', 'Full Name', 'Mobile', 'Email', 'City', 'Loan Type', 'Created At',
         // Source (Agent/Partner) Info
-        'Source Type', 'Source Name', 'Source Code', 'Source Phone', 'Source Email', 'Source City', 'Source PAN',
+        'Source Type', 'Source Name', 'Source Code', 'Source Phone', 'Source Email', 'Source PAN',
         // Source Bank Details
         'Source Bank Name', 'Source Account Holder', 'Source Account Number', 'Source IFSC',
+        // Disbursement Details
+        'Disbursed Bank', 'Disbursed Amount (₹)', 'ROI (%)', 'Commission (%)', 'Commission Amount (₹)',
         // Assignment
-        'Assigned To', 'Assigned To Email',
-        // Bank Eligibilities
-        'Bank Eligibilities',
-        // Status History
-        'Status History',
-        // Activities Count
-        'Total Activities'
+        'Assigned To'
       ];
       
       const csvRows = [headers.join(',')];
@@ -331,12 +340,7 @@ const AdminDashboard = () => {
         const sourceDetails = lead.source_details || {};
         const assignedDetails = lead.assigned_to_details || {};
         const bankDetails = sourceDetails.bank_details || {};
-        const eligibilities = (lead.eligibilities || []).map(e => `${e.bank_name}:${e.is_eligible ? 'Eligible' : 'Not Eligible'}`).join('; ');
-        
-        // Format status history
-        const statusHistory = (lead.status_history || [])
-          .map(s => `${s.from || 'new'} → ${s.to} (${s.timestamp ? new Date(s.timestamp).toLocaleString() : ''})`)
-          .join(' | ');
+        const disbursement = lead.disbursement_info || {};
         
         const row = [
           // Lead Basic Info
@@ -346,8 +350,6 @@ const AdminDashboard = () => {
           lead.email || '',
           `"${(lead.city || '').replace(/"/g, '""')}"`,
           lead.loan_type || lead.requirement || '',
-          lead.ticket_size || '',
-          lead.status || '',
           lead.created_at || '',
           // Source Info
           lead.source || '',
@@ -355,36 +357,40 @@ const AdminDashboard = () => {
           sourceDetails.agent_code || sourceDetails.referral_code || '',
           sourceDetails.phone || sourceDetails.mobile || '',
           sourceDetails.email || '',
-          sourceDetails.city || '',
           sourceDetails.pan_number || '',
           // Source Bank Details
           `"${(bankDetails.bank_name || '').replace(/"/g, '""')}"`,
           `"${(bankDetails.account_holder_name || '').replace(/"/g, '""')}"`,
           bankDetails.account_number || '',
           bankDetails.ifsc_code || '',
+          // Disbursement Details
+          `"${(disbursement.disbursed_bank || '').replace(/"/g, '""')}"`,
+          disbursement.disbursed_amount || 0,
+          disbursement.disbursed_roi || '',
+          disbursement.commission_percentage || 0,
+          disbursement.commission_amount || 0,
           // Assignment
-          `"${(assignedDetails.full_name || '').replace(/"/g, '""')}"`,
-          assignedDetails.email || '',
-          // Eligibilities
-          `"${eligibilities.replace(/"/g, '""')}"`,
-          // Status History
-          `"${statusHistory.replace(/"/g, '""')}"`,
-          // Activities Count
-          (lead.activities || []).length
+          `"${(assignedDetails.full_name || '').replace(/"/g, '""')}"`
         ];
         csvRows.push(row.join(','));
       }
+      
+      // Add summary row
+      csvRows.push('');
+      csvRows.push(`"SUMMARY",,,,,,,,,,,,,,,,,"Total Disbursed:",${data.total_disbursed_amount},"Total Commission:",${data.total_commission},`);
       
       const csvContent = csvRows.join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `bankezee_leads_export_${new Date().toISOString().split('T')[0]}.csv`;
+      const dateRange = exportFromDate && exportToDate ? `_${exportFromDate}_to_${exportToDate}` : '';
+      a.download = `bankezee_disbursed_leads${dateRange}_${new Date().toISOString().split('T')[0]}.csv`;
       a.click();
       window.URL.revokeObjectURL(url);
       
-      toast.success(`Exported ${data.total_leads} leads with agent/partner details`);
+      toast.success(`Exported ${data.leads.length} disbursed leads | Total: ₹${data.total_disbursed_amount.toLocaleString()} | Commission: ₹${data.total_commission.toLocaleString()}`);
+      setShowExportModal(false);
     } catch (error) {
       toast.error('Failed to export leads');
     } finally {

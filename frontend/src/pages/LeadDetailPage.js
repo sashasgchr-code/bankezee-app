@@ -26,6 +26,7 @@ const EMPTY_ELIGIBILITY = {
   not_eligible_reason: '',
   login_done: '',
   login_bank: '',
+  application_id: '',
   login_rejection_reason: '',
   approval_status: '',
   approved_bank: '',

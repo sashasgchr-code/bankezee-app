@@ -395,14 +395,23 @@ const AdminDashboard = () => {
 
       <div className="px-6 md:px-12 lg:px-24 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+          <TabsList className="grid w-full max-w-lg grid-cols-3 mb-6">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <LayoutDashboard className="w-4 h-4" />
               Dashboard
             </TabsTrigger>
+            <TabsTrigger value="approvals" className="flex items-center gap-2 relative">
+              <Clock className="w-4 h-4" />
+              Approvals
+              {pendingCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {pendingCount}
+                </span>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="users" className="flex items-center gap-2">
               <UserCog className="w-4 h-4" />
-              User Management
+              Users
             </TabsTrigger>
           </TabsList>
 

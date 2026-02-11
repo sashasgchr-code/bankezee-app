@@ -214,21 +214,39 @@ async def export_all_leads(
     # Get all leads with full details
     leads = await db.leads.find({}, {"_id": 0}).to_list(10000)
     
-    # Enrich with agent/partner details
+    # Enrich with agent/partner details including bank details
     for lead in leads:
-        # Get source details (agent or partner)
+        # Get source details (agent or partner) with bank details
         if lead.get("source_id"):
             if lead.get("source") == "agent":
-                agent = await db.agents.find_one({"id": lead["source_id"]}, {"_id": 0, "full_name": 1, "agent_code": 1, "phone": 1, "email": 1})
+                agent = await db.agents.find_one(
+                    {"id": lead["source_id"]}, 
+                    {"_id": 0, "full_name": 1, "agent_code": 1, "phone": 1, "email": 1, "city": 1, "pan_number": 1, "bank_details": 1}
+                )
                 lead["source_details"] = agent
             elif lead.get("source") == "partner":
-                partner = await db.partners.find_one({"id": lead["source_id"]}, {"_id": 0, "name": 1, "referral_code": 1, "mobile": 1, "email": 1})
+                partner = await db.partners.find_one(
+                    {"id": lead["source_id"]}, 
+                    {"_id": 0, "name": 1, "referral_code": 1, "mobile": 1, "email": 1, "city": 1, "pan_number": 1, "bank_details": 1, "occupation": 1}
+                )
                 lead["source_details"] = partner
         
         # Get assigned ops user details
         if lead.get("assigned_to"):
             ops_user = await db.users.find_one({"id": lead["assigned_to"]}, {"_id": 0, "full_name": 1, "email": 1})
             lead["assigned_to_details"] = ops_user
+        
+        # Extract status history from activities
+        status_history = []
+        for activity in lead.get("activities", []):
+            if activity.get("type") == "status_change":
+                status_history.append({
+                    "from": activity.get("from_status", ""),
+                    "to": activity.get("to_status", ""),
+                    "timestamp": activity.get("timestamp", ""),
+                    "by": activity.get("user", "")
+                })
+        lead["status_history"] = status_history
     
     return {
         "total_leads": len(leads),

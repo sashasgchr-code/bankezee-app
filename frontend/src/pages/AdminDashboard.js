@@ -592,15 +592,25 @@ const AdminDashboard = () => {
                           <p className="text-sm text-slate-600">{agent.phone} | Code: {agent.agent_code}</p>
                           <p className="text-xs text-slate-500">{agent.email}</p>
                         </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => handleDeleteUser(agent.id, 'agent')}
-                          disabled={deletingUser === agent.id}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          {agent.id_card_url && (
+                            <a href={agent.id_card_url} target="_blank" rel="noopener noreferrer">
+                              <Button variant="outline" size="sm" className="text-blue-600">
+                                <FileText className="w-4 h-4 mr-1" />
+                                ID Card
+                              </Button>
+                            </a>
+                          )}
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => handleDeleteUser(agent.id, 'agent')}
+                            disabled={deletingUser === agent.id}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     ))
                   )}
@@ -629,15 +639,25 @@ const AdminDashboard = () => {
                           <p className="text-sm text-slate-600">{partner.mobile || partner.phone} | Code: {partner.referral_code}</p>
                           <p className="text-xs text-slate-500">{partner.email} | {partner.company_name || 'Individual'}</p>
                         </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => handleDeleteUser(partner.id, 'partner')}
-                          disabled={deletingUser === partner.id}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          {partner.id_card_url && (
+                            <a href={partner.id_card_url} target="_blank" rel="noopener noreferrer">
+                              <Button variant="outline" size="sm" className="text-blue-600">
+                                <FileText className="w-4 h-4 mr-1" />
+                                ID Card
+                              </Button>
+                            </a>
+                          )}
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => handleDeleteUser(partner.id, 'partner')}
+                            disabled={deletingUser === partner.id}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     ))
                   )}

@@ -213,6 +213,39 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
    - Summary row at bottom shows totals
    - Modal UI with date pickers for easy filtering
 
+7. **Enhanced Dashboard Filters (Enhancement) ✅ NEW**
+   - **Time Filter** now includes:
+     - All Time, Today (NEW), This Week (NEW), This Month, Last Month, Last 3/6 Months, This Year
+     - **Custom Range** (NEW) - shows From/To date pickers when selected
+   - **Source Filter** (NEW):
+     - Filter leads by Agent, Partner, or Digital/Direct
+     - Select specific Agent or Partner from dropdown
+   - Available on both Admin and Operations dashboards
+
+8. **Export Agent/Partner Stats (Enhancement) ✅ NEW**
+   - New "Export Stats" button on Admin and Ops dashboards
+   - Exports CSV grouped by Agent and Partner with:
+     - Type, Name, Code, Phone, Email
+     - Total Leads, New, In Progress, Approved, Disbursed, Rejected
+     - Total Disbursed Amount, Total Commission
+   - Summary totals for agents and partners at bottom
+   - Date range filter support
+
+9. **New Lead Status Options (Enhancement) ✅ NEW**
+   - Added 6 new status options:
+     - Sent for Eligibility
+     - Sent for Login
+     - Sent for Approval
+     - Underwriting
+     - FI (Field Investigation)
+     - Query/Hold
+   - Available in all status dropdowns (filters and status update)
+
+10. **Application ID for Status Update (Enhancement) ✅ NEW**
+    - When updating status to Login or later stages, ops can enter Application ID
+    - Application ID is stored in lead record and activity log
+    - Shows in status change activity: "Status changed to login (Application ID: ABC123)"
+
 ### Bugs Fixed
 1. **Agent Registration Flow Fix (P0) ✅**
    - Fixed critical bug where agent user documents were missing `is_active` and `is_approved` fields

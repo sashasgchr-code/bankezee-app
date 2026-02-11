@@ -5,9 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { FileText, LogOut, LayoutDashboard, Eye, Download } from 'lucide-react';
+import { FileText, LogOut, LayoutDashboard, Eye, Download, BarChart3 } from 'lucide-react';
 import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
-import { filterByTimePeriod, filterByLoanType, calculateDashboardStats } from '@/utils/constants';
+import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats } from '@/utils/constants';
 
 const OperationsDashboard = () => {
   const navigate = useNavigate();
@@ -21,11 +21,34 @@ const OperationsDashboard = () => {
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportFromDate, setExportFromDate] = useState('');
   const [exportToDate, setExportToDate] = useState('');
+  // New filter states
+  const [filterFromDate, setFilterFromDate] = useState('');
+  const [filterToDate, setFilterToDate] = useState('');
+  const [sourceFilter, setSourceFilter] = useState('all');
+  const [sourceIdFilter, setSourceIdFilter] = useState('all');
+  const [allAgents, setAllAgents] = useState([]);
+  const [allPartners, setAllPartners] = useState([]);
+  // Stats export
+  const [showStatsExportModal, setShowStatsExportModal] = useState(false);
+  const [statsExportFromDate, setStatsExportFromDate] = useState('');
+  const [statsExportToDate, setStatsExportToDate] = useState('');
+  const [exportingStats, setExportingStats] = useState(false);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
     fetchAssignedLeads();
+    fetchAllUsers();
   }, []);
+
+  const fetchAllUsers = async () => {
+    try {
+      const response = await api.get('/auth/admin/all-users');
+      setAllAgents(response.data.agents || []);
+      setAllPartners(response.data.partners || []);
+    } catch (error) {
+      console.error('Failed to fetch users');
+    }
+  };
 
   const fetchAssignedLeads = async () => {
     try {

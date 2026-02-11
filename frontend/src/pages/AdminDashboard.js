@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { Users, LogOut, LayoutDashboard, Eye, UserPlus, CheckSquare, X, Trash2, UserCog, Building, Briefcase, Download, FileText } from 'lucide-react';
+import { Users, LogOut, LayoutDashboard, Eye, UserPlus, CheckSquare, X, Trash2, UserCog, Building, Briefcase, Download, FileText, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
 import { filterByTimePeriod, filterByLoanType, calculateDashboardStats, LOAN_TYPES, TIME_FILTERS } from '@/utils/constants';
 
@@ -32,6 +32,9 @@ const AdminDashboard = () => {
   const [deletingUser, setDeletingUser] = useState(null);
   const [deletingLead, setDeletingLead] = useState(null);
   const [exporting, setExporting] = useState(false);
+  const [pendingAgents, setPendingAgents] = useState([]);
+  const [pendingPartners, setPendingPartners] = useState([]);
+  const [approvingUser, setApprovingUser] = useState(null);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {

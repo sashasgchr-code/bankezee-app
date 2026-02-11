@@ -222,14 +222,15 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
      - Select specific Agent or Partner from dropdown
    - Available on both Admin and Operations dashboards
 
-8. **Export Agent/Partner Stats (Enhancement) ✅ NEW**
+8. **Export Agent/Partner Stats (Enhancement) ✅ VERIFIED**
    - New "Export Stats" button on Admin and Ops dashboards
-   - Exports CSV grouped by Agent and Partner with:
-     - Type, Name, Code, Phone, Email
-     - Total Leads, New, In Progress, Approved, Disbursed, Rejected
-     - Total Disbursed Amount, Total Commission
+   - Exports CSV with **25 columns** including **ALL 17 lead statuses**:
+     - **Identity columns (6)**: Type, Name, Code, Phone, Email, Total Leads
+     - **Status columns (17)**: New, Contacted, Docs Collected, Sent for Eligibility, Sent for Login, Login, Sent for Approval, Underwriting, FI, Query/Hold, Approved, Disbursed, Not Eligible, Not Login, Declined, Not Disbursed, Rejected
+     - **Financial columns (2)**: Disbursed Amount (₹), Commission (₹)
    - Summary totals for agents and partners at bottom
    - Date range filter support
+   - **Verified Feb 11, 2026**: CSV download tested successfully with proper data
 
 9. **New Lead Status Options (Enhancement) ✅ NEW**
    - Added 6 new status options:

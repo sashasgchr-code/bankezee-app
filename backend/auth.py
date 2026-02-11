@@ -384,3 +384,29 @@ async def delete_user(
         raise HTTPException(status_code=400, detail="Invalid user_type. Must be 'operations', 'agent', or 'partner'")
     
     return {"message": f"{user_type.capitalize()} user deleted successfully", "user_id": user_id}
+
+
+class SetPasswordRequest(BaseModel):
+    user_id: str
+    new_password: str
+
+@router.post("/admin/set-password")
+async def admin_set_password(
+    request: SetPasswordRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Admin sets password for a user (for existing users without passwords)"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    hashed_password = pwd_context.hash(request.new_password)
+    
+    result = await db.users.update_one(
+        {"id": request.user_id},
+        {"$set": {"password": hashed_password}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": "Password set successfully"}

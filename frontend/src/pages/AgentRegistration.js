@@ -34,14 +34,25 @@ const AgentRegistration = () => {
     setLoading(true);
     
     try {
+      // First upload ID card if provided
+      let idCardUrl = null;
+      if (formData.id_proof) {
+        const idFormData = new FormData();
+        idFormData.append('file', formData.id_proof);
+        idFormData.append('document_type', 'agent_id_card');
+        const uploadResponse = await api.post('/storage/upload-public', idFormData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        idCardUrl = uploadResponse.data.file_url;
+      }
+
       const registrationData = {
         full_name: formData.full_name,
         phone: formData.phone,
         email: formData.email,
         city: formData.city,
         password: formData.password,
-        role: 'sales_agent',
-        pan_number: formData.pan_number,
+        id_card_url: idCardUrl,
         bank_details: {
           bank_name: formData.bank_name,
           account_number: formData.account_number,
@@ -50,7 +61,7 @@ const AgentRegistration = () => {
         }
       };
       
-      await api.post('/auth/register', registrationData);
+      await api.post('/agents/register', registrationData);
       toast.success('Registration successful! Awaiting admin approval. You can login after approval.');
       setTimeout(() => navigate('/login'), 3000);
     } catch (error) {

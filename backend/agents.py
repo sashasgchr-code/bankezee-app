@@ -81,6 +81,9 @@ async def register_agent(agent_data: AgentRegistration):
         "full_name": agent_data.full_name,
         "phone": agent_data.phone,
         "role": "sales_agent",
+        "is_active": True,
+        "is_approved": False,
+        "agent_id": agent_id,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.users.insert_one(user_doc)

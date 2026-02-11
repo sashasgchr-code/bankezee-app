@@ -410,8 +410,6 @@ const LeadDetailPage = () => {
                 newStatus={newStatus}
                 onStatusChange={setNewStatus}
                 onUpdate={handleStatusUpdate}
-                applicationId={applicationId}
-                onApplicationIdChange={setApplicationId}
               />
             )}
 

@@ -141,6 +141,79 @@ async def upload_file(
         raise HTTPException(status_code=500, detail=f"Failed to upload file: {str(e)}")
 
 
+@router.post("/upload-public")
+async def upload_public_file(
+    file: UploadFile = File(...),
+    document_type: str = Form("id_card")
+):
+    """
+    Public upload endpoint for ID cards during registration (no auth required)
+    """
+    # Validate file extension
+    file_ext = Path(file.filename).suffix.lower()
+    if file_ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail=f"File type {file_ext} not allowed")
+    
+    # Validate content type
+    if file.content_type not in ALLOWED_MIME_TYPES:
+        raise HTTPException(status_code=400, detail=f"Content type {file.content_type} not allowed")
+    
+    try:
+        content = await file.read()
+        
+        # Check file size
+        if len(content) > MAX_FILE_SIZE:
+            raise HTTPException(status_code=400, detail="File too large. Maximum size is 10MB")
+        
+        file_id = str(uuid.uuid4())
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        
+        # Store in id_cards directory
+        file_dir = STORAGE_DIR / "id_cards"
+        file_dir.mkdir(parents=True, exist_ok=True)
+        
+        safe_name = f"{document_type}_{timestamp}_{file_id}{file_ext}"
+        file_path = file_dir / safe_name
+        
+        with open(file_path, "wb") as f:
+            f.write(content)
+        
+        relative_path = str(file_path.relative_to(STORAGE_DIR))
+        
+        return {
+            "success": True,
+            "file_id": file_id,
+            "file_name": safe_name,
+            "file_path": relative_path,
+            "file_url": f"/api/storage/public/{relative_path}",
+            "size": len(content)
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to upload public file: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload file: {str(e)}")
+
+
+@router.get("/public/{file_path:path}")
+async def get_public_file(file_path: str):
+    """Serve public files like ID cards (no auth required)"""
+    full_path = STORAGE_DIR / file_path
+    
+    if not full_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    # Security check
+    try:
+        full_path.resolve().relative_to(STORAGE_DIR.resolve())
+    except ValueError:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    return FileResponse(
+        path=full_path,
+        filename=full_path.name
+    )
+
+
 @router.get("/download/{file_path:path}")
 async def download_file(
     file_path: str,

@@ -174,7 +174,7 @@ async def get_agent_performance(
     leads = await db.leads.find({"source_id": agent_id}, {"_id": 0}).to_list(1000)
     
     total_leads = len(leads)
-    converted_leads = len([l for l in leads if l.get("status") == "disbursed"])
+    converted_leads = len([lead for lead in leads if lead.get("status") == "disbursed"])
     conversion_rate = (converted_leads / total_leads * 100) if total_leads > 0 else 0
     
     return {

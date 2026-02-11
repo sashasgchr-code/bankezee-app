@@ -7,7 +7,8 @@ const LOAN_TYPES = [
   { value: 'new_personal_loan', label: 'New Personal Loan' },
   { value: 'new_home_loan', label: 'New Home Loan' },
   { value: 'business_loan', label: 'Business Loan' },
-  { value: 'vehicle_loan', label: 'Vehicle Loan' }
+  { value: 'vehicle_loan', label: 'Vehicle Loan' },
+  { value: 'balance_transfer', label: 'Balance Transfer' }
 ];
 
 // Export for use in other components

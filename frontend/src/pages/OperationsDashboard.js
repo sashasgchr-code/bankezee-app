@@ -153,9 +153,113 @@ const OperationsDashboard = () => {
     }
   };
 
+  // Export Agent/Partner Stats
+  const handleExportStats = async () => {
+    setExportingStats(true);
+    try {
+      const response = await api.get('/leads/');
+      let allLeads = response.data.filter(l => l.assigned_to === user.id);
+      
+      if (statsExportFromDate || statsExportToDate) {
+        allLeads = allLeads.filter(lead => {
+          const leadDate = new Date(lead.created_at);
+          if (statsExportFromDate && leadDate < new Date(statsExportFromDate)) return false;
+          if (statsExportToDate) {
+            const toDate = new Date(statsExportToDate);
+            toDate.setHours(23, 59, 59, 999);
+            if (leadDate > toDate) return false;
+          }
+          return true;
+        });
+      }
+
+      const agentStats = {};
+      const partnerStats = {};
+
+      for (const lead of allLeads) {
+        if (lead.source === 'agent' && lead.source_id) {
+          if (!agentStats[lead.source_id]) {
+            const agent = allAgents.find(a => a.id === lead.source_id);
+            agentStats[lead.source_id] = {
+              name: agent?.full_name || 'Unknown',
+              code: agent?.agent_code || '',
+              totalLeads: 0, newLeads: 0, inProgress: 0, approved: 0, disbursed: 0, rejected: 0,
+              totalDisbursedAmount: 0, totalCommission: 0
+            };
+          }
+          const stats = agentStats[lead.source_id];
+          stats.totalLeads++;
+          if (lead.status === 'new') stats.newLeads++;
+          else if (['contacted', 'documents_collected', 'sent_for_eligibility', 'sent_for_login', 'login', 'sent_for_approval', 'underwriting', 'fi', 'query_hold'].includes(lead.status)) stats.inProgress++;
+          else if (lead.status === 'approved') stats.approved++;
+          else if (lead.status === 'disbursed') {
+            stats.disbursed++;
+            const disbursedElig = lead.eligibilities?.find(e => e.disbursed === true);
+            stats.totalDisbursedAmount += disbursedElig?.disbursed_amount || 0;
+            stats.totalCommission += disbursedElig?.commission_amount || 0;
+          }
+          else if (['not_eligible', 'not_login', 'declined', 'not_disbursed', 'rejected'].includes(lead.status)) stats.rejected++;
+        }
+
+        if (lead.source === 'partner' && lead.source_id) {
+          if (!partnerStats[lead.source_id]) {
+            const partner = allPartners.find(p => p.id === lead.source_id);
+            partnerStats[lead.source_id] = {
+              name: partner?.name || partner?.full_name || 'Unknown',
+              code: partner?.referral_code || '',
+              totalLeads: 0, newLeads: 0, inProgress: 0, approved: 0, disbursed: 0, rejected: 0,
+              totalDisbursedAmount: 0, totalCommission: 0
+            };
+          }
+          const stats = partnerStats[lead.source_id];
+          stats.totalLeads++;
+          if (lead.status === 'new') stats.newLeads++;
+          else if (['contacted', 'documents_collected', 'sent_for_eligibility', 'sent_for_login', 'login', 'sent_for_approval', 'underwriting', 'fi', 'query_hold'].includes(lead.status)) stats.inProgress++;
+          else if (lead.status === 'approved') stats.approved++;
+          else if (lead.status === 'disbursed') {
+            stats.disbursed++;
+            const disbursedElig = lead.eligibilities?.find(e => e.disbursed === true);
+            stats.totalDisbursedAmount += disbursedElig?.disbursed_amount || 0;
+            stats.totalCommission += disbursedElig?.commission_amount || 0;
+          }
+          else if (['not_eligible', 'not_login', 'declined', 'not_disbursed', 'rejected'].includes(lead.status)) stats.rejected++;
+        }
+      }
+
+      const headers = ['Type', 'Name', 'Code', 'Total Leads', 'New', 'In Progress', 'Approved', 'Disbursed', 'Rejected', 'Disbursed Amount (₹)', 'Commission (₹)'];
+      const csvRows = [headers.join(',')];
+
+      Object.values(agentStats).forEach(stats => {
+        csvRows.push(['Agent', `"${stats.name}"`, stats.code, stats.totalLeads, stats.newLeads, stats.inProgress, stats.approved, stats.disbursed, stats.rejected, stats.totalDisbursedAmount, stats.totalCommission].join(','));
+      });
+
+      Object.values(partnerStats).forEach(stats => {
+        csvRows.push(['Partner', `"${stats.name}"`, stats.code, stats.totalLeads, stats.newLeads, stats.inProgress, stats.approved, stats.disbursed, stats.rejected, stats.totalDisbursedAmount, stats.totalCommission].join(','));
+      });
+
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      const dateRange = statsExportFromDate && statsExportToDate ? `_${statsExportFromDate}_to_${statsExportToDate}` : '';
+      a.download = `bankezee_my_agent_partner_stats${dateRange}_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(downloadUrl);
+
+      toast.success(`Exported stats for ${Object.keys(agentStats).length} agents and ${Object.keys(partnerStats).length} partners`);
+      setShowStatsExportModal(false);
+    } catch (error) {
+      toast.error('Failed to export stats');
+    } finally {
+      setExportingStats(false);
+    }
+  };
+
   // Apply filters
-  let filteredLeads = filterByTimePeriod(leads, timeFilter);
+  let filteredLeads = filterByTimePeriod(leads, timeFilter, filterFromDate, filterToDate);
   filteredLeads = filterByLoanType(filteredLeads, loanTypeFilter);
+  filteredLeads = filterBySource(filteredLeads, sourceFilter, sourceIdFilter === 'all' ? null : sourceIdFilter);
   if (statusFilter !== 'all') {
     filteredLeads = filteredLeads.filter(l => l.status === statusFilter);
   }
@@ -177,25 +281,36 @@ const OperationsDashboard = () => {
           <LayoutDashboard className="w-6 h-6 text-primary" />
           <h1 className="text-2xl font-bold" style={{ fontFamily: 'Manrope, sans-serif' }}>Operations Dashboard</h1>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <span className="text-sm text-slate-600">Welcome, {user.full_name}</span>
           <Button
             onClick={() => setShowExportModal(true)}
             variant="outline"
+            size="sm"
             disabled={exporting}
             data-testid="export-leads-btn"
           >
-            <Download className="w-4 h-4 mr-2" />
+            <Download className="w-4 h-4 mr-1" />
             Export Disbursed
           </Button>
-          <Button onClick={handleLogout} variant="ghost" className="text-slate-600" data-testid="logout-btn">
-            <LogOut className="w-4 h-4 mr-2" />
+          <Button
+            onClick={() => setShowStatsExportModal(true)}
+            variant="outline"
+            size="sm"
+            disabled={exportingStats}
+            data-testid="export-stats-btn"
+          >
+            <BarChart3 className="w-4 h-4 mr-1" />
+            Export Stats
+          </Button>
+          <Button onClick={handleLogout} variant="ghost" size="sm" className="text-slate-600" data-testid="logout-btn">
+            <LogOut className="w-4 h-4 mr-1" />
             Logout
           </Button>
         </div>
       </nav>
 
-      {/* Export Modal */}
+      {/* Export Disbursed Modal */}
       {showExportModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <Card className="w-full max-w-md">

@@ -787,51 +787,52 @@ const AdminDashboard = () => {
                 ) : (
                   <div className="space-y-3">
                     {pendingPartners.map((partner) => (
-                      <div key={partner.id} className="flex items-center justify-between p-4 bg-orange-50 border border-orange-100 rounded-lg" data-testid={`pending-partner-${partner.id}`}>
-                        <div className="flex-1">
-                          <p className="font-semibold text-slate-800">{partner.name || partner.full_name}</p>
-                          <p className="text-sm text-slate-600">{partner.email} • {partner.mobile || partner.phone}</p>
-                          <p className="text-xs text-slate-500">
-                            Code: {partner.referral_code} • City: {partner.city} • Registered: {new Date(partner.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {partner.id_card_url && (
-                            <a 
-                              href={partner.id_card_url.startsWith('/api') 
-                                ? `${process.env.REACT_APP_BACKEND_URL}${partner.id_card_url}` 
-                                : partner.id_card_url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
+                      <div key={partner.id} className="bg-orange-50 border border-orange-100 rounded-lg" data-testid={`pending-partner-${partner.id}`}>
+                        <div className="flex items-center justify-between p-4">
+                          <div className="flex-1">
+                            <p className="font-semibold text-slate-800">{partner.name || partner.full_name}</p>
+                            <p className="text-sm text-slate-600">{partner.email} • {partner.mobile || partner.phone}</p>
+                            <p className="text-xs text-slate-500">
+                              Code: {partner.referral_code} • City: {partner.city} • Registered: {new Date(partner.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-slate-600"
+                              onClick={() => toggleUserDetails(partner.id)}
+                              data-testid={`view-partner-${partner.id}`}
                             >
-                              <Button variant="outline" size="sm" className="text-blue-600">
-                                <FileText className="w-4 h-4 mr-1" />
-                                ID
-                              </Button>
-                            </a>
-                          )}
-                          <Button 
-                            size="sm" 
-                            className="bg-green-600 hover:bg-green-700 text-white"
-                            onClick={() => handleApproveUser(partner.id, 'partner', true)}
-                            disabled={approvingUser === partner.id}
-                            data-testid={`approve-partner-${partner.id}`}
-                          >
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            {approvingUser === partner.id ? 'Approving...' : 'Approve'}
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            className="text-red-600 border-red-200 hover:bg-red-50"
-                            onClick={() => handleApproveUser(partner.id, 'partner', false)}
-                            disabled={approvingUser === partner.id}
-                            data-testid={`reject-partner-${partner.id}`}
-                          >
-                            <XCircle className="w-4 h-4 mr-1" />
-                            Reject
-                          </Button>
+                              {expandedUser === partner.id ? <ChevronUp className="w-4 h-4 mr-1" /> : <ChevronDown className="w-4 h-4 mr-1" />}
+                              {expandedUser === partner.id ? 'Hide' : 'View'} Details
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                              onClick={() => handleApproveUser(partner.id, 'partner', true)}
+                              disabled={approvingUser === partner.id}
+                              data-testid={`approve-partner-${partner.id}`}
+                            >
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              {approvingUser === partner.id ? 'Approving...' : 'Approve'}
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="text-red-600 border-red-200 hover:bg-red-50"
+                              onClick={() => handleApproveUser(partner.id, 'partner', false)}
+                              disabled={approvingUser === partner.id}
+                              data-testid={`reject-partner-${partner.id}`}
+                            >
+                              <XCircle className="w-4 h-4 mr-1" />
+                              Reject
+                            </Button>
+                          </div>
                         </div>
+                        {expandedUser === partner.id && (
+                          <UserDetailCard user={partner} type="partner" onClose={() => setExpandedUser(null)} />
+                        )}
                       </div>
                     ))}
                   </div>

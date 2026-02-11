@@ -124,6 +124,7 @@ const LeadDetailPage = () => {
         eligible_amount: e.eligible_amount || '',
         eligible_roi: e.eligible_roi || '',
         not_eligible_reason: e.not_eligible_reason || '',
+        application_id: e.application_id || '',
         approved_amount: e.approved_amount || '',
         approved_tenure: e.approved_tenure || '',
         approved_roi: e.approved_roi || '',

@@ -189,6 +189,11 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
      - **Status History**: All status changes with timestamps
      - **Bank Eligibilities**: Per-bank eligibility status
 
+4. **Eligibility Field Update (Enhancement) ✅ NEW**
+   - Changed "Eligible Tenure (months)" to "ROI (%)" in Bank Eligibility tracking
+   - Updated field name, input type (now decimal), and placeholder
+   - Updated data model from `eligible_tenure` to `eligible_roi`
+
 ### Bugs Fixed
 1. **Agent Registration Flow Fix (P0) ✅**
    - Fixed critical bug where agent user documents were missing `is_active` and `is_approved` fields

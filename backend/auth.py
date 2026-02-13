@@ -324,9 +324,9 @@ async def get_ops_users_with_reports(current_user: User = Depends(get_current_us
 
 @router.get("/admin/all-users")
 async def get_all_users(current_user: User = Depends(get_current_user)):
-    """Get all users grouped by role"""
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
+    """Get all users grouped by role - accessible by admin and operations"""
+    if current_user.role not in ["admin", "operations"]:
+        raise HTTPException(status_code=403, detail="Admin or Operations access required")
     
     # Get users by role
     ops_users = await db.users.find({"role": "operations"}, {"_id": 0, "password": 0}).to_list(100)

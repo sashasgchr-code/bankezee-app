@@ -271,6 +271,15 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 - Testing agent ran 16 backend tests + frontend UI tests - all passed
 - Test report: `/app/test_reports/iteration_6.json`
 
+## Session 6 Highlights (February 13, 2026)
+
+### Bugs Fixed
+1. **Operations Dashboard Agent/Partner Filter Fix (P1) ✅**
+   - Issue: Operations users couldn't see agent/partner name dropdown when filtering by source
+   - Root cause: `/api/auth/admin/all-users` endpoint was restricted to admin role only
+   - Fix: Modified endpoint to allow both `admin` and `operations` roles
+   - Result: Ops dashboard now shows agent/partner selection dropdown matching Admin dashboard
+
 ## Pending/Future Tasks
 
 ### P0 - Critical

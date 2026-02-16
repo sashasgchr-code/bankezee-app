@@ -34,26 +34,44 @@ const ActivityLog = ({
   };
 
   const handleUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
     
     setUploading(true);
+    const successfulUploads = [];
+    const failedUploads = [];
+    
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('lead_id', leadId || '');
-      formData.append('document_type', 'general');
+      // Upload files sequentially to avoid server overload
+      for (const file of files) {
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('lead_id', leadId || '');
+          formData.append('document_type', 'general');
+          
+          const response = await api.post('/storage/upload', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+          
+          successfulUploads.push(response.data);
+        } catch (error) {
+          failedUploads.push(file.name);
+        }
+      }
       
-      const response = await api.post('/storage/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      if (successfulUploads.length > 0) {
+        const newDocs = [...uploadedFiles, ...successfulUploads];
+        setUploadedFiles(newDocs);
+        if (onDocumentsChange) onDocumentsChange(newDocs);
+        toast.success(`${successfulUploads.length} document(s) uploaded successfully`);
+      }
       
-      toast.success('Document uploaded successfully');
-      const newDocs = [...uploadedFiles, response.data];
-      setUploadedFiles(newDocs);
-      if (onDocumentsChange) onDocumentsChange(newDocs);
+      if (failedUploads.length > 0) {
+        toast.error(`Failed to upload: ${failedUploads.join(', ')}`);
+      }
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to upload document');
+      toast.error('Failed to upload documents');
     } finally {
       setUploading(false);
       e.target.value = '';

@@ -265,7 +265,21 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
      - Updated save logic to send strings instead of converting to booleans
    - **Verified:** Full save/load cycle tested and working correctly
 
-3. **DB_NAME Environment Variable Fix (P1) ✅**
+3. **Multi-File Document Upload Enhancement (P1) ✅ NEW**
+   - **Issue:** Ops/Admin could only upload one document at a time in lead detail
+   - **Issue:** Agent lead form had no document upload capability
+   - **Fixes Applied:**
+     - Updated `ActivityLog.jsx` to support multiple file selection (`multiple` attribute)
+     - Sequential upload of files with individual success/failure tracking
+     - Updated `AgentLeadCreate.js` with mandatory document upload section:
+       - File selection with preview list
+       - Remove individual files before submit
+       - Required documents checklist (Aadhaar, PAN, Payslips, Bank Statements, etc.)
+       - Submit button disabled until at least one document is selected
+       - Documents uploaded after lead creation with progress feedback
+   - **Verified:** Both features tested and working correctly
+
+4. **DB_NAME Environment Variable Fix (P1) ✅**
    - Fixed deployment blocker by changing `os.environ['DB_NAME']` to `os.environ.get('DB_NAME', 'test_database')`
    - Updated in all 12 backend files (auth.py, leads.py, agents.py, partners.py, etc.)
    - Removed hardcoded DB_NAME from backend/.env

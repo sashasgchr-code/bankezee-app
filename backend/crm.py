@@ -402,7 +402,8 @@ async def update_eligibilities(
     for e in eligibility_update.eligibilities:
         elig_dict = e.dict()
         # Auto-calculate commission amount if percentage and disbursed amount provided
-        if elig_dict.get('disbursed') and elig_dict.get('disbursed_amount') and elig_dict.get('commission_percentage'):
+        # Note: disbursed is now a string 'yes' or 'no'
+        if elig_dict.get('disbursed') == 'yes' and elig_dict.get('disbursed_amount') and elig_dict.get('commission_percentage'):
             calculated_commission = round(
                 (elig_dict['disbursed_amount'] * elig_dict['commission_percentage']) / 100, 2
             )

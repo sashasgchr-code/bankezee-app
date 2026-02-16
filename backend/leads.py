@@ -113,7 +113,25 @@ async def get_leads(
     if source_id and current_user.role in ["admin", "operations"]:
         query["source_id"] = source_id
     
-    leads = await db.leads.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    # Optimized projection - fetch only fields needed for list view
+    list_projection = {
+        "_id": 0,
+        "id": 1,
+        "full_name": 1,
+        "mobile": 1,
+        "email": 1,
+        "city": 1,
+        "employment_type": 1,
+        "requirement": 1,
+        "status": 1,
+        "source": 1,
+        "source_id": 1,
+        "assigned_to": 1,
+        "created_at": 1,
+        "updated_at": 1
+    }
+    
+    leads = await db.leads.find(query, list_projection).sort("created_at", -1).to_list(1000)
     return leads
 
 @router.get("/{lead_id}")

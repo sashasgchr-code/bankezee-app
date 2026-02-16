@@ -135,16 +135,17 @@ const ActivityLog = ({
                 id="doc-upload"
                 accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx"
                 onChange={handleUpload}
+                multiple
               />
               <label htmlFor="doc-upload">
                 <Button variant="outline" className="w-full cursor-pointer" disabled={uploading} asChild>
                   <span>
                     <Upload className="w-4 h-4 mr-2" />
-                    {uploading ? 'Uploading...' : 'Upload Document'}
+                    {uploading ? 'Uploading...' : 'Upload Documents'}
                   </span>
                 </Button>
               </label>
-              <p className="text-xs text-slate-500 mt-2 text-center">PDF, Images, DOC, XLS (max 10MB)</p>
+              <p className="text-xs text-slate-500 mt-2 text-center">PDF, Images, DOC, XLS (max 10MB each) - Select multiple files</p>
             </div>
           )}
         </CardContent>

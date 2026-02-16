@@ -364,34 +364,97 @@ const AgentLeadCreate = () => {
                 </div>
               </div>
 
-              {/* Documents Note */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+              {/* Documents Upload - MANDATORY */}
+              <div className="border-2 border-primary/30 bg-primary/5 rounded-lg p-6">
+                <h3 className="text-lg font-semibold mb-4 text-primary flex items-center gap-2">
                   <Upload className="w-5 h-5" />
-                  Document Upload Instructions
+                  Document Upload (Mandatory) *
                 </h3>
-                <p className="text-sm text-blue-800">
-                  After creating this lead, you can upload the following documents from the CRM Lead Detail page:
+                <p className="text-sm text-slate-600 mb-4">
+                  Upload all required documents before submitting. You can select multiple files at once.
                 </p>
-                <ul className="text-sm text-blue-800 mt-2 space-y-1 ml-4">
-                  <li>• Customer Aadhaar</li>
-                  <li>• Customer PAN</li>
-                  <li>• Passport Photo</li>
-                  <li>• Latest 3 Months Payslips</li>
-                  <li>• Latest 3 Months Bank Statements</li>
-                  <li>• CIBIL Score Screenshots</li>
-                  <li>• Form 16</li>
-                  <li>• Current Address Proof</li>
-                  <li>• ID Card</li>
-                </ul>
+                
+                {/* File List */}
+                {selectedFiles.length > 0 && (
+                  <div className="mb-4 space-y-2 max-h-60 overflow-y-auto">
+                    {selectedFiles.map((file, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                        <div className="flex items-center gap-3">
+                          <FileText className="w-5 h-5 text-primary" />
+                          <div>
+                            <p className="text-sm font-medium truncate max-w-xs">{file.name}</p>
+                            <p className="text-xs text-slate-500">{(file.size / 1024).toFixed(1)} KB</p>
+                          </div>
+                        </div>
+                        <Button 
+                          type="button"
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => removeFile(file.name)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Upload Button */}
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  id="agent-doc-upload"
+                  accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx"
+                  onChange={handleFileSelect}
+                  multiple
+                />
+                <label htmlFor="agent-doc-upload">
+                  <Button type="button" variant="outline" className="w-full cursor-pointer h-24 border-dashed border-2" asChild>
+                    <span className="flex flex-col items-center gap-2">
+                      <Upload className="w-8 h-8 text-primary" />
+                      <span>Click to select files (or drag & drop)</span>
+                      <span className="text-xs text-slate-500">PDF, Images, DOC, XLS - Select multiple files</span>
+                    </span>
+                  </Button>
+                </label>
+                
+                {/* Selected Files Count */}
+                <div className="mt-4 flex items-center justify-between">
+                  <p className="text-sm text-slate-600">
+                    {selectedFiles.length === 0 ? (
+                      <span className="text-red-500">No documents selected (required)</span>
+                    ) : (
+                      <span className="text-green-600 flex items-center gap-1">
+                        <CheckCircle className="w-4 h-4" />
+                        {selectedFiles.length} document(s) selected
+                      </span>
+                    )}
+                  </p>
+                </div>
+                
+                {/* Required Documents Guide */}
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                  <p className="text-xs font-semibold text-blue-800 mb-2">Required Documents:</p>
+                  <div className="grid grid-cols-2 gap-1 text-xs text-blue-700">
+                    <span>• Customer Aadhaar</span>
+                    <span>• Customer PAN</span>
+                    <span>• Passport Photo</span>
+                    <span>• Latest 3 Months Payslips</span>
+                    <span>• Latest 3 Months Bank Statements</span>
+                    <span>• CIBIL Score Screenshots</span>
+                    <span>• Form 16</span>
+                    <span>• Current Address Proof</span>
+                  </div>
+                </div>
               </div>
 
               <Button
                 type="submit"
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300 rounded-full py-6 text-lg font-semibold"
-                disabled={loading}
+                disabled={loading || uploading || selectedFiles.length === 0}
               >
-                {loading ? 'Creating Lead...' : 'Submit Lead Application'}
+                {uploading ? 'Uploading Documents...' : loading ? 'Creating Lead...' : `Submit Lead with ${selectedFiles.length} Document(s)`}
               </Button>
             </form>
           </CardContent>

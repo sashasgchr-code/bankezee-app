@@ -49,6 +49,25 @@ const AgentLeadCreate = () => {
     }
   };
 
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    
+    // Add new files to the list (avoiding duplicates by name)
+    setSelectedFiles(prev => {
+      const existingNames = new Set(prev.map(f => f.name));
+      const newFiles = files.filter(f => !existingNames.has(f.name));
+      return [...prev, ...newFiles];
+    });
+    
+    // Reset the input
+    e.target.value = '';
+  };
+
+  const removeFile = (fileName) => {
+    setSelectedFiles(prev => prev.filter(f => f.name !== fileName));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!agent) {
@@ -56,9 +75,16 @@ const AgentLeadCreate = () => {
       return;
     }
     
+    // Validate documents are uploaded
+    if (selectedFiles.length === 0) {
+      toast.error('Please upload at least one document before submitting');
+      return;
+    }
+    
     setLoading(true);
     
     try {
+      // First create the lead
       const leadData = {
         full_name: formData.customer_name,
         mobile: formData.mobile,
@@ -81,18 +107,46 @@ const AgentLeadCreate = () => {
           type_of_loan: formData.type_of_loan,
           cibil_score: formData.cibil_score,
           loan_amount_required: formData.loan_amount_required,
-          tenure_required: formData.tenure_required,
-          documents_note: 'Documents to be uploaded separately'
+          tenure_required: formData.tenure_required
         }
       };
       
-      await api.post('/leads/create', leadData);
-      toast.success('Lead created successfully! Documents can be uploaded from CRM.');
+      const leadResponse = await api.post('/leads/create', leadData);
+      const leadId = leadResponse.data.id;
+      
+      // Now upload all documents
+      setUploading(true);
+      let uploadedCount = 0;
+      let failedCount = 0;
+      
+      for (const file of selectedFiles) {
+        try {
+          const formDataUpload = new FormData();
+          formDataUpload.append('file', file);
+          formDataUpload.append('lead_id', leadId);
+          formDataUpload.append('document_type', 'general');
+          
+          await api.post('/storage/upload', formDataUpload, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+          uploadedCount++;
+        } catch (error) {
+          failedCount++;
+        }
+      }
+      
+      if (failedCount > 0) {
+        toast.warning(`Lead created! ${uploadedCount} documents uploaded, ${failedCount} failed.`);
+      } else {
+        toast.success(`Lead created with ${uploadedCount} documents!`);
+      }
+      
       setTimeout(() => navigate('/agent/dashboard'), 2000);
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to create lead');
     } finally {
       setLoading(false);
+      setUploading(false);
     }
   };
 

@@ -93,7 +93,10 @@ async def bulk_assign_leads(
         raise HTTPException(status_code=400, detail="No leads selected")
     
     # Verify the assignee exists and is an operations team member
-    assignee = await db.users.find_one({"id": assignment.assigned_to}, {"_id": 0})
+    assignee = await db.users.find_one(
+        {"id": assignment.assigned_to}, 
+        {"_id": 0, "id": 1, "role": 1, "full_name": 1, "is_active": 1}
+    )
     if not assignee:
         raise HTTPException(status_code=404, detail="Assignee not found")
     if assignee.get("role") != "operations":
@@ -339,7 +342,10 @@ async def assign_lead(
         raise HTTPException(status_code=403, detail="Only admin or operations can assign leads")
     
     # Verify the assignee exists and is an operations team member
-    assignee = await db.users.find_one({"id": assignment.assigned_to}, {"_id": 0})
+    assignee = await db.users.find_one(
+        {"id": assignment.assigned_to}, 
+        {"_id": 0, "id": 1, "role": 1, "full_name": 1, "is_active": 1}
+    )
     if not assignee:
         raise HTTPException(status_code=404, detail="Assignee not found")
     if assignee.get("role") != "operations":

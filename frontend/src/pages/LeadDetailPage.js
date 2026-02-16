@@ -116,11 +116,12 @@ const LeadDetailPage = () => {
       });
       
       // Convert eligibilities to form format
+      // Handle both string ('yes'/'no') and boolean values for backward compatibility
       const formattedElig = (leadData.eligibilities || []).map(e => ({
         ...e,
-        is_eligible: e.is_eligible === true ? 'yes' : e.is_eligible === false ? 'no' : '',
-        login_done: e.login_done === true ? 'yes' : e.login_done === false ? 'no' : '',
-        disbursed: e.disbursed === true ? 'yes' : e.disbursed === false ? 'no' : '',
+        is_eligible: e.is_eligible === true ? 'yes' : e.is_eligible === false ? 'no' : (e.is_eligible || ''),
+        login_done: e.login_done === true ? 'yes' : e.login_done === false ? 'no' : (e.login_done || ''),
+        disbursed: e.disbursed === true ? 'yes' : e.disbursed === false ? 'no' : (e.disbursed || ''),
         eligible_amount: e.eligible_amount || '',
         eligible_roi: e.eligible_roi || '',
         not_eligible_reason: e.not_eligible_reason || '',

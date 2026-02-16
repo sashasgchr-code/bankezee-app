@@ -145,7 +145,22 @@ async def get_agents(
     if email:
         query["email"] = email
     
-    agents = await db.agents.find(query, {"_id": 0}).to_list(1000)
+    # Optimized projection for agent list view
+    list_projection = {
+        "_id": 0,
+        "id": 1,
+        "full_name": 1,
+        "email": 1,
+        "phone": 1,
+        "city": 1,
+        "agent_code": 1,
+        "is_approved": 1,
+        "is_active": 1,
+        "created_at": 1,
+        "id_card_url": 1
+    }
+    
+    agents = await db.agents.find(query, list_projection).to_list(1000)
     return agents
 
 @router.get("/{agent_id}")

@@ -279,7 +279,23 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
        - Documents uploaded after lead creation with progress feedback
    - **Verified:** Both features tested and working correctly
 
-4. **DB_NAME Environment Variable Fix (P1) ✅**
+4. **Database Query Optimization (P2) ✅ NEW**
+   - **Issue:** Unoptimized database queries fetching more data than needed
+   - **Fixes Applied:**
+     - Added MongoDB projections to list endpoints:
+       - `/api/leads/` - Returns 13 fields (down from 25+)
+       - `/api/agents/` - Returns 9 fields (down from 15+)
+       - `/api/partners/` - Returns 8 fields (down from 15+)
+     - Optimized assignee lookup queries in CRM module
+     - Created database indexes for frequently queried fields:
+       - `leads`: status, source, source_id, assigned_to, created_at
+       - `agents`: email, agent_code, user_id, is_approved
+       - `partners`: email, referral_code, user_id, is_approved
+       - `users`: email, role, is_active
+       - `commissions`: lead_id, user_id
+   - **Result:** Improved query performance and reduced data transfer
+
+5. **DB_NAME Environment Variable Fix (P1) ✅**
    - Fixed deployment blocker by changing `os.environ['DB_NAME']` to `os.environ.get('DB_NAME', 'test_database')`
    - Updated in all 12 backend files (auth.py, leads.py, agents.py, partners.py, etc.)
    - Removed hardcoded DB_NAME from backend/.env

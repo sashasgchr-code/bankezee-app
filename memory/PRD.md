@@ -253,7 +253,19 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
    - Agent approval now syncs both `agents` and `users` collections
    - Full registration → approval → login flow verified via testing agent
 
-2. **DB_NAME Environment Variable Fix (P1) ✅**
+2. **ROI and Application ID Not Saving (P0) ✅ NEW**
+   - **Issue:** ROI (%) and Application ID fields in Bank Eligibility section were not being saved
+   - **Root Cause:** Frontend-backend type mismatch:
+     - Frontend sent string values ('yes'/'no') but backend expected boolean (true/false)
+     - Backend model was missing `eligible_roi` and `application_id` fields
+   - **Fix Applied:**
+     - Updated `backend/crm.py` EligibilityEntry model to accept strings for `is_eligible`, `login_done`, `disbursed`
+     - Added `eligible_roi` and `application_id` fields to the model
+     - Updated `frontend/LeadDetailPage.js` to handle both string and boolean values on load
+     - Updated save logic to send strings instead of converting to booleans
+   - **Verified:** Full save/load cycle tested and working correctly
+
+3. **DB_NAME Environment Variable Fix (P1) ✅**
    - Fixed deployment blocker by changing `os.environ['DB_NAME']` to `os.environ.get('DB_NAME', 'test_database')`
    - Updated in all 12 backend files (auth.py, leads.py, agents.py, partners.py, etc.)
    - Removed hardcoded DB_NAME from backend/.env

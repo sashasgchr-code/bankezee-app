@@ -50,12 +50,13 @@ class LeadDetailsUpdate(BaseModel):
 
 class EligibilityEntry(BaseModel):
     bank_name: str
-    is_eligible: bool
+    is_eligible: Optional[str] = None  # 'yes' or 'no'
     eligible_amount: Optional[float] = None
-    eligible_tenure: Optional[int] = None
+    eligible_roi: Optional[float] = None  # ROI percentage
     not_eligible_reason: Optional[str] = None
-    login_done: Optional[bool] = None
+    login_done: Optional[str] = None  # 'yes' or 'no'
     login_bank: Optional[str] = None
+    application_id: Optional[str] = None  # Application ID when login_done is 'yes'
     login_rejection_reason: Optional[str] = None
     approval_status: Optional[str] = None  # approved, declined
     approved_bank: Optional[str] = None
@@ -64,7 +65,7 @@ class EligibilityEntry(BaseModel):
     approved_roi: Optional[float] = None
     declined_bank: Optional[str] = None
     declined_reason: Optional[str] = None
-    disbursed: Optional[bool] = None
+    disbursed: Optional[str] = None  # 'yes' or 'no'
     disbursed_bank: Optional[str] = None
     disbursed_amount: Optional[float] = None
     disbursed_tenure: Optional[int] = None

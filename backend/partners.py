@@ -103,7 +103,23 @@ async def get_partners(
     if referral_code:
         query["referral_code"] = referral_code
     
-    partners = await db.partners.find(query, {"_id": 0}).to_list(1000)
+    # Optimized projection for partner list view
+    list_projection = {
+        "_id": 0,
+        "id": 1,
+        "name": 1,
+        "email": 1,
+        "mobile": 1,
+        "city": 1,
+        "referral_code": 1,
+        "is_approved": 1,
+        "is_active": 1,
+        "created_at": 1,
+        "id_card_url": 1,
+        "occupation": 1
+    }
+    
+    partners = await db.partners.find(query, list_projection).to_list(1000)
     return partners
 
 @router.get("/by-code/{referral_code}")

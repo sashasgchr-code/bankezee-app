@@ -273,11 +273,11 @@ const LeadDetailPage = () => {
     try {
       const formattedEligibilities = eligibilities.map(e => ({
         bank_name: e.bank_name || '',
-        is_eligible: e.is_eligible === 'yes',
+        is_eligible: e.is_eligible || null,  // Send as string 'yes'/'no'
         eligible_amount: e.eligible_amount ? parseFloat(e.eligible_amount) : null,
         eligible_roi: e.eligible_roi ? parseFloat(e.eligible_roi) : null,
         not_eligible_reason: e.not_eligible_reason || null,
-        login_done: e.login_done === 'yes' ? true : e.login_done === 'no' ? false : null,
+        login_done: e.login_done || null,  // Send as string 'yes'/'no'
         login_bank: e.login_bank || null,
         application_id: e.application_id || null,
         login_rejection_reason: e.login_rejection_reason || null,
@@ -288,7 +288,7 @@ const LeadDetailPage = () => {
         approved_roi: e.approved_roi ? parseFloat(e.approved_roi) : null,
         declined_bank: e.declined_bank || null,
         declined_reason: e.declined_reason || null,
-        disbursed: e.disbursed === 'yes' ? true : e.disbursed === 'no' ? false : null,
+        disbursed: e.disbursed || null,  // Send as string 'yes'/'no'
         disbursed_bank: e.disbursed_bank || null,
         disbursed_amount: e.disbursed_amount ? parseFloat(e.disbursed_amount) : null,
         disbursed_tenure: e.disbursed_tenure ? parseInt(e.disbursed_tenure) : null,

@@ -1948,12 +1948,23 @@ const AdminDashboard = () => {
 
             {/* Managers List */}
             <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <UserCog className="w-5 h-5 text-blue-500" />
-                  Managers ({allManagers.length})
-                </CardTitle>
-                <CardDescription>View all managers in the system</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <UserCog className="w-5 h-5 text-blue-500" />
+                    Managers ({allManagers.length})
+                  </CardTitle>
+                  <CardDescription>View and manage all managers in the system</CardDescription>
+                </div>
+                <Button 
+                  onClick={() => setShowCreateManagerModal(true)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                  size="sm"
+                  data-testid="add-manager-btn"
+                >
+                  <UserPlus className="w-4 h-4 mr-1" />
+                  Add Manager
+                </Button>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">

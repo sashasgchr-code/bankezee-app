@@ -255,7 +255,7 @@ const ManagerDashboard = () => {
         />
 
         {/* Stats Cards */}
-        <DashboardStats stats={stats} earnings={{ total_earnings: 0, monthly_earnings: 0 }} />
+        <DashboardStats stats={stats} earnings={earnings} />
 
         {/* Performance Overview */}
         <PerformanceOverview leads={filteredLeads} stats={stats} />

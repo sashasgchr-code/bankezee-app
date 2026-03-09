@@ -988,7 +988,11 @@ const AdminDashboard = () => {
     }
     setCreatingTL(true);
     try {
-      await api.post('/auth/admin/create-team-leader', newTeamLeader);
+      const payload = {
+        ...newTeamLeader,
+        manager_id: newTeamLeader.manager_id === 'none' ? null : (newTeamLeader.manager_id || null)
+      };
+      await api.post('/auth/admin/create-team-leader', payload);
       toast.success('Team Leader created successfully');
       setShowCreateTLModal(false);
       setNewTeamLeader({ email: '', password: '', full_name: '', phone: '', manager_id: '' });

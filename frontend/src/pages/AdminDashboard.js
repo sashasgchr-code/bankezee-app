@@ -1656,6 +1656,86 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
 
+            {/* Managers List */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserCog className="w-5 h-5 text-blue-500" />
+                  Managers ({allManagers.length})
+                </CardTitle>
+                <CardDescription>View all managers in the system</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {allManagers.length === 0 ? (
+                    <p className="text-center text-slate-500 py-4">No managers found</p>
+                  ) : (
+                    allManagers.map((manager) => (
+                      <div key={manager.id} className="p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="font-semibold text-slate-800">{manager.full_name}</p>
+                            <p className="text-sm text-slate-600">{manager.email}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-medium text-blue-700">
+                              {allTeamLeaders.filter(tl => tl.manager_id === manager.id).length} Team Leaders
+                            </p>
+                            <p className="text-xs text-blue-600">
+                              {allAgents.filter(a => a.manager_id === manager.id).length} Agents | {allPartners.filter(p => p.manager_id === manager.id).length} Partners
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Team Leaders List */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-purple-500" />
+                  Team Leaders ({allTeamLeaders.length})
+                </CardTitle>
+                <CardDescription>View all team leaders and their manager assignments</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {allTeamLeaders.length === 0 ? (
+                    <p className="text-center text-slate-500 py-4">No team leaders found</p>
+                  ) : (
+                    allTeamLeaders.map((tl) => {
+                      const manager = allManagers.find(m => m.id === tl.manager_id);
+                      return (
+                        <div key={tl.id} className="p-4 bg-purple-50 border border-purple-100 rounded-lg">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="font-semibold text-slate-800">{tl.full_name}</p>
+                              <p className="text-sm text-slate-600">{tl.email}</p>
+                              <p className="text-xs text-slate-500">
+                                Manager: {manager?.full_name || <span className="text-orange-600">Not Assigned</span>}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-medium text-purple-700">
+                                {allAgents.filter(a => a.team_leader_id === tl.id).length} Agents
+                              </p>
+                              <p className="text-xs text-purple-600">
+                                {allPartners.filter(p => p.team_leader_id === tl.id).length} Partners
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Agents List */}
             <Card className="mb-6">
               <CardHeader>

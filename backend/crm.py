@@ -198,6 +198,7 @@ async def update_lead_status(
                     "from_status": lead.get("status"),
                     "to_status": status_update.status,
                     "application_id": status_update.application_id,
+                    "pending_documents": status_update.pending_documents,
                     "by": current_user.id,
                     "timestamp": datetime.now(timezone.utc).isoformat()
                 }

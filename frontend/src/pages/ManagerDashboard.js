@@ -32,6 +32,8 @@ const ManagerDashboard = () => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
+  // Search
+  const [searchQuery, setSearchQuery] = useState('');
   
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 

@@ -94,6 +94,14 @@ const TeamLeaderDashboard = () => {
   if (statusFilter !== 'all') {
     filteredLeads = filteredLeads.filter(l => l.status === statusFilter);
   }
+  // Apply search filter
+  if (searchQuery.trim()) {
+    const query = searchQuery.toLowerCase().trim();
+    filteredLeads = filteredLeads.filter(l => 
+      (l.full_name && l.full_name.toLowerCase().includes(query)) ||
+      (l.mobile && l.mobile.includes(query))
+    );
+  }
 
   const stats = calculateDashboardStats(filteredLeads);
 

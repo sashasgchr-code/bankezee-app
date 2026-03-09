@@ -1593,6 +1593,20 @@ const AdminDashboard = () => {
           </TabsList>
 
           <TabsContent value="dashboard">
+            {/* Search Bar */}
+            <div className="mb-4">
+              <div className="relative max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  placeholder="Search by name or mobile..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                  data-testid="lead-search-input"
+                />
+              </div>
+            </div>
+
             {/* Filters */}
             <DashboardFilters
               timeFilter={timeFilter}

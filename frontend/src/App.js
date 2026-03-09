@@ -18,6 +18,7 @@ import ManagerDashboard from './pages/ManagerDashboard';
 import TeamLeaderDashboard from './pages/TeamLeaderDashboard';
 import CRMPage from './pages/CRMPage';
 import LeadDetailPage from './pages/LeadDetailPage';
+import DailyReportPage from './pages/DailyReportPage';
 
 function ProtectedRoute({ children, allowedRoles }) {
   const token = localStorage.getItem('token');

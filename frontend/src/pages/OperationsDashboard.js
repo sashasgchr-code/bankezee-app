@@ -38,6 +38,7 @@ const OperationsDashboard = () => {
   useEffect(() => {
     fetchAssignedLeads();
     fetchAllUsers();
+    fetchSystemEarnings();
   }, []);
 
   const fetchAllUsers = async () => {
@@ -47,6 +48,15 @@ const OperationsDashboard = () => {
       setAllPartners(response.data.partners || []);
     } catch (error) {
       console.error('Failed to fetch users');
+    }
+  };
+
+  const fetchSystemEarnings = async () => {
+    try {
+      const response = await api.get('/crm/system-earnings');
+      setEarnings(response.data);
+    } catch (error) {
+      console.error('Failed to fetch system earnings');
     }
   };
 

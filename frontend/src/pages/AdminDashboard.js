@@ -840,6 +840,42 @@ const AdminDashboard = () => {
     }
   };
 
+  const openMappingModal = (user, type) => {
+    setMappingUser(user);
+    setMappingUserType(type);
+    setSelectedManagerId(user.manager_id || '');
+    setSelectedTeamLeaderId(user.team_leader_id || '');
+    setShowMappingModal(true);
+  };
+
+  const handleSaveMapping = async () => {
+    if (!selectedManagerId) {
+      toast.error('Manager is required');
+      return;
+    }
+    setSavingMapping(true);
+    try {
+      await api.post('/hierarchy/map-user', {
+        user_id: mappingUser.id,
+        user_type: mappingUserType,
+        manager_id: selectedManagerId,
+        team_leader_id: selectedTeamLeaderId || null
+      });
+      toast.success(`${mappingUserType.charAt(0).toUpperCase() + mappingUserType.slice(1)} mapped successfully`);
+      setShowMappingModal(false);
+      fetchAllUsers();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to map user');
+    } finally {
+      setSavingMapping(false);
+    }
+  };
+
+  // Get team leaders for a specific manager (for cascading dropdown)
+  const getTeamLeadersForManager = (managerId) => {
+    return allTeamLeaders.filter(tl => tl.manager_id === managerId);
+  };
+
   // Apply filters
   let filteredLeads = filterByTimePeriod(leads, timeFilter, filterFromDate, filterToDate);
   filteredLeads = filterByLoanType(filteredLeads, loanTypeFilter);

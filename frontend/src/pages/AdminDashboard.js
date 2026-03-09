@@ -303,6 +303,11 @@ const AdminDashboard = () => {
   const [selectedManagerId, setSelectedManagerId] = useState('');
   const [selectedTeamLeaderId, setSelectedTeamLeaderId] = useState('');
   const [savingMapping, setSavingMapping] = useState(false);
+  // Team Leader mapping modal
+  const [showTLMappingModal, setShowTLMappingModal] = useState(false);
+  const [mappingTeamLeader, setMappingTeamLeader] = useState(null);
+  const [selectedTLManagerId, setSelectedTLManagerId] = useState('');
+  const [savingTLMapping, setSavingTLMapping] = useState(false);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const toggleUserDetails = (userId) => {

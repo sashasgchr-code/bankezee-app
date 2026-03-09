@@ -2005,14 +2005,43 @@ const AdminDashboard = () => {
                           <div>
                             <p className="font-semibold text-slate-800">{manager.full_name}</p>
                             <p className="text-sm text-slate-600">{manager.email}</p>
+                            <p className="text-xs text-slate-500">ID: {manager.id}</p>
                           </div>
-                          <div className="text-right">
-                            <p className="text-sm font-medium text-blue-700">
-                              {allTeamLeaders.filter(tl => tl.manager_id === manager.id).length} Team Leaders
-                            </p>
-                            <p className="text-xs text-blue-600">
-                              {allAgents.filter(a => a.manager_id === manager.id).length} Agents | {allPartners.filter(p => p.manager_id === manager.id).length} Partners
-                            </p>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <p className="text-sm font-medium text-blue-700">
+                                {allTeamLeaders.filter(tl => tl.manager_id === manager.id).length} Team Leaders
+                              </p>
+                              <p className="text-xs text-blue-600">
+                                {allAgents.filter(a => a.manager_id === manager.id).length} Agents | {allPartners.filter(p => p.manager_id === manager.id).length} Partners
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="text-blue-600 border-blue-200 hover:bg-blue-100"
+                                onClick={() => {
+                                  setSelectedUserForPassword(manager);
+                                  setNewPasswordForUser('');
+                                  setShowSetPasswordModal(true);
+                                }}
+                                data-testid={`reset-pwd-manager-${manager.id}`}
+                              >
+                                <Key className="w-4 h-4 mr-1" />
+                                Reset Password
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => handleDeleteUser(manager.id, 'manager')}
+                                disabled={deletingUser === manager.id}
+                                data-testid={`delete-manager-${manager.id}`}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>

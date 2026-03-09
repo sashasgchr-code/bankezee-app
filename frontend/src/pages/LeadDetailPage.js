@@ -52,6 +52,7 @@ const LeadDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [note, setNote] = useState('');
   const [newStatus, setNewStatus] = useState('');
+  const [pendingDocuments, setPendingDocuments] = useState('');
   const [applicationId, setApplicationId] = useState('');
   const [uploading, setUploading] = useState(false);
   const [opsTeam, setOpsTeam] = useState([]);

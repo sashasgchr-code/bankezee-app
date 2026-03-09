@@ -1234,7 +1234,7 @@ const AdminDashboard = () => {
                     <SelectValue placeholder={selectedManagerId ? "Select Team Leader" : "Select Manager first"} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None (Direct under Manager)</SelectItem>
+                    <SelectItem value="none">None (Direct under Manager)</SelectItem>
                     {getTeamLeadersForManager(selectedManagerId).map(tl => (
                       <SelectItem key={tl.id} value={tl.id}>{tl.full_name}</SelectItem>
                     ))}

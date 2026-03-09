@@ -317,7 +317,18 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
    - Dashboard filters automatically use LOAN_TYPES constant
    - Total loan types now: 9 options
 
-7. **DB_NAME Environment Variable Fix (P1) ✅**
+7. **Agent Document Upload Not Saving (P0) ✅ NEW**
+   - **Issue:** Documents uploaded by agents weren't being saved/viewable, but admin/ops uploads worked fine
+   - **Root Causes Found:**
+     1. **Wrong response field**: Frontend used `response.data.id` but API returns `lead_id`
+     2. **Permission mismatch**: `lead.source_id` stores agent's ID, but permission check compared with `user.id` (different IDs)
+   - **Fixes Applied:**
+     - `AgentLeadCreate.js`: Changed to use `leadResponse.data.lead_id || leadResponse.data.id`
+     - `leads.py` (get_lead): Updated to lookup agent's ID from agents collection and compare both user_id and agent_id
+     - `leads.py` (get_leads): Updated list endpoint with same agent/partner ID lookup logic
+   - **Result:** Agents can now see their leads (2 leads found) and documents (1 document visible)
+
+8. **DB_NAME Environment Variable Fix (P1) ✅**
    - Fixed deployment blocker by changing `os.environ['DB_NAME']` to `os.environ.get('DB_NAME', 'test_database')`
    - Updated in all 12 backend files (auth.py, leads.py, agents.py, partners.py, etc.)
    - Removed hardcoded DB_NAME from backend/.env

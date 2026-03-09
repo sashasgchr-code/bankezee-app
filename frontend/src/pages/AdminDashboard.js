@@ -317,6 +317,8 @@ const AdminDashboard = () => {
   const [creatingTL, setCreatingTL] = useState(false);
   // System earnings
   const [systemEarnings, setSystemEarnings] = useState({ total_earnings: 0, monthly_earnings: 0 });
+  // Search
+  const [searchQuery, setSearchQuery] = useState('');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const toggleUserDetails = (userId) => {

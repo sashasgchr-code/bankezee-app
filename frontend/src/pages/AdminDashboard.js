@@ -916,6 +916,33 @@ const AdminDashboard = () => {
     return allTeamLeaders.filter(tl => tl.manager_id === managerId);
   };
 
+  const openTLMappingModal = (teamLeader) => {
+    setMappingTeamLeader(teamLeader);
+    setSelectedTLManagerId(teamLeader.manager_id || '');
+    setShowTLMappingModal(true);
+  };
+
+  const handleSaveTLMapping = async () => {
+    if (!selectedTLManagerId) {
+      toast.error('Manager is required');
+      return;
+    }
+    setSavingTLMapping(true);
+    try {
+      await api.post('/hierarchy/map-team-leader', {
+        team_leader_id: mappingTeamLeader.id,
+        manager_id: selectedTLManagerId
+      });
+      toast.success('Team leader mapped to manager successfully');
+      setShowTLMappingModal(false);
+      fetchAllUsers();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to map team leader');
+    } finally {
+      setSavingTLMapping(false);
+    }
+  };
+
   // Apply filters
   let filteredLeads = filterByTimePeriod(leads, timeFilter, filterFromDate, filterToDate);
   filteredLeads = filterByLoanType(filteredLeads, loanTypeFilter);

@@ -155,9 +155,10 @@ async def update_lead_status(
     current_user: User = Depends(get_current_user)
 ):
     valid_statuses = [
-        "new", "contacted", "documents_collected", "not_eligible", 
+        "new", "contacted", "documents_collected", "documents_pending", "not_eligible", 
         "sent_for_eligibility", "sent_for_login", "login", "not_login",
-        "sent_for_approval", "underwriting", "fi", "query_hold",
+        "sent_for_approval", "underwriting", "fi", "fi_negative", "fi_reinitiated", "query_hold",
+        "customer_not_interested", "customer_not_supporting",
         "approved", "declined", "disbursed", "not_disbursed", "rejected"
     ]
     if status_update.status not in valid_statuses:
@@ -176,9 +177,15 @@ async def update_lead_status(
     if status_update.application_id:
         update_data["application_id"] = status_update.application_id
     
+    # Add pending_documents if status is documents_pending
+    if status_update.status == "documents_pending" and status_update.pending_documents:
+        update_data["pending_documents"] = status_update.pending_documents
+    
     activity_message = f"Status changed to {status_update.status}"
     if status_update.application_id:
         activity_message += f" (Application ID: {status_update.application_id})"
+    if status_update.pending_documents:
+        activity_message += f" | Pending Documents: {status_update.pending_documents}"
     
     result = await db.leads.update_one(
         {"id": lead_id},

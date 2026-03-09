@@ -1131,6 +1131,15 @@ const AdminDashboard = () => {
         <div className="flex items-center gap-3">
           <span className="text-sm text-slate-600">Welcome, {user.full_name}</span>
           <Button
+            onClick={() => navigate('/reports/daily')}
+            variant="outline"
+            size="sm"
+            data-testid="daily-report-btn"
+          >
+            <FileText className="w-4 h-4 mr-1" />
+            Daily Report
+          </Button>
+          <Button
             onClick={() => setShowExportModal(true)}
             variant="outline"
             size="sm"

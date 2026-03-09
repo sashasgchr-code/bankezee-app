@@ -382,6 +382,15 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchSystemEarnings = async () => {
+    try {
+      const response = await api.get('/crm/system-earnings');
+      setSystemEarnings(response.data);
+    } catch (error) {
+      console.error('Failed to fetch system earnings');
+    }
+  };
+
   const fetchPendingApprovals = async () => {
     try {
       const [agentsRes, partnersRes] = await Promise.all([

@@ -7,7 +7,8 @@ export const LOAN_TYPES = [
   { value: 'new_home_loan', label: 'New Home Loan' },
   { value: 'business_loan', label: 'Business Loan' },
   { value: 'vehicle_loan', label: 'Vehicle Loan' },
-  { value: 'balance_transfer', label: 'Balance Transfer' }
+  { value: 'balance_transfer', label: 'Balance Transfer' },
+  { value: 'balance_transfer_topup', label: 'Balance Transfer+Top-Up' }
 ];
 
 // Time period filters

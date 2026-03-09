@@ -406,30 +406,68 @@ async def update_eligibilities(
     # Get existing eligibilities to compare
     existing_eligibilities = lead.get("eligibilities", [])
     existing_commissions = {}
+    existing_disbursed_amounts = {}
     for e in existing_eligibilities:
-        if e.get("bank_name") and e.get("commission_amount"):
-            existing_commissions[e["bank_name"]] = e.get("commission_amount", 0)
+        bank_name = e.get("bank_name", "")
+        if bank_name:
+            existing_commissions[bank_name] = e.get("commission_amount", 0)
+            if e.get("disbursed") == "yes":
+                existing_disbursed_amounts[bank_name] = e.get("disbursed_amount", 0)
     
     # Convert eligibilities to dict format and calculate commission
     eligibilities_data = []
     new_commission = 0
+    deducted_commission = 0
+    deducted_disbursed_amount = 0
     
     for e in eligibility_update.eligibilities:
         elig_dict = e.dict()
-        # Auto-calculate commission amount if percentage and disbursed amount provided
-        # Note: disbursed is now a string 'yes' or 'no'
-        if elig_dict.get('disbursed') == 'yes' and elig_dict.get('disbursed_amount') and elig_dict.get('commission_percentage'):
+        bank_name = elig_dict.get('bank_name', '')
+        
+        # Check if disbursed is being reversed (was 'yes', now 'no' or None)
+        was_disbursed = bank_name in existing_disbursed_amounts
+        is_disbursed = elig_dict.get('disbursed') == 'yes'
+        
+        if was_disbursed and not is_disbursed:
+            # Disbursement is being reversed - deduct the commission
+            prev_commission = existing_commissions.get(bank_name, 0)
+            prev_disbursed = existing_disbursed_amounts.get(bank_name, 0)
+            if prev_commission > 0:
+                deducted_commission += prev_commission
+            if prev_disbursed > 0:
+                deducted_disbursed_amount += prev_disbursed
+            # Clear commission fields
+            elig_dict['commission_amount'] = 0
+            elig_dict['disbursed_amount'] = None
+        elif is_disbursed and elig_dict.get('disbursed_amount') and elig_dict.get('commission_percentage'):
+            # Auto-calculate commission amount if percentage and disbursed amount provided
             calculated_commission = round(
                 (elig_dict['disbursed_amount'] * elig_dict['commission_percentage']) / 100, 2
             )
             elig_dict['commission_amount'] = calculated_commission
             
             # Only credit NEW commission (not already credited)
-            bank_name = elig_dict.get('bank_name', '')
             prev_commission = existing_commissions.get(bank_name, 0)
             if calculated_commission > prev_commission:
                 new_commission += (calculated_commission - prev_commission)
+        
         eligibilities_data.append(elig_dict)
+    
+    # Check for eligibilities that were removed entirely (they also need to be deducted)
+    new_bank_names = {e.get('bank_name', '') for e in eligibilities_data}
+    for bank_name, prev_commission in existing_commissions.items():
+        if bank_name not in new_bank_names and prev_commission > 0:
+            deducted_commission += prev_commission
+        if bank_name not in new_bank_names and bank_name in existing_disbursed_amounts:
+            deducted_disbursed_amount += existing_disbursed_amounts[bank_name]
+    
+    activity_message = f"Eligibilities updated ({len(eligibilities_data)} bank(s))"
+    if new_commission > 0:
+        activity_message += f", Commission credited: ₹{new_commission}"
+    if deducted_commission > 0:
+        activity_message += f", Commission deducted: ₹{deducted_commission}"
+    if deducted_disbursed_amount > 0:
+        activity_message += f", Disbursed reversed: ₹{deducted_disbursed_amount}"
     
     result = await db.leads.update_one(
         {"id": lead_id},
@@ -441,7 +479,7 @@ async def update_eligibilities(
             "$push": {
                 "activities": {
                     "type": "eligibility_update",
-                    "message": f"Eligibilities updated ({len(eligibilities_data)} bank(s))" + (f", Commission: ₹{new_commission}" if new_commission > 0 else ""),
+                    "message": activity_message,
                     "by": current_user.id,
                     "by_name": current_user.full_name,
                     "timestamp": datetime.now(timezone.utc).isoformat()
@@ -450,37 +488,61 @@ async def update_eligibilities(
         }
     )
     
-    # If there's NEW commission to credit, update the source agent/partner
-    if new_commission > 0 and lead.get("source_id"):
+    # Handle commission changes for the source agent/partner
+    if lead.get("source_id"):
         source_type = lead.get("source")
-        if source_type == "agent":
-            await db.agents.update_one(
-                {"id": lead["source_id"]},
-                {"$inc": {"performance.total_commission": new_commission}}
-            )
-            # Log commission entry
-            await db.commissions.insert_one({
-                "lead_id": lead_id,
-                "source_id": lead["source_id"],
-                "source_type": "agent",
-                "amount": new_commission,
-                "created_at": datetime.now(timezone.utc).isoformat()
-            })
-        elif source_type in ["partner", "retail_qr"]:
-            await db.partners.update_one(
-                {"id": lead["source_id"]},
-                {"$inc": {"total_earnings": new_commission, "wallet_balance": new_commission}}
-            )
-            # Log commission entry
-            await db.commissions.insert_one({
-                "lead_id": lead_id,
-                "source_id": lead["source_id"],
-                "source_type": "partner",
-                "amount": new_commission,
-                "created_at": datetime.now(timezone.utc).isoformat()
-            })
+        net_commission_change = new_commission - deducted_commission
+        
+        if net_commission_change != 0:
+            if source_type == "agent":
+                await db.agents.update_one(
+                    {"id": lead["source_id"]},
+                    {"$inc": {"performance.total_commission": net_commission_change}}
+                )
+                # Log commission entry (negative for deduction)
+                await db.commissions.insert_one({
+                    "lead_id": lead_id,
+                    "source_id": lead["source_id"],
+                    "source_type": "agent",
+                    "amount": net_commission_change,
+                    "type": "credit" if net_commission_change > 0 else "reversal",
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                })
+            elif source_type in ["partner", "retail_qr"]:
+                await db.partners.update_one(
+                    {"id": lead["source_id"]},
+                    {"$inc": {"total_earnings": net_commission_change, "wallet_balance": net_commission_change}}
+                )
+                # Log commission entry (negative for deduction)
+                await db.commissions.insert_one({
+                    "lead_id": lead_id,
+                    "source_id": lead["source_id"],
+                    "source_type": "partner",
+                    "amount": net_commission_change,
+                    "type": "credit" if net_commission_change > 0 else "reversal",
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                })
+        
+        # Update converted_leads / approved_cases count if disbursement changed
+        if deducted_disbursed_amount > 0:
+            # Disbursement reversed - decrement count
+            if source_type == "agent":
+                await db.agents.update_one(
+                    {"id": lead["source_id"]},
+                    {"$inc": {"performance.converted_leads": -1}}
+                )
+            elif source_type in ["partner", "retail_qr"]:
+                await db.partners.update_one(
+                    {"id": lead["source_id"]},
+                    {"$inc": {"approved_cases": -1}}
+                )
     
-    return {"message": "Eligibilities updated successfully", "count": len(eligibilities_data), "commission_credited": new_commission}
+    return {
+        "message": "Eligibilities updated successfully", 
+        "count": len(eligibilities_data), 
+        "commission_credited": new_commission,
+        "commission_deducted": deducted_commission
+    }
 
 @router.get("/{lead_id}/eligibilities")
 async def get_eligibilities(lead_id: str):

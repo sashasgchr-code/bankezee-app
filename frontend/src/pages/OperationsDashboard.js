@@ -195,7 +195,7 @@ const OperationsDashboard = () => {
           stats.totalLeads++;
           if (stats[lead.status] !== undefined) stats[lead.status]++;
           if (lead.status === 'disbursed') {
-            const disbursedElig = lead.eligibilities?.find(e => e.disbursed === true);
+            const disbursedElig = lead.eligibilities?.find(e => e.disbursed === 'yes' || e.disbursed === true);
             stats.totalDisbursedAmount += disbursedElig?.disbursed_amount || 0;
             stats.totalCommission += disbursedElig?.commission_amount || 0;
           }
@@ -219,7 +219,7 @@ const OperationsDashboard = () => {
           stats.totalLeads++;
           if (stats[lead.status] !== undefined) stats[lead.status]++;
           if (lead.status === 'disbursed') {
-            const disbursedElig = lead.eligibilities?.find(e => e.disbursed === true);
+            const disbursedElig = lead.eligibilities?.find(e => e.disbursed === 'yes' || e.disbursed === true);
             stats.totalDisbursedAmount += disbursedElig?.disbursed_amount || 0;
             stats.totalCommission += disbursedElig?.commission_amount || 0;
           }

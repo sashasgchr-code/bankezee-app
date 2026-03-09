@@ -328,7 +328,23 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
      - `leads.py` (get_leads): Updated list endpoint with same agent/partner ID lookup logic
    - **Result:** Agents can now see their leads (2 leads found) and documents (1 document visible)
 
-8. **DB_NAME Environment Variable Fix (P1) ✅**
+8. **Added 5 New Lead Status Options (Enhancement) ✅ NEW**
+   - Added new status options to the lead lifecycle:
+     1. **Documents Pending** - With special input field to enter list of pending documents
+     2. **Customer Not Interested - Need Help from MIT & Manager**
+     3. **Customer Not Supporting - Need Help from MIT & Manager**
+     4. **FI Negative**
+     5. **FI Reinitiated**
+   - Updated files:
+     - `constants.js` - Added new statuses to LEAD_STATUSES and STATUS_CATEGORIES
+     - `StatusUpdateCard.jsx` - Added conditional textarea for pending documents
+     - `LeadDetailPage.js` - Added state management and pending documents alert card
+     - `crm.py` - Updated valid_statuses list and StatusUpdate model
+     - `AdminDashboard.js` & `OperationsDashboard.js` - Updated export stats with new status columns
+   - Pending documents are recorded in activity log
+   - Total lead statuses now: 22 options
+
+9. **DB_NAME Environment Variable Fix (P1) ✅**
    - Fixed deployment blocker by changing `os.environ['DB_NAME']` to `os.environ.get('DB_NAME', 'test_database')`
    - Updated in all 12 backend files (auth.py, leads.py, agents.py, partners.py, etc.)
    - Removed hardcoded DB_NAME from backend/.env

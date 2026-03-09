@@ -308,6 +308,15 @@ const AdminDashboard = () => {
   const [mappingTeamLeader, setMappingTeamLeader] = useState(null);
   const [selectedTLManagerId, setSelectedTLManagerId] = useState('');
   const [savingTLMapping, setSavingTLMapping] = useState(false);
+  // Create Manager/Team Leader modals
+  const [showCreateManagerModal, setShowCreateManagerModal] = useState(false);
+  const [showCreateTLModal, setShowCreateTLModal] = useState(false);
+  const [newManager, setNewManager] = useState({ email: '', password: '', full_name: '', phone: '' });
+  const [newTeamLeader, setNewTeamLeader] = useState({ email: '', password: '', full_name: '', phone: '', manager_id: '' });
+  const [creatingManager, setCreatingManager] = useState(false);
+  const [creatingTL, setCreatingTL] = useState(false);
+  // System earnings
+  const [systemEarnings, setSystemEarnings] = useState({ total_earnings: 0, monthly_earnings: 0 });
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const toggleUserDetails = (userId) => {

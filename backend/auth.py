@@ -384,8 +384,46 @@ async def delete_user(
         # Also delete from users collection if exists
         await db.users.delete_one({"id": user_id, "role": "partner"})
         
+    elif user_type == "manager":
+        # Delete manager from users collection
+        result = await db.users.delete_one({"id": user_id, "role": "manager"})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Manager not found")
+        
+        # Unassign team leaders from this manager
+        await db.users.update_many(
+            {"role": "team_leader", "manager_id": user_id},
+            {"$set": {"manager_id": None}}
+        )
+        
+        # Unassign agents/partners from this manager
+        await db.agents.update_many(
+            {"manager_id": user_id},
+            {"$set": {"manager_id": None}}
+        )
+        await db.partners.update_many(
+            {"manager_id": user_id},
+            {"$set": {"manager_id": None}}
+        )
+        
+    elif user_type == "team_leader":
+        # Delete team leader from users collection
+        result = await db.users.delete_one({"id": user_id, "role": "team_leader"})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Team Leader not found")
+        
+        # Unassign agents/partners from this team leader
+        await db.agents.update_many(
+            {"team_leader_id": user_id},
+            {"$set": {"team_leader_id": None}}
+        )
+        await db.partners.update_many(
+            {"team_leader_id": user_id},
+            {"$set": {"team_leader_id": None}}
+        )
+        
     else:
-        raise HTTPException(status_code=400, detail="Invalid user_type. Must be 'operations', 'agent', or 'partner'")
+        raise HTTPException(status_code=400, detail="Invalid user_type. Must be 'operations', 'agent', 'partner', 'manager', or 'team_leader'")
     
     return {"message": f"{user_type.capitalize()} user deleted successfully", "user_id": user_id}
 

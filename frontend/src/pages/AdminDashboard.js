@@ -894,7 +894,7 @@ const AdminDashboard = () => {
         user_id: mappingUser.id,
         user_type: mappingUserType,
         manager_id: selectedManagerId,
-        team_leader_id: selectedTeamLeaderId || null
+        team_leader_id: selectedTeamLeaderId === 'none' ? null : (selectedTeamLeaderId || null)
       });
       toast.success(`${mappingUserType.charAt(0).toUpperCase() + mappingUserType.slice(1)} mapped successfully`);
       setShowMappingModal(false);

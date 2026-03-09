@@ -371,6 +371,26 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
    - Fix: Modified endpoint to allow both `admin` and `operations` roles
    - Result: Ops dashboard now shows agent/partner selection dropdown matching Admin dashboard
 
+## Session 7 Highlights (December 2025)
+
+### Features Completed
+1. **Admin Password Reset Feature (P0) ✅**
+   - Admin can now view User ID and reset passwords for any user
+   - **Implementation:**
+     - User Details panel shows "Account Details" section with User ID and Email (with copy buttons)
+     - "Set/Reset Password" button opens modal dialog
+     - Modal validates password length (min 6 characters)
+     - Backend endpoint `POST /api/auth/admin/set-password` securely hashes and updates password
+   - **Security:** Passwords are never displayed; only reset functionality provided
+   - **Files Modified:**
+     - `AdminDashboard.js` - Added UserDetailCard with Account Details section and password modal
+     - `auth.py` - Backend endpoint for secure password updates
+   - **Testing Completed:**
+     - ✅ Backend API tested with curl (password reset and re-login verified)
+     - ✅ Frontend UI tested with screenshot (modal displays correctly)
+     - ✅ Old password invalidated after reset
+     - ✅ New password allows successful login
+
 ## Pending/Future Tasks
 
 ### P0 - Critical

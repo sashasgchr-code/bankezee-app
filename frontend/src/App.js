@@ -14,6 +14,8 @@ import AgentLeadCreate from './pages/AgentLeadCreate';
 import PartnerDashboard from './pages/PartnerDashboard';
 import PartnerLeadCreate from './pages/PartnerLeadCreate';
 import OperationsDashboard from './pages/OperationsDashboard';
+import ManagerDashboard from './pages/ManagerDashboard';
+import TeamLeaderDashboard from './pages/TeamLeaderDashboard';
 import CRMPage from './pages/CRMPage';
 import LeadDetailPage from './pages/LeadDetailPage';
 

@@ -232,8 +232,9 @@ const OperationsDashboard = () => {
 
       const headers = [
         'Type', 'Name', 'Code', 'Total Leads',
-        'New', 'Contacted', 'Docs Collected', 'Sent for Eligibility', 'Sent for Login', 'Login',
-        'Sent for Approval', 'Underwriting', 'FI', 'Query/Hold',
+        'New', 'Contacted', 'Docs Collected', 'Docs Pending', 'Sent for Eligibility', 'Sent for Login', 'Login',
+        'Sent for Approval', 'Underwriting', 'FI', 'FI Negative', 'FI Reinitiated', 'Query/Hold',
+        'Cust Not Interested', 'Cust Not Supporting',
         'Approved', 'Disbursed',
         'Not Eligible', 'Not Login', 'Declined', 'Not Disbursed', 'Rejected',
         'Disbursed Amount (₹)', 'Commission (₹)'
@@ -243,9 +244,11 @@ const OperationsDashboard = () => {
       Object.values(agentStats).forEach(stats => {
         csvRows.push([
           'Agent', `"${stats.name}"`, stats.code, stats.totalLeads,
-          stats.new, stats.contacted, stats.documents_collected, stats.sent_for_eligibility,
+          stats.new, stats.contacted, stats.documents_collected, stats.documents_pending, stats.sent_for_eligibility,
           stats.sent_for_login, stats.login, stats.sent_for_approval, stats.underwriting,
-          stats.fi, stats.query_hold, stats.approved, stats.disbursed,
+          stats.fi, stats.fi_negative, stats.fi_reinitiated, stats.query_hold,
+          stats.customer_not_interested, stats.customer_not_supporting,
+          stats.approved, stats.disbursed,
           stats.not_eligible, stats.not_login, stats.declined, stats.not_disbursed, stats.rejected,
           stats.totalDisbursedAmount, stats.totalCommission
         ].join(','));
@@ -254,9 +257,11 @@ const OperationsDashboard = () => {
       Object.values(partnerStats).forEach(stats => {
         csvRows.push([
           'Partner', `"${stats.name}"`, stats.code, stats.totalLeads,
-          stats.new, stats.contacted, stats.documents_collected, stats.sent_for_eligibility,
+          stats.new, stats.contacted, stats.documents_collected, stats.documents_pending, stats.sent_for_eligibility,
           stats.sent_for_login, stats.login, stats.sent_for_approval, stats.underwriting,
-          stats.fi, stats.query_hold, stats.approved, stats.disbursed,
+          stats.fi, stats.fi_negative, stats.fi_reinitiated, stats.query_hold,
+          stats.customer_not_interested, stats.customer_not_supporting,
+          stats.approved, stats.disbursed,
           stats.not_eligible, stats.not_login, stats.declined, stats.not_disbursed, stats.rejected,
           stats.totalDisbursedAmount, stats.totalCommission
         ].join(','));

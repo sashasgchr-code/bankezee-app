@@ -163,6 +163,7 @@ const LeadFormPage = () => {
                     <SelectItem value="business_loan">Business Loan</SelectItem>
                     <SelectItem value="vehicle_loan">Vehicle Loan</SelectItem>
                     <SelectItem value="balance_transfer">Balance Transfer</SelectItem>
+                    <SelectItem value="balance_transfer_topup">Balance Transfer+Top-Up</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

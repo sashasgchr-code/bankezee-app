@@ -29,13 +29,18 @@ export const LEAD_STATUSES = [
   { value: 'new', label: 'New' },
   { value: 'contacted', label: 'Contacted' },
   { value: 'documents_collected', label: 'Documents Collected' },
+  { value: 'documents_pending', label: 'Documents Pending' },
   { value: 'sent_for_eligibility', label: 'Sent for Eligibility' },
   { value: 'sent_for_login', label: 'Sent for Login' },
   { value: 'login', label: 'Login Done' },
   { value: 'sent_for_approval', label: 'Sent for Approval' },
   { value: 'underwriting', label: 'Underwriting' },
   { value: 'fi', label: 'FI (Field Investigation)' },
+  { value: 'fi_negative', label: 'FI Negative' },
+  { value: 'fi_reinitiated', label: 'FI Reinitiated' },
   { value: 'query_hold', label: 'Query/Hold' },
+  { value: 'customer_not_interested', label: 'Customer Not Interested - Need Help from MIT & Manager' },
+  { value: 'customer_not_supporting', label: 'Customer Not Supporting - Need Help from MIT & Manager' },
   { value: 'approved', label: 'Approved' },
   { value: 'disbursed', label: 'Disbursed' },
   { value: 'not_eligible', label: 'Not Eligible' },
@@ -50,7 +55,7 @@ export const STATUS_CATEGORIES = {
   new: ['new'],
   approved: ['approved'],
   disbursed: ['disbursed'],
-  in_progress: ['contacted', 'documents_collected', 'sent_for_eligibility', 'sent_for_login', 'login', 'sent_for_approval', 'underwriting', 'fi', 'query_hold'],
+  in_progress: ['contacted', 'documents_collected', 'documents_pending', 'sent_for_eligibility', 'sent_for_login', 'login', 'sent_for_approval', 'underwriting', 'fi', 'fi_negative', 'fi_reinitiated', 'query_hold', 'customer_not_interested', 'customer_not_supporting'],
   rejected: ['not_eligible', 'not_login', 'declined', 'not_disbursed', 'rejected']
 };
 

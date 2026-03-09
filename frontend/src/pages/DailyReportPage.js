@@ -209,23 +209,52 @@ const DailyReportPage = () => {
       pdf.setTextColor(0, 0, 0);
       pdf.text('Detailed Lead Report', margin, 20);
       
-      // Leads table
+      // Generate status details for PDF
+      const getStatusDetailForPDF = (lead) => {
+        const statusDetails = lead.status_details || {};
+        const status = lead.current_status || 'new';
+        
+        if (status === 'rejected' || status === 'not_eligible') {
+          return statusDetails.rejection_reason || statusDetails.not_eligible_reason || '-';
+        } else if (status === 'login' || statusDetails.login_banks?.length > 0) {
+          const loginBanks = statusDetails.login_banks || [];
+          if (loginBanks.length > 0) {
+            return loginBanks.map(b => `${b.bank}: ${formatCurrency(b.amount)}`).join(', ');
+          }
+        } else if (status === 'approved' || statusDetails.approved_banks?.length > 0) {
+          const approvedBanks = statusDetails.approved_banks || [];
+          if (approvedBanks.length > 0) {
+            return approvedBanks.map(b => `${b.bank}: ${formatCurrency(b.amount)}`).join(', ');
+          }
+        } else if (status === 'disbursed' || statusDetails.disbursed_banks?.length > 0) {
+          const disbursedBanks = statusDetails.disbursed_banks || [];
+          if (disbursedBanks.length > 0) {
+            return disbursedBanks.map(b => `${b.bank}: ${formatCurrency(b.amount)}`).join(', ');
+          }
+        } else if (status === 'documents_pending') {
+          return lead.pending_documents || '-';
+        } else if (statusDetails.declined_banks?.length > 0) {
+          return statusDetails.declined_banks.map(b => `${b.bank}: ${b.reason}`).join(', ');
+        }
+        return '-';
+      };
+      
+      // Leads table with status details
       const leadsTableData = reportData.leads.map(lead => [
         lead.full_name || '-',
         lead.mobile || '-',
         lead.loan_type || '-',
         (lead.current_status || 'new').replace(/_/g, ' '),
+        getStatusDetailForPDF(lead),
         lead.source_info?.name || '-',
-        lead.manager_info?.name || '-',
-        formatCurrency(lead.total_eligible_amount),
+        formatCurrency(lead.total_login_amount || 0),
         formatCurrency(lead.total_approved_amount),
-        formatCurrency(lead.total_disbursed_amount),
-        lead.pending_documents || '-'
+        formatCurrency(lead.total_disbursed_amount)
       ]);
       
       pdf.autoTable({
         startY: 25,
-        head: [['Name', 'Mobile', 'Loan Type', 'Status', 'Agent/Partner', 'Manager', 'Eligible', 'Approved', 'Disbursed', 'Pending Docs']],
+        head: [['Name', 'Mobile', 'Loan Type', 'Status', 'Status Details', 'Agent/Partner', 'Login Amt', 'Approved', 'Disbursed']],
         body: leadsTableData,
         theme: 'grid',
         headStyles: { fillColor: [34, 175, 71], fontSize: 7 },
@@ -235,13 +264,12 @@ const DailyReportPage = () => {
           0: { cellWidth: 20 },
           1: { cellWidth: 18 },
           2: { cellWidth: 18 },
-          3: { cellWidth: 18 },
-          4: { cellWidth: 18 },
-          5: { cellWidth: 18 },
+          3: { cellWidth: 16 },
+          4: { cellWidth: 35 },
+          5: { cellWidth: 20 },
           6: { cellWidth: 18 },
           7: { cellWidth: 18 },
-          8: { cellWidth: 18 },
-          9: { cellWidth: 25 }
+          8: { cellWidth: 18 }
         }
       });
       

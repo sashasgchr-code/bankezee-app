@@ -1298,6 +1298,60 @@ const AdminDashboard = () => {
         </div>
       )}
 
+      {/* Team Leader Mapping Modal */}
+      {showTLMappingModal && mappingTeamLeader && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <UserCog className="w-5 h-5 text-purple-600" />
+                Assign Team Leader to Manager
+              </CardTitle>
+              <CardDescription>
+                Assign {mappingTeamLeader.full_name} to a Manager
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1">
+                  Manager <span className="text-red-500">*</span>
+                </label>
+                <Select 
+                  value={selectedTLManagerId} 
+                  onValueChange={setSelectedTLManagerId}
+                >
+                  <SelectTrigger data-testid="tl-mapping-manager-select">
+                    <SelectValue placeholder="Select Manager" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allManagers.map(m => (
+                      <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <Button 
+                  onClick={() => setShowTLMappingModal(false)} 
+                  variant="outline" 
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleSaveTLMapping} 
+                  className="flex-1 bg-purple-600 hover:bg-purple-700"
+                  disabled={savingTLMapping || !selectedTLManagerId}
+                  data-testid="save-tl-mapping-btn"
+                >
+                  {savingTLMapping ? 'Saving...' : 'Save Assignment'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <div className="px-6 md:px-12 lg:px-24 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full max-w-lg grid-cols-3 mb-6">

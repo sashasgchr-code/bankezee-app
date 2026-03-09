@@ -10,14 +10,18 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 ## User Roles
 1. **Admin** - Full system access, user approvals, analytics, lead assignment
 2. **Operations Team** - Process assigned leads, update statuses, manage workflow
-3. **Sales Agent** - Generate leads, track commission, unique QR code
-4. **Retail Partner** - Generate leads, track earnings, unique QR code
+3. **Manager** - View-only access to leads from their team (agents/partners + team leaders' reports)
+4. **Team Leader** - View-only access to leads from direct reports (agents/partners under them)
+5. **Sales Agent** - Generate leads, track commission, unique QR code
+6. **Retail Partner** - Generate leads, track earnings, unique QR code
 
 ## Core Features
 
 ### Authentication
 - [x] Admin email/password login
 - [x] Operations Team email/password login
+- [x] Manager email/password login
+- [x] Team Leader email/password login
 - [x] Agent/Partner OTP-based login (mocked with code 123456)
 - [x] JWT token-based authentication
 - [x] Role-based access control
@@ -27,6 +31,10 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 - [x] Partner registration with KYC and bank details
 - [x] Admin approval workflow for agents/partners
 - [x] Operations Team user creation
+- [x] **NEW: Hierarchical User Mapping**
+  - Admin can assign Team Leaders to Managers
+  - Admin can map Agents/Partners to Manager (mandatory) and Team Leader (optional)
+  - Team Leader can only be assigned Agents/Partners if they are under the same Manager
 
 ### Lead Generation
 - [x] Public lead form at /lead-form

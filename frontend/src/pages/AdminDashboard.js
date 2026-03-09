@@ -1409,6 +1409,153 @@ const AdminDashboard = () => {
         </div>
       )}
 
+      {/* Create Manager Modal */}
+      {showCreateManagerModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <UserCog className="w-5 h-5 text-blue-600" />
+                Create New Manager
+              </CardTitle>
+              <CardDescription>Add a new manager to the system</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1">Full Name <span className="text-red-500">*</span></label>
+                <Input
+                  placeholder="Enter full name"
+                  value={newManager.full_name}
+                  onChange={(e) => setNewManager({ ...newManager, full_name: e.target.value })}
+                  data-testid="manager-name-input"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1">Email <span className="text-red-500">*</span></label>
+                <Input
+                  type="email"
+                  placeholder="manager@bankezee.com"
+                  value={newManager.email}
+                  onChange={(e) => setNewManager({ ...newManager, email: e.target.value })}
+                  data-testid="manager-email-input"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1">Password <span className="text-red-500">*</span></label>
+                <Input
+                  type="password"
+                  placeholder="Min 6 characters"
+                  value={newManager.password}
+                  onChange={(e) => setNewManager({ ...newManager, password: e.target.value })}
+                  data-testid="manager-password-input"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1">Phone</label>
+                <Input
+                  placeholder="Phone number (optional)"
+                  value={newManager.phone}
+                  onChange={(e) => setNewManager({ ...newManager, phone: e.target.value })}
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <Button onClick={() => setShowCreateManagerModal(false)} variant="outline" className="flex-1">Cancel</Button>
+                <Button 
+                  onClick={handleCreateManager} 
+                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  disabled={creatingManager}
+                  data-testid="create-manager-btn"
+                >
+                  {creatingManager ? 'Creating...' : 'Create Manager'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Create Team Leader Modal */}
+      {showCreateTLModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-purple-600" />
+                Create New Team Leader
+              </CardTitle>
+              <CardDescription>Add a new team leader to the system</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1">Full Name <span className="text-red-500">*</span></label>
+                <Input
+                  placeholder="Enter full name"
+                  value={newTeamLeader.full_name}
+                  onChange={(e) => setNewTeamLeader({ ...newTeamLeader, full_name: e.target.value })}
+                  data-testid="tl-name-input"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1">Email <span className="text-red-500">*</span></label>
+                <Input
+                  type="email"
+                  placeholder="teamleader@bankezee.com"
+                  value={newTeamLeader.email}
+                  onChange={(e) => setNewTeamLeader({ ...newTeamLeader, email: e.target.value })}
+                  data-testid="tl-email-input"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1">Password <span className="text-red-500">*</span></label>
+                <Input
+                  type="password"
+                  placeholder="Min 6 characters"
+                  value={newTeamLeader.password}
+                  onChange={(e) => setNewTeamLeader({ ...newTeamLeader, password: e.target.value })}
+                  data-testid="tl-password-input"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1">Phone</label>
+                <Input
+                  placeholder="Phone number (optional)"
+                  value={newTeamLeader.phone}
+                  onChange={(e) => setNewTeamLeader({ ...newTeamLeader, phone: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1">Assign to Manager</label>
+                <Select 
+                  value={newTeamLeader.manager_id} 
+                  onValueChange={(v) => setNewTeamLeader({ ...newTeamLeader, manager_id: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Manager (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None (Assign later)</SelectItem>
+                    {allManagers.map(m => (
+                      <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <Button onClick={() => setShowCreateTLModal(false)} variant="outline" className="flex-1">Cancel</Button>
+                <Button 
+                  onClick={handleCreateTeamLeader} 
+                  className="flex-1 bg-purple-600 hover:bg-purple-700"
+                  disabled={creatingTL}
+                  data-testid="create-tl-btn"
+                >
+                  {creatingTL ? 'Creating...' : 'Create Team Leader'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <div className="px-6 md:px-12 lg:px-24 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full max-w-lg grid-cols-3 mb-6">

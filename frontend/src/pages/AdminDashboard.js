@@ -556,19 +556,45 @@ const AdminDashboard = () => {
         });
       }
 
+      // Filter agents/partners by manager/team leader
+      let filteredAgents = [...allAgents];
+      let filteredPartners = [...allPartners];
+      
+      if (statsExportTeamLeaderFilter !== 'all') {
+        // Filter by team leader
+        filteredAgents = allAgents.filter(a => a.team_leader_id === statsExportTeamLeaderFilter);
+        filteredPartners = allPartners.filter(p => p.team_leader_id === statsExportTeamLeaderFilter);
+      } else if (statsExportManagerFilter !== 'all') {
+        // Filter by manager (includes direct reports + team leader's reports)
+        const tlIds = allTeamLeaders.filter(tl => tl.manager_id === statsExportManagerFilter).map(tl => tl.id);
+        filteredAgents = allAgents.filter(a => 
+          a.manager_id === statsExportManagerFilter || tlIds.includes(a.team_leader_id)
+        );
+        filteredPartners = allPartners.filter(p => 
+          p.manager_id === statsExportManagerFilter || tlIds.includes(p.team_leader_id)
+        );
+      }
+      
+      const filteredAgentIds = new Set(filteredAgents.map(a => a.id));
+      const filteredPartnerIds = new Set(filteredPartners.map(p => p.id));
+
       // Calculate stats per agent
       const agentStats = {};
       const partnerStats = {};
 
       for (const lead of allLeads) {
-        if (lead.source === 'agent' && lead.source_id) {
+        if (lead.source === 'agent' && lead.source_id && filteredAgentIds.has(lead.source_id)) {
           if (!agentStats[lead.source_id]) {
-            const agent = allAgents.find(a => a.id === lead.source_id);
+            const agent = filteredAgents.find(a => a.id === lead.source_id);
+            const manager = allManagers.find(m => m.id === agent?.manager_id);
+            const teamLeader = allTeamLeaders.find(tl => tl.id === agent?.team_leader_id);
             agentStats[lead.source_id] = {
               name: agent?.full_name || 'Unknown',
               code: agent?.agent_code || '',
               phone: agent?.phone || '',
               email: agent?.email || '',
+              manager: manager?.full_name || 'Unassigned',
+              teamLeader: teamLeader?.full_name || 'N/A',
               totalLeads: 0,
               new: 0,
               contacted: 0,

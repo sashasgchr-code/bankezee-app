@@ -145,6 +145,15 @@ function App() {
               </ProtectedRoute>
             }
           />
+          
+          <Route
+            path="/reports/daily"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'operations']}>
+                <DailyReportPage />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </div>

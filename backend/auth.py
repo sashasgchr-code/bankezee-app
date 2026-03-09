@@ -446,3 +446,101 @@ async def change_own_password(
     )
     
     return {"message": "Password changed successfully"}
+
+
+class CreateManagerRequest(BaseModel):
+    email: str
+    password: str
+    full_name: str
+    phone: Optional[str] = None
+
+
+class CreateTeamLeaderRequest(BaseModel):
+    email: str
+    password: str
+    full_name: str
+    phone: Optional[str] = None
+    manager_id: Optional[str] = None
+
+
+@router.post("/admin/create-manager")
+async def create_manager(
+    request: CreateManagerRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Admin creates a new manager account"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Check if email already exists
+    existing = await db.users.find_one({"email": request.email})
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    user_id = str(uuid.uuid4())
+    hashed_password = pwd_context.hash(request.password)
+    
+    user_doc = {
+        "id": user_id,
+        "email": request.email,
+        "password": hashed_password,
+        "full_name": request.full_name,
+        "phone": request.phone,
+        "role": "manager",
+        "is_active": True,
+        "is_approved": True,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.users.insert_one(user_doc)
+    
+    return {
+        "message": "Manager created successfully",
+        "manager_id": user_id,
+        "email": request.email
+    }
+
+
+@router.post("/admin/create-team-leader")
+async def create_team_leader(
+    request: CreateTeamLeaderRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Admin creates a new team leader account"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Check if email already exists
+    existing = await db.users.find_one({"email": request.email})
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # If manager_id provided, verify it exists
+    if request.manager_id:
+        manager = await db.users.find_one({"id": request.manager_id, "role": "manager"})
+        if not manager:
+            raise HTTPException(status_code=404, detail="Manager not found")
+    
+    user_id = str(uuid.uuid4())
+    hashed_password = pwd_context.hash(request.password)
+    
+    user_doc = {
+        "id": user_id,
+        "email": request.email,
+        "password": hashed_password,
+        "full_name": request.full_name,
+        "phone": request.phone,
+        "role": "team_leader",
+        "manager_id": request.manager_id,
+        "is_active": True,
+        "is_approved": True,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.users.insert_one(user_doc)
+    
+    return {
+        "message": "Team Leader created successfully",
+        "team_leader_id": user_id,
+        "email": request.email
+    }

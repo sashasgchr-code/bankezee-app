@@ -25,6 +25,7 @@ from documents import router as documents_router
 from dashboard import router as dashboard_router
 from google_drive import router as google_drive_router
 from file_storage import router as file_storage_router
+from hierarchy import router as hierarchy_router
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')

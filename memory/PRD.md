@@ -126,6 +126,16 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
    - Routes /crm/lead/:id and /lead/:leadId now include manager and team_leader in allowedRoles
    - Both roles can navigate to lead detail page without being logged out
 
+3. **Daily Report Dashboard ✅ NEW**
+   - New comprehensive daily report feature for Admin and Operations
+   - Date range filter (from/to dates) and Manager filter dropdown
+   - Summary stats: Total Leads with Activity, Eligible Amount, Approved Amount, Disbursed Amount
+   - Three interactive charts: Status Distribution (pie), Daily Activity Trend (line), Leads by Loan Type (bar)
+   - Detailed leads table with: Customer, Contact, Loan Type, Status, Agent/Partner, Manager, amounts, Pending Docs
+   - Bank Eligibility Details section showing per-lead bank-wise eligibility breakdown
+   - PDF Export with charts and tables (using jsPDF + html2canvas)
+   - Accessible via "Daily Report" button in Admin and Operations dashboards
+
 ### Session 4 Highlights (Current)
 1. **Loan Type Options Standardized ✅ NEW**
    - Updated all loan type dropdowns across the entire application

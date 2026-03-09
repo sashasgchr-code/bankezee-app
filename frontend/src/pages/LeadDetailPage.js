@@ -415,6 +415,8 @@ const LeadDetailPage = () => {
                 newStatus={newStatus}
                 onStatusChange={setNewStatus}
                 onUpdate={handleStatusUpdate}
+                pendingDocuments={pendingDocuments}
+                onPendingDocumentsChange={setPendingDocuments}
               />
             )}
 

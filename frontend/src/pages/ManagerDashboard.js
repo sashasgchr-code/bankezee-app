@@ -3,14 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { Users, LogOut, LayoutDashboard, Eye, ChevronDown, ChevronUp, Key, TrendingUp, UserCheck, Briefcase, Search } from 'lucide-react';
+import { Users, LogOut, LayoutDashboard, Eye, Key, TrendingUp, UserCheck, Briefcase, Search, Phone, MapPin } from 'lucide-react';
 import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
-import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats, LOAN_TYPES, TIME_FILTERS } from '@/utils/constants';
+import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats } from '@/utils/constants';
 
 const ManagerDashboard = () => {
   const navigate = useNavigate();
@@ -20,20 +19,17 @@ const ManagerDashboard = () => {
   const [timeFilter, setTimeFilter] = useState('all');
   const [loanTypeFilter, setLoanTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [expandedUser, setExpandedUser] = useState(null);
   const [filterFromDate, setFilterFromDate] = useState('');
   const [filterToDate, setFilterToDate] = useState('');
   const [sourceFilter, setSourceFilter] = useState('all');
   const [sourceIdFilter, setSourceIdFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Password change
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
-  // Search
-  const [searchQuery, setSearchQuery] = useState('');
   
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -180,117 +176,104 @@ const ManagerDashboard = () => {
       </nav>
 
       <div className="px-6 md:px-12 lg:px-24 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
-            <TabsTrigger value="dashboard" className="flex items-center gap-2">
-              <LayoutDashboard className="w-4 h-4" />
-              Dashboard
-            </TabsTrigger>
-            <TabsTrigger value="team" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              My Team ({team.agents.length + team.partners.length})
-            </TabsTrigger>
-          </TabsList>
+        {/* Team Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <Card className="bg-blue-50 border-blue-200">
+            <CardContent className="p-4 text-center">
+              <Users className="w-8 h-8 mx-auto text-blue-600 mb-2" />
+              <p className="text-2xl font-bold text-blue-700">{team.team_leaders.length}</p>
+              <p className="text-sm text-blue-600">Team Leaders</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-green-50 border-green-200">
+            <CardContent className="p-4 text-center">
+              <UserCheck className="w-8 h-8 mx-auto text-green-600 mb-2" />
+              <p className="text-2xl font-bold text-green-700">{team.agents.length}</p>
+              <p className="text-sm text-green-600">Agents</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-purple-50 border-purple-200">
+            <CardContent className="p-4 text-center">
+              <Briefcase className="w-8 h-8 mx-auto text-purple-600 mb-2" />
+              <p className="text-2xl font-bold text-purple-700">{team.partners.length}</p>
+              <p className="text-sm text-purple-600">Partners</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-orange-50 border-orange-200">
+            <CardContent className="p-4 text-center">
+              <TrendingUp className="w-8 h-8 mx-auto text-orange-600 mb-2" />
+              <p className="text-2xl font-bold text-orange-700">{leads.length}</p>
+              <p className="text-sm text-orange-600">Total Leads</p>
+            </CardContent>
+          </Card>
+        </div>
 
-          <TabsContent value="dashboard">
-            {/* Summary Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <Card className="bg-blue-50 border-blue-200">
-                <CardContent className="p-4 text-center">
-                  <Users className="w-8 h-8 mx-auto text-blue-600 mb-2" />
-                  <p className="text-2xl font-bold text-blue-700">{team.team_leaders.length}</p>
-                  <p className="text-sm text-blue-600">Team Leaders</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-green-50 border-green-200">
-                <CardContent className="p-4 text-center">
-                  <UserCheck className="w-8 h-8 mx-auto text-green-600 mb-2" />
-                  <p className="text-2xl font-bold text-green-700">{team.agents.length}</p>
-                  <p className="text-sm text-green-600">Agents</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-purple-50 border-purple-200">
-                <CardContent className="p-4 text-center">
-                  <Briefcase className="w-8 h-8 mx-auto text-purple-600 mb-2" />
-                  <p className="text-2xl font-bold text-purple-700">{team.partners.length}</p>
-                  <p className="text-sm text-purple-600">Partners</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-orange-50 border-orange-200">
-                <CardContent className="p-4 text-center">
-                  <TrendingUp className="w-8 h-8 mx-auto text-orange-600 mb-2" />
-                  <p className="text-2xl font-bold text-orange-700">{leads.length}</p>
-                  <p className="text-sm text-orange-600">Total Leads</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Search Bar */}
-            <div className="mb-4">
-              <div className="relative max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  placeholder="Search by name or mobile..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                  data-testid="lead-search-input"
-                />
-              </div>
-            </div>
-
-            {/* Filters */}
-            <DashboardFilters
-              timeFilter={timeFilter}
-              onTimeFilterChange={setTimeFilter}
-              loanTypeFilter={loanTypeFilter}
-              onLoanTypeFilterChange={setLoanTypeFilter}
-              statusFilter={statusFilter}
-              onStatusFilterChange={setStatusFilter}
-              fromDate={filterFromDate}
-              toDate={filterToDate}
-              onFromDateChange={setFilterFromDate}
-              onToDateChange={setFilterToDate}
-              sourceFilter={sourceFilter}
-              onSourceFilterChange={(v) => { setSourceFilter(v); setSourceIdFilter('all'); }}
-              sourceIdFilter={sourceIdFilter}
-              onSourceIdFilterChange={setSourceIdFilter}
-              agents={team.agents}
-              partners={team.partners}
-              showSourceFilter={true}
+        {/* Search Bar */}
+        <div className="mb-4">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              placeholder="Search by name or mobile..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+              data-testid="lead-search-input"
             />
+          </div>
+        </div>
 
-            {/* Stats Cards */}
-            <DashboardStats stats={stats} earnings={{ total_earnings: 0, monthly_earnings: 0 }} />
+        {/* Filters */}
+        <DashboardFilters
+          timeFilter={timeFilter}
+          onTimeFilterChange={setTimeFilter}
+          loanTypeFilter={loanTypeFilter}
+          onLoanTypeFilterChange={setLoanTypeFilter}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+          fromDate={filterFromDate}
+          toDate={filterToDate}
+          onFromDateChange={setFilterFromDate}
+          onToDateChange={setFilterToDate}
+          sourceFilter={sourceFilter}
+          onSourceFilterChange={(v) => { setSourceFilter(v); setSourceIdFilter('all'); }}
+          sourceIdFilter={sourceIdFilter}
+          onSourceIdFilterChange={setSourceIdFilter}
+          agents={team.agents}
+          partners={team.partners}
+          showSourceFilter={true}
+        />
 
-            {/* Performance Overview */}
-            <PerformanceOverview leads={filteredLeads} stats={stats} />
+        {/* Stats Cards */}
+        <DashboardStats stats={stats} earnings={{ total_earnings: 0, monthly_earnings: 0 }} />
 
-            {/* Leads List (View Only) */}
-            <Card data-testid="leads-list-card">
-              <CardHeader>
-                <CardTitle>Team Leads ({filteredLeads.length})</CardTitle>
-                <CardDescription>View-only access to leads from your team</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 max-h-[500px] overflow-y-auto">
-                  {filteredLeads.length > 0 ? (
-                    filteredLeads.slice(0, 50).map((lead) => (
-                      <div
-                        key={lead.id}
-                        className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
-                        onClick={() => navigate(`/crm/lead/${lead.id}`)}
-                        data-testid={`lead-item-${lead.id}`}
-                      >
-                        <div>
-                          <p className="font-medium">{lead.full_name}</p>
-                          <p className="text-sm text-slate-600">{lead.mobile} | {lead.city}</p>
-                          <p className="text-xs text-slate-500 mt-1">
-                            {new Date(lead.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className={`text-xs px-2 py-1 rounded-full capitalize ${
+        {/* Performance Overview */}
+        <PerformanceOverview leads={filteredLeads} stats={stats} />
+
+        {/* Leads List - Similar to Agent Dashboard */}
+        <Card data-testid="leads-list-card">
+          <CardHeader>
+            <CardTitle>Team Leads ({filteredLeads.length})</CardTitle>
+            <CardDescription>View leads from your team members</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3 max-h-[600px] overflow-y-auto">
+              {filteredLeads.length > 0 ? (
+                filteredLeads.map((lead) => {
+                  const agent = team.agents.find(a => a.id === lead.source_id);
+                  const partner = team.partners.find(p => p.id === lead.source_id);
+                  const sourceName = agent?.full_name || partner?.name || 'Unknown';
+                  
+                  return (
+                    <div
+                      key={lead.id}
+                      className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer border border-slate-100"
+                      onClick={() => navigate(`/crm/lead/${lead.id}`)}
+                      data-testid={`lead-item-${lead.id}`}
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-slate-800">{lead.full_name}</p>
+                          <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${
                             lead.status === 'disbursed' ? 'bg-green-100 text-green-800' :
                             lead.status === 'rejected' ? 'bg-red-100 text-red-800' :
                             lead.status === 'approved' ? 'bg-blue-100 text-blue-800' :
@@ -299,126 +282,45 @@ const ManagerDashboard = () => {
                           }`}>
                             {lead.status.replace(/_/g, ' ')}
                           </span>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="w-4 h-4" />
-                          </Button>
                         </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8 text-slate-500">
-                      No leads match your filters
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="team">
-            {/* Team Leaders */}
-            {team.team_leaders.length > 0 && (
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-blue-500" />
-                    Team Leaders ({team.team_leaders.length})
-                  </CardTitle>
-                  <CardDescription>Team leaders reporting to you</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {team.team_leaders.map((tl) => (
-                      <div key={tl.id} className="p-4 bg-blue-50 border border-blue-100 rounded-lg">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="font-semibold text-slate-800">{tl.full_name}</p>
-                            <p className="text-sm text-slate-600">{tl.email}</p>
-                          </div>
-                          <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
-                            Team Leader
+                        <div className="flex items-center gap-4 mt-1 text-sm text-slate-600">
+                          <span className="flex items-center gap-1">
+                            <Phone className="w-3 h-3" />
+                            {lead.mobile}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {lead.city}
                           </span>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Agents */}
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <UserCheck className="w-5 h-5 text-green-500" />
-                  Agents ({team.agents.length})
-                </CardTitle>
-                <CardDescription>Sales agents in your team</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {team.agents.length === 0 ? (
-                  <p className="text-center py-4 text-slate-500">No agents mapped to your team yet</p>
-                ) : (
-                  <div className="space-y-3">
-                    {team.agents.map((agent) => (
-                      <div key={agent.id} className="p-4 bg-green-50 border border-green-100 rounded-lg">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="font-semibold text-slate-800">{agent.full_name}</p>
-                            <p className="text-sm text-slate-600">{agent.email} • {agent.phone}</p>
-                            <p className="text-xs text-slate-500">Code: {agent.agent_code}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-green-700">
-                              {leads.filter(l => l.source_id === agent.id).length}
-                            </p>
-                            <p className="text-xs text-green-600">Leads</p>
-                          </div>
+                        <div className="flex items-center gap-4 mt-1 text-xs text-slate-500">
+                          <span>Loan: {lead.loan_type}</span>
+                          <span>Amount: ₹{(lead.loan_amount || 0).toLocaleString()}</span>
+                          <span>Source: {sourceName}</span>
                         </div>
+                        <p className="text-xs text-slate-400 mt-1">
+                          Created: {new Date(lead.created_at).toLocaleDateString()}
+                        </p>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Partners */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Briefcase className="w-5 h-5 text-purple-500" />
-                  Partners ({team.partners.length})
-                </CardTitle>
-                <CardDescription>Retail partners in your team</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {team.partners.length === 0 ? (
-                  <p className="text-center py-4 text-slate-500">No partners mapped to your team yet</p>
-                ) : (
-                  <div className="space-y-3">
-                    {team.partners.map((partner) => (
-                      <div key={partner.id} className="p-4 bg-purple-50 border border-purple-100 rounded-lg">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="font-semibold text-slate-800">{partner.name}</p>
-                            <p className="text-sm text-slate-600">{partner.email} • {partner.mobile}</p>
-                            <p className="text-xs text-slate-500">Code: {partner.referral_code}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-purple-700">
-                              {leads.filter(l => l.source_id === partner.id).length}
-                            </p>
-                            <p className="text-xs text-purple-600">Leads</p>
-                          </div>
-                        </div>
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="sm" className="text-primary">
+                          <Eye className="w-4 h-4 mr-1" />
+                          View
+                        </Button>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-12 text-slate-500">
+                  <TrendingUp className="w-12 h-12 mx-auto mb-4 text-slate-300" />
+                  <p className="text-lg font-medium">No leads found</p>
+                  <p className="text-sm">Leads from your team members will appear here</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -348,6 +348,7 @@ async def get_daily_report(
     total_eligible = sum(l.get("total_eligible_amount", 0) for l in enriched_leads)
     total_approved = sum(l.get("total_approved_amount", 0) for l in enriched_leads)
     total_disbursed = sum(l.get("total_disbursed_amount", 0) for l in enriched_leads)
+    total_login = sum(l.get("total_login_amount", 0) for l in enriched_leads)
     
     summary = {
         "total_leads": len(enriched_leads),
@@ -357,6 +358,7 @@ async def get_daily_report(
         "total_eligible_amount": total_eligible,
         "total_approved_amount": total_approved,
         "total_disbursed_amount": total_disbursed,
+        "total_login_amount": total_login,
         "date_range": {
             "from": from_date,
             "to": to_date

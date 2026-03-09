@@ -147,11 +147,24 @@ async def get_lead(
     # Check permissions
     if current_user.role == "sales_agent":
         # Agents can view leads they created OR leads assigned to them
-        if lead.get("source_id") != current_user.id and lead.get("assigned_to") != current_user.id:
+        # Check both user.id and agent.id (via user_id lookup)
+        agent = await db.agents.find_one({"user_id": current_user.id}, {"_id": 0, "id": 1})
+        agent_id = agent.get("id") if agent else None
+        
+        is_creator = lead.get("source_id") == current_user.id or lead.get("source_id") == agent_id
+        is_assignee = lead.get("assigned_to") == current_user.id
+        
+        if not is_creator and not is_assignee:
             raise HTTPException(status_code=403, detail="Access denied")
     elif current_user.role == "partner":
         # Partners can view leads they created
-        if lead.get("source_id") != current_user.id:
+        # Check both user.id and partner.id (via user_id lookup)
+        partner = await db.partners.find_one({"user_id": current_user.id}, {"_id": 0, "id": 1})
+        partner_id = partner.get("id") if partner else None
+        
+        is_creator = lead.get("source_id") == current_user.id or lead.get("source_id") == partner_id
+        
+        if not is_creator:
             raise HTTPException(status_code=403, detail="Access denied")
     
     return lead

@@ -330,11 +330,15 @@ async def get_all_users(current_user: User = Depends(get_current_user)):
     
     # Get users by role
     ops_users = await db.users.find({"role": "operations"}, {"_id": 0, "password": 0}).to_list(100)
+    managers = await db.users.find({"role": "manager"}, {"_id": 0, "password": 0}).to_list(100)
+    team_leaders = await db.users.find({"role": "team_leader"}, {"_id": 0, "password": 0}).to_list(100)
     agents = await db.agents.find({}, {"_id": 0}).to_list(100)
     partners = await db.partners.find({}, {"_id": 0}).to_list(100)
     
     return {
         "operations": ops_users,
+        "managers": managers,
+        "team_leaders": team_leaders,
         "agents": agents,
         "partners": partners
     }

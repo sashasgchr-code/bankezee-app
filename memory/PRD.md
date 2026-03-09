@@ -408,6 +408,51 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
      - ✅ Old password invalidated after reset
      - ✅ New password allows successful login
 
+## Session 8 Highlights (December 2025)
+
+### Features Completed
+1. **Hierarchical User Management System (P0) ✅**
+   - New user roles: **Manager** and **Team Leader**
+   - Pre-created accounts:
+     - Managers: Saikrishna, Manmith, Saikiran (password: manager123)
+     - Team Leaders: Anusha, Sravan, Shiva Sai, Pinky (password: teamlead123)
+   
+   **Admin Features:**
+   - Users tab now shows Managers and Team Leaders sections
+   - "Assign Manager" button for Team Leaders to assign them under a Manager
+   - "Map" button for Agents/Partners to assign Manager (mandatory) + Team Leader (optional)
+   - Export Stats modal with Manager and Team Leader filter dropdowns
+   
+   **Manager Dashboard (/manager/dashboard):**
+   - View-only access to all leads from team members
+   - Shows Team Leaders under them
+   - Shows Agents/Partners directly under them + those under their Team Leaders
+   - Password change functionality
+   
+   **Team Leader Dashboard (/team-leader/dashboard):**
+   - View-only access to leads from direct reports only
+   - Shows only Agents/Partners directly mapped to them
+   - Password change functionality
+   
+   **Files Created:**
+   - `/app/backend/hierarchy.py` - New hierarchy management endpoints
+   - `/app/frontend/src/pages/ManagerDashboard.js` - Manager dashboard
+   - `/app/frontend/src/pages/TeamLeaderDashboard.js` - Team Leader dashboard
+   
+   **Files Modified:**
+   - `AdminDashboard.js` - User mapping UI, TL assignment modal, Export Stats filters
+   - `auth.py` - Added managers/team_leaders to all-users endpoint, password change endpoint
+   - `App.js` - Added routes for manager and team leader dashboards
+   - `LoginPage.js` - Routing for manager and team_leader roles
+   
+   **Testing Completed:**
+   - ✅ 25/25 backend tests passed (100%)
+   - ✅ All frontend UI tests passed
+   - ✅ Manager login and dashboard verified
+   - ✅ Team Leader login and dashboard verified
+   - ✅ User mapping flow tested
+   - ✅ Export Stats with filters tested
+
 ## Pending/Future Tasks
 
 ### P0 - Critical

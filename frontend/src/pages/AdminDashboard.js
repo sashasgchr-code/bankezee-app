@@ -291,6 +291,18 @@ const AdminDashboard = () => {
   const [statsExportFromDate, setStatsExportFromDate] = useState('');
   const [statsExportToDate, setStatsExportToDate] = useState('');
   const [exportingStats, setExportingStats] = useState(false);
+  // Hierarchy states
+  const [allManagers, setAllManagers] = useState([]);
+  const [allTeamLeaders, setAllTeamLeaders] = useState([]);
+  const [statsExportManagerFilter, setStatsExportManagerFilter] = useState('all');
+  const [statsExportTeamLeaderFilter, setStatsExportTeamLeaderFilter] = useState('all');
+  // User mapping modal
+  const [showMappingModal, setShowMappingModal] = useState(false);
+  const [mappingUser, setMappingUser] = useState(null);
+  const [mappingUserType, setMappingUserType] = useState('');
+  const [selectedManagerId, setSelectedManagerId] = useState('');
+  const [selectedTeamLeaderId, setSelectedTeamLeaderId] = useState('');
+  const [savingMapping, setSavingMapping] = useState(false);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const toggleUserDetails = (userId) => {

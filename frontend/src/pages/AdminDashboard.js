@@ -315,6 +315,11 @@ const AdminDashboard = () => {
   const [newTeamLeader, setNewTeamLeader] = useState({ email: '', password: '', full_name: '', phone: '', manager_id: '' });
   const [creatingManager, setCreatingManager] = useState(false);
   const [creatingTL, setCreatingTL] = useState(false);
+  // Password reset for managers/team leaders
+  const [showSetPasswordModal, setShowSetPasswordModal] = useState(false);
+  const [selectedUserForPassword, setSelectedUserForPassword] = useState(null);
+  const [newPasswordForUser, setNewPasswordForUser] = useState('');
+  const [settingPassword, setSettingPassword] = useState(false);
   // System earnings
   const [systemEarnings, setSystemEarnings] = useState({ total_earnings: 0, monthly_earnings: 0 });
   // Search

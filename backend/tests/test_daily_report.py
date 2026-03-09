@@ -155,9 +155,121 @@ class TestDailyReportEndpoints:
             assert "total_eligible_amount" in lead
             assert "total_approved_amount" in lead
             assert "total_disbursed_amount" in lead
+            # NEW: Verify status_details and total_login_amount fields
+            assert "status_details" in lead
+            assert "total_login_amount" in lead
             print(f"PASS: Lead structure verified - {lead['full_name']}")
         else:
             print("PASS: No leads found but structure is valid")
+    
+    def test_daily_report_status_details_structure(self):
+        """Test status_details object structure in daily report leads"""
+        if not self.admin_token:
+            pytest.skip("Admin token not available")
+        
+        response = requests.get(
+            f"{BASE_URL}/api/reports/daily-report",
+            params={"from_date": "2026-01-01", "to_date": "2026-03-31"},
+            headers={"Authorization": f"Bearer {self.admin_token}"}
+        )
+        assert response.status_code == 200
+        data = response.json()
+        
+        if len(data["leads"]) > 0:
+            lead = data["leads"][0]
+            status_details = lead.get("status_details", {})
+            
+            # Verify status_details structure
+            assert "rejection_reason" in status_details
+            assert "not_eligible_reason" in status_details
+            assert "login_amount" in status_details
+            assert "login_banks" in status_details
+            assert "approved_banks" in status_details
+            assert "disbursed_banks" in status_details
+            assert "declined_banks" in status_details
+            assert "pending_docs_reason" in status_details
+            
+            # Verify arrays are lists
+            assert isinstance(status_details["login_banks"], list)
+            assert isinstance(status_details["approved_banks"], list)
+            assert isinstance(status_details["disbursed_banks"], list)
+            assert isinstance(status_details["declined_banks"], list)
+            
+            print("PASS: status_details structure verified")
+        else:
+            print("PASS: No leads found but structure is valid")
+    
+    def test_daily_report_total_login_amount_in_summary(self):
+        """Test total_login_amount is present in summary"""
+        if not self.admin_token:
+            pytest.skip("Admin token not available")
+        
+        response = requests.get(
+            f"{BASE_URL}/api/reports/daily-report",
+            params={"from_date": "2026-01-01", "to_date": "2026-03-31"},
+            headers={"Authorization": f"Bearer {self.admin_token}"}
+        )
+        assert response.status_code == 200
+        data = response.json()
+        
+        # Verify total_login_amount in summary
+        assert "total_login_amount" in data["summary"]
+        assert isinstance(data["summary"]["total_login_amount"], (int, float))
+        print(f"PASS: total_login_amount in summary = {data['summary']['total_login_amount']}")
+    
+    def test_rejected_lead_status_details(self):
+        """Test rejected lead shows rejection reason in status_details"""
+        if not self.admin_token:
+            pytest.skip("Admin token not available")
+        
+        response = requests.get(
+            f"{BASE_URL}/api/reports/daily-report",
+            params={"from_date": "2026-01-01", "to_date": "2026-03-31"},
+            headers={"Authorization": f"Bearer {self.admin_token}"}
+        )
+        assert response.status_code == 200
+        data = response.json()
+        
+        # Find rejected lead (Tasting)
+        rejected_leads = [l for l in data["leads"] if l["current_status"] == "rejected"]
+        
+        if len(rejected_leads) > 0:
+            lead = rejected_leads[0]
+            assert "status_details" in lead
+            # Rejection reason can be empty if not captured
+            assert "rejection_reason" in lead["status_details"]
+            print(f"PASS: Rejected lead '{lead['full_name']}' has status_details with rejection_reason")
+        else:
+            print("SKIP: No rejected leads found")
+    
+    def test_documents_pending_lead_status_details(self):
+        """Test documents_pending lead shows pending docs in status_details"""
+        if not self.admin_token:
+            pytest.skip("Admin token not available")
+        
+        response = requests.get(
+            f"{BASE_URL}/api/reports/daily-report",
+            params={"from_date": "2026-01-01", "to_date": "2026-03-31"},
+            headers={"Authorization": f"Bearer {self.admin_token}"}
+        )
+        assert response.status_code == 200
+        data = response.json()
+        
+        # Find documents_pending lead
+        docs_pending_leads = [l for l in data["leads"] if l["current_status"] == "documents_pending"]
+        
+        if len(docs_pending_leads) > 0:
+            lead = docs_pending_leads[0]
+            assert "status_details" in lead
+            assert "pending_docs_reason" in lead["status_details"]
+            # Test Customer 2 should have pending docs
+            if lead["full_name"] == "Test Customer 2":
+                assert lead["status_details"]["pending_docs_reason"] != ""
+                print(f"PASS: Documents pending lead '{lead['full_name']}' has pending_docs_reason: {lead['status_details']['pending_docs_reason']}")
+            else:
+                print(f"PASS: Documents pending lead '{lead['full_name']}' has status_details")
+        else:
+            print("SKIP: No documents_pending leads found")
     
     def test_managers_list_admin_access(self):
         """Test admin can access managers list endpoint"""

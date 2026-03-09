@@ -537,3 +537,37 @@ async def get_earnings(
         "commission_count": len(commissions),
         "recent_commissions": recent_commissions
     }
+
+
+@router.get("/system-earnings")
+async def get_system_earnings(current_user: User = Depends(get_current_user)):
+    """Get total system earnings (for Admin/Ops dashboards)"""
+    if current_user.role not in ["admin", "operations"]:
+        raise HTTPException(status_code=403, detail="Only admin or operations can view system earnings")
+    
+    # Get all commissions
+    commissions = await db.commissions.find({}, {"_id": 0}).to_list(10000)
+    
+    # Calculate total earnings
+    total_earnings = sum(c.get("amount", 0) for c in commissions)
+    
+    # Calculate monthly earnings (current month)
+    now = datetime.now(timezone.utc)
+    current_month_start = datetime(now.year, now.month, 1, tzinfo=timezone.utc)
+    monthly_earnings = 0
+    
+    for c in commissions:
+        created_at = c.get("created_at", "")
+        if created_at:
+            try:
+                comm_date = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+                if comm_date >= current_month_start:
+                    monthly_earnings += c.get("amount", 0)
+            except:
+                pass
+    
+    return {
+        "total_earnings": total_earnings,
+        "monthly_earnings": monthly_earnings,
+        "commission_count": len(commissions)
+    }

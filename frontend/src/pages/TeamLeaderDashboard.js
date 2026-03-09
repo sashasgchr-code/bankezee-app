@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from '@/components/ui/label';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { Users, LogOut, LayoutDashboard, Eye, Key, TrendingUp, UserCheck, Briefcase } from 'lucide-react';
+import { Users, LogOut, LayoutDashboard, Eye, Key, TrendingUp, UserCheck, Briefcase, Search } from 'lucide-react';
 import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
 import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats } from '@/utils/constants';
 

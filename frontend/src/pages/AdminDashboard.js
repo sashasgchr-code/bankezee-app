@@ -360,6 +360,8 @@ const AdminDashboard = () => {
       const response = await api.get('/auth/admin/all-users');
       setAllAgents(response.data.agents || []);
       setAllPartners(response.data.partners || []);
+      setAllManagers(response.data.managers || []);
+      setAllTeamLeaders(response.data.team_leaders || []);
     } catch (error) {
       console.error('Failed to fetch all users');
     }

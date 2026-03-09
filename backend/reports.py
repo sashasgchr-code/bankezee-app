@@ -207,6 +207,12 @@ async def get_daily_report(
                         total_disbursed_amount += float(elig.get("disbursed_amount", 0))
                 except:
                     pass
+                # Sum login amounts (eligible amount when login is done)
+                try:
+                    if elig.get("login_done") == "Yes" and elig.get("eligible_amount"):
+                        total_login_amount += float(elig.get("eligible_amount", 0))
+                except:
+                    pass
         
         # Get pending documents
         pending_docs = lead.get("pending_documents", "")
@@ -217,6 +223,74 @@ async def get_daily_report(
             action = activity.get("action", "")
             if "reject" in action.lower() or "decline" in action.lower() or "not eligible" in action.lower():
                 rejection_reasons.append(activity)
+        
+        # Extract status-specific details
+        status_details = {
+            "rejection_reason": "",
+            "not_eligible_reason": "",
+            "login_amount": total_login_amount,
+            "login_banks": [],
+            "approved_banks": [],
+            "disbursed_banks": [],
+            "declined_banks": [],
+            "pending_docs_reason": pending_docs
+        }
+        
+        # Collect all reasons and bank-wise details
+        for elig in eligibilities:
+            bank = elig.get("bank_name", "")
+            if not bank:
+                continue
+                
+            # Not eligible reasons
+            if elig.get("is_eligible") == "No" and elig.get("not_eligible_reason"):
+                status_details["not_eligible_reason"] = elig.get("not_eligible_reason", "")
+            
+            # Login details
+            if elig.get("login_done") == "Yes":
+                login_info = {
+                    "bank": bank,
+                    "amount": elig.get("eligible_amount", ""),
+                    "application_id": elig.get("application_id", "")
+                }
+                status_details["login_banks"].append(login_info)
+            
+            # Login rejection
+            if elig.get("login_rejection_reason"):
+                status_details["rejection_reason"] = elig.get("login_rejection_reason", "")
+            
+            # Approved details
+            if elig.get("approval_status") == "Approved":
+                approved_info = {
+                    "bank": bank,
+                    "amount": elig.get("approved_amount", ""),
+                    "roi": elig.get("approved_roi", ""),
+                    "tenure": elig.get("approved_tenure", "")
+                }
+                status_details["approved_banks"].append(approved_info)
+            
+            # Declined details
+            if elig.get("approval_status") == "Declined":
+                declined_info = {
+                    "bank": bank,
+                    "reason": elig.get("declined_reason", "")
+                }
+                status_details["declined_banks"].append(declined_info)
+                if elig.get("declined_reason"):
+                    status_details["rejection_reason"] = elig.get("declined_reason", "")
+            
+            # Disbursed details
+            if elig.get("disbursed") == "Yes":
+                disbursed_info = {
+                    "bank": bank,
+                    "amount": elig.get("disbursed_amount", ""),
+                    "roi": elig.get("disbursed_roi", "")
+                }
+                status_details["disbursed_banks"].append(disbursed_info)
+            
+            # Disbursement rejection
+            if elig.get("disbursed") == "No" and elig.get("disbursement_rejection_reason"):
+                status_details["rejection_reason"] = elig.get("disbursement_rejection_reason", "")
         
         enriched_lead = {
             "id": lead.get("id"),
@@ -236,6 +310,8 @@ async def get_daily_report(
             "total_eligible_amount": total_eligible_amount,
             "total_approved_amount": total_approved_amount,
             "total_disbursed_amount": total_disbursed_amount,
+            "total_login_amount": total_login_amount,
+            "status_details": status_details,
             "activities_in_period": activities_in_range,
             "all_activities": all_activities,
             "rejection_reasons": rejection_reasons,

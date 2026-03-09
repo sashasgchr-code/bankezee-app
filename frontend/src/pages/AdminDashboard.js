@@ -1996,12 +1996,23 @@ const AdminDashboard = () => {
 
             {/* Team Leaders List */}
             <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-purple-500" />
-                  Team Leaders ({allTeamLeaders.length})
-                </CardTitle>
-                <CardDescription>View all team leaders and their manager assignments</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-purple-500" />
+                    Team Leaders ({allTeamLeaders.length})
+                  </CardTitle>
+                  <CardDescription>View all team leaders and their manager assignments</CardDescription>
+                </div>
+                <Button 
+                  onClick={() => setShowCreateTLModal(true)}
+                  className="bg-purple-600 hover:bg-purple-700"
+                  size="sm"
+                  data-testid="add-tl-btn"
+                >
+                  <UserPlus className="w-4 h-4 mr-1" />
+                  Add Team Leader
+                </Button>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">

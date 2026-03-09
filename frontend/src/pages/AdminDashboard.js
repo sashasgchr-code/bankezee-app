@@ -1751,13 +1751,25 @@ const AdminDashboard = () => {
                                 Manager: {manager?.full_name || <span className="text-orange-600">Not Assigned</span>}
                               </p>
                             </div>
-                            <div className="text-right">
-                              <p className="text-sm font-medium text-purple-700">
-                                {allAgents.filter(a => a.team_leader_id === tl.id).length} Agents
-                              </p>
-                              <p className="text-xs text-purple-600">
-                                {allPartners.filter(p => p.team_leader_id === tl.id).length} Partners
-                              </p>
+                            <div className="flex items-center gap-4">
+                              <div className="text-right">
+                                <p className="text-sm font-medium text-purple-700">
+                                  {allAgents.filter(a => a.team_leader_id === tl.id).length} Agents
+                                </p>
+                                <p className="text-xs text-purple-600">
+                                  {allPartners.filter(p => p.team_leader_id === tl.id).length} Partners
+                                </p>
+                              </div>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="text-purple-600 border-purple-200 hover:bg-purple-100"
+                                onClick={() => openTLMappingModal(tl)}
+                                data-testid={`map-tl-${tl.id}`}
+                              >
+                                <UserCog className="w-4 h-4 mr-1" />
+                                {manager ? 'Reassign' : 'Assign Manager'}
+                              </Button>
                             </div>
                           </div>
                         </div>

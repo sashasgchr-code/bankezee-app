@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { FileText, LogOut, LayoutDashboard, Eye, Download, BarChart3 } from 'lucide-react';
+import { FileText, LogOut, LayoutDashboard, Eye, Download, BarChart3, Search } from 'lucide-react';
 import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
 import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats } from '@/utils/constants';
 

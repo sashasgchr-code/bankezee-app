@@ -137,9 +137,10 @@ export const calculateDashboardStats = (leads) => {
   const rejected = leads.filter(l => STATUS_CATEGORIES.rejected.includes(l.status)).length;
   
   // Calculate total disbursed amount from eligibilities
+  // Check for both string 'yes' and boolean true for backward compatibility
   const totalDisbursedAmount = leads.reduce((sum, lead) => {
     if (lead.status === 'disbursed' && lead.eligibilities) {
-      const disbursedElig = lead.eligibilities.find(e => e.disbursed === true);
+      const disbursedElig = lead.eligibilities.find(e => e.disbursed === 'yes' || e.disbursed === true);
       return sum + (disbursedElig?.disbursed_amount || 0);
     }
     return sum;

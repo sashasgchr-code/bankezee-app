@@ -1011,6 +1011,28 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleSetPasswordForUser = async () => {
+    if (!newPasswordForUser || newPasswordForUser.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+    setSettingPassword(true);
+    try {
+      await api.post('/auth/admin/set-password', {
+        user_id: selectedUserForPassword.id,
+        new_password: newPasswordForUser
+      });
+      toast.success(`Password reset successfully for ${selectedUserForPassword.full_name}`);
+      setShowSetPasswordModal(false);
+      setSelectedUserForPassword(null);
+      setNewPasswordForUser('');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to reset password');
+    } finally {
+      setSettingPassword(false);
+    }
+  };
+
   // Apply filters
   let filteredLeads = filterByTimePeriod(leads, timeFilter, filterFromDate, filterToDate);
   filteredLeads = filterByLoanType(filteredLeads, loanTypeFilter);

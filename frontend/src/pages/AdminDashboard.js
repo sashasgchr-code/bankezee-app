@@ -962,6 +962,44 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleCreateManager = async () => {
+    if (!newManager.email || !newManager.password || !newManager.full_name) {
+      toast.error('Please fill all required fields');
+      return;
+    }
+    setCreatingManager(true);
+    try {
+      await api.post('/auth/admin/create-manager', newManager);
+      toast.success('Manager created successfully');
+      setShowCreateManagerModal(false);
+      setNewManager({ email: '', password: '', full_name: '', phone: '' });
+      fetchAllUsers();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to create manager');
+    } finally {
+      setCreatingManager(false);
+    }
+  };
+
+  const handleCreateTeamLeader = async () => {
+    if (!newTeamLeader.email || !newTeamLeader.password || !newTeamLeader.full_name) {
+      toast.error('Please fill all required fields');
+      return;
+    }
+    setCreatingTL(true);
+    try {
+      await api.post('/auth/admin/create-team-leader', newTeamLeader);
+      toast.success('Team Leader created successfully');
+      setShowCreateTLModal(false);
+      setNewTeamLeader({ email: '', password: '', full_name: '', phone: '', manager_id: '' });
+      fetchAllUsers();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to create team leader');
+    } finally {
+      setCreatingTL(false);
+    }
+  };
+
   // Apply filters
   let filteredLeads = filterByTimePeriod(leads, timeFilter, filterFromDate, filterToDate);
   filteredLeads = filterByLoanType(filteredLeads, loanTypeFilter);

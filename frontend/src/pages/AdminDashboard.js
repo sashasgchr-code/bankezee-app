@@ -1827,7 +1827,10 @@ const AdminDashboard = () => {
                   {allPartners.length === 0 ? (
                     <p className="text-center text-slate-500 py-4">No partners found</p>
                   ) : (
-                    allPartners.map((partner) => (
+                    allPartners.map((partner) => {
+                      const manager = allManagers.find(m => m.id === partner.manager_id);
+                      const teamLeader = allTeamLeaders.find(tl => tl.id === partner.team_leader_id);
+                      return (
                       <div key={partner.id} className="bg-slate-50 rounded-lg border border-slate-100">
                         <div className="flex items-center justify-between p-3">
                           <div className="flex-1">
@@ -1839,8 +1842,22 @@ const AdminDashboard = () => {
                             </div>
                             <p className="text-sm text-slate-600">{partner.mobile || partner.phone} | Code: {partner.referral_code}</p>
                             <p className="text-xs text-slate-500">{partner.email} | {partner.occupation || 'N/A'}</p>
+                            <p className="text-xs mt-1">
+                              <span className="text-blue-600">Manager: {manager?.full_name || 'Unassigned'}</span>
+                              {teamLeader && <span className="text-purple-600 ml-2">| TL: {teamLeader.full_name}</span>}
+                            </p>
                           </div>
                           <div className="flex items-center gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                              onClick={() => openMappingModal(partner, 'partner')}
+                              data-testid={`map-partner-${partner.id}`}
+                            >
+                              <Users className="w-4 h-4 mr-1" />
+                              Map
+                            </Button>
                             <Button 
                               variant="outline" 
                               size="sm" 
@@ -1866,7 +1883,8 @@ const AdminDashboard = () => {
                           <UserDetailCard user={partner} type="partner" onClose={() => setExpandedUser(null)} />
                         )}
                       </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </CardContent>

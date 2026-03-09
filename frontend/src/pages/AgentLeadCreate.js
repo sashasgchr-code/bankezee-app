@@ -112,7 +112,7 @@ const AgentLeadCreate = () => {
       };
       
       const leadResponse = await api.post('/leads/create', leadData);
-      const leadId = leadResponse.data.id;
+      const leadId = leadResponse.data.lead_id || leadResponse.data.id;
       
       // Now upload all documents
       setUploading(true);

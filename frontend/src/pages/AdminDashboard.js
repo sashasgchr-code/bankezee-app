@@ -6,20 +6,52 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { Users, LogOut, LayoutDashboard, Eye, UserPlus, CheckSquare, X, Trash2, UserCog, Building, Briefcase, Download, FileText, Clock, CheckCircle, XCircle, ChevronDown, ChevronUp, CreditCard, User, MapPin, Phone, Mail, Hash, Building2, BarChart3 } from 'lucide-react';
+import { Users, LogOut, LayoutDashboard, Eye, UserPlus, CheckSquare, X, Trash2, UserCog, Building, Briefcase, Download, FileText, Clock, CheckCircle, XCircle, ChevronDown, ChevronUp, CreditCard, User, MapPin, Phone, Mail, Hash, Building2, BarChart3, Key, Copy } from 'lucide-react';
 import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
 import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats, LOAN_TYPES, TIME_FILTERS } from '@/utils/constants';
 
 // Detail Card Component for showing all user info
-const UserDetailCard = ({ user, type, onClose }) => {
+const UserDetailCard = ({ user, type, onClose, onPasswordSet }) => {
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [settingPassword, setSettingPassword] = useState(false);
   const bankDetails = user.bank_details || {};
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
   
   const getIdCardUrl = (url) => {
     if (!url) return null;
     return url.startsWith('/api') ? `${backendUrl}${url}` : url;
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Copied to clipboard');
+  };
+
+  const handleSetPassword = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+    setSettingPassword(true);
+    try {
+      await api.post('/auth/admin/set-password', {
+        user_id: user.user_id || user.id,
+        new_password: newPassword
+      });
+      toast.success('Password set successfully');
+      setShowPasswordModal(false);
+      setNewPassword('');
+      if (onPasswordSet) onPasswordSet();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to set password');
+    } finally {
+      setSettingPassword(false);
+    }
   };
 
   return (

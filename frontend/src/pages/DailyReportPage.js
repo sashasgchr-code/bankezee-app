@@ -563,61 +563,97 @@ const DailyReportPage = () => {
                         <th className="px-3 py-2 text-left font-medium">Contact</th>
                         <th className="px-3 py-2 text-left font-medium">Loan Type</th>
                         <th className="px-3 py-2 text-left font-medium">Status</th>
+                        <th className="px-3 py-2 text-left font-medium">Status Details</th>
                         <th className="px-3 py-2 text-left font-medium">Agent/Partner</th>
-                        <th className="px-3 py-2 text-left font-medium">Manager</th>
-                        <th className="px-3 py-2 text-right font-medium">Eligible</th>
+                        <th className="px-3 py-2 text-right font-medium">Login Amt</th>
                         <th className="px-3 py-2 text-right font-medium">Approved</th>
                         <th className="px-3 py-2 text-right font-medium">Disbursed</th>
-                        <th className="px-3 py-2 text-left font-medium">Pending Docs</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {reportData.leads.map((lead) => (
-                        <tr 
-                          key={lead.id} 
-                          className="hover:bg-slate-50 cursor-pointer"
-                          onClick={() => navigate(`/crm/lead/${lead.id}`)}
-                          data-testid={`lead-row-${lead.id}`}
-                        >
-                          <td className="px-3 py-3">
-                            <div className="font-medium">{lead.full_name}</div>
-                            <div className="text-xs text-slate-500">{lead.city}</div>
-                          </td>
-                          <td className="px-3 py-3">
-                            <div>{lead.mobile}</div>
-                            <div className="text-xs text-slate-500">{lead.email}</div>
-                          </td>
-                          <td className="px-3 py-3">{lead.loan_type || '-'}</td>
-                          <td className="px-3 py-3">
-                            <span 
-                              className="px-2 py-1 rounded-full text-xs font-medium"
-                              style={{ 
-                                backgroundColor: `${getStatusColor(lead.current_status)}20`,
-                                color: getStatusColor(lead.current_status)
-                              }}
-                            >
-                              {(lead.current_status || 'new').replace(/_/g, ' ')}
-                            </span>
-                          </td>
-                          <td className="px-3 py-3">
-                            <div>{lead.source_info?.name || '-'}</div>
-                            <div className="text-xs text-slate-500">{lead.source_info?.type || ''}</div>
-                          </td>
-                          <td className="px-3 py-3">{lead.manager_info?.name || '-'}</td>
-                          <td className="px-3 py-3 text-right font-medium text-green-600">
-                            {formatCurrency(lead.total_eligible_amount)}
-                          </td>
-                          <td className="px-3 py-3 text-right font-medium text-purple-600">
-                            {formatCurrency(lead.total_approved_amount)}
-                          </td>
-                          <td className="px-3 py-3 text-right font-medium text-orange-600">
-                            {formatCurrency(lead.total_disbursed_amount)}
-                          </td>
-                          <td className="px-3 py-3 text-xs max-w-[150px] truncate" title={lead.pending_documents}>
-                            {lead.pending_documents || '-'}
-                          </td>
-                        </tr>
-                      ))}
+                      {reportData.leads.map((lead) => {
+                        // Generate status-specific details
+                        const statusDetails = lead.status_details || {};
+                        let statusDetailText = '';
+                        const status = lead.current_status || 'new';
+                        
+                        if (status === 'rejected' || status === 'not_eligible') {
+                          statusDetailText = statusDetails.rejection_reason || statusDetails.not_eligible_reason || 'No reason provided';
+                        } else if (status === 'login' || statusDetails.login_banks?.length > 0) {
+                          const loginBanks = statusDetails.login_banks || [];
+                          if (loginBanks.length > 0) {
+                            statusDetailText = loginBanks.map(b => `${b.bank}: ${formatCurrency(b.amount)}`).join(', ');
+                          }
+                        } else if (status === 'approved' || statusDetails.approved_banks?.length > 0) {
+                          const approvedBanks = statusDetails.approved_banks || [];
+                          if (approvedBanks.length > 0) {
+                            statusDetailText = approvedBanks.map(b => `${b.bank}: ${formatCurrency(b.amount)}`).join(', ');
+                          }
+                        } else if (status === 'disbursed' || statusDetails.disbursed_banks?.length > 0) {
+                          const disbursedBanks = statusDetails.disbursed_banks || [];
+                          if (disbursedBanks.length > 0) {
+                            statusDetailText = disbursedBanks.map(b => `${b.bank}: ${formatCurrency(b.amount)}`).join(', ');
+                          }
+                        } else if (status === 'documents_pending') {
+                          statusDetailText = lead.pending_documents || 'Documents pending';
+                        } else if (statusDetails.declined_banks?.length > 0) {
+                          statusDetailText = statusDetails.declined_banks.map(b => `${b.bank}: ${b.reason}`).join(', ');
+                        }
+                        
+                        return (
+                          <tr 
+                            key={lead.id} 
+                            className="hover:bg-slate-50 cursor-pointer"
+                            onClick={() => navigate(`/crm/lead/${lead.id}`)}
+                            data-testid={`lead-row-${lead.id}`}
+                          >
+                            <td className="px-3 py-3">
+                              <div className="font-medium">{lead.full_name}</div>
+                              <div className="text-xs text-slate-500">{lead.city}</div>
+                            </td>
+                            <td className="px-3 py-3">
+                              <div>{lead.mobile}</div>
+                              <div className="text-xs text-slate-500">{lead.email}</div>
+                            </td>
+                            <td className="px-3 py-3">{lead.loan_type || '-'}</td>
+                            <td className="px-3 py-3">
+                              <span 
+                                className="px-2 py-1 rounded-full text-xs font-medium"
+                                style={{ 
+                                  backgroundColor: `${getStatusColor(lead.current_status)}20`,
+                                  color: getStatusColor(lead.current_status)
+                                }}
+                              >
+                                {(lead.current_status || 'new').replace(/_/g, ' ')}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3 max-w-[200px]">
+                              <div className={`text-xs ${
+                                (status === 'rejected' || status === 'not_eligible') ? 'text-red-600' :
+                                (status === 'approved' || status === 'disbursed') ? 'text-green-600' :
+                                'text-slate-600'
+                              }`} title={statusDetailText}>
+                                {statusDetailText ? (
+                                  <span className="line-clamp-2">{statusDetailText}</span>
+                                ) : '-'}
+                              </div>
+                            </td>
+                            <td className="px-3 py-3">
+                              <div>{lead.source_info?.name || '-'}</div>
+                              <div className="text-xs text-slate-500">{lead.source_info?.type || ''}</div>
+                            </td>
+                            <td className="px-3 py-3 text-right font-medium text-cyan-600">
+                              {formatCurrency(lead.total_login_amount || 0)}
+                            </td>
+                            <td className="px-3 py-3 text-right font-medium text-purple-600">
+                              {formatCurrency(lead.total_approved_amount)}
+                            </td>
+                            <td className="px-3 py-3 text-right font-medium text-orange-600">
+                              {formatCurrency(lead.total_disbursed_amount)}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

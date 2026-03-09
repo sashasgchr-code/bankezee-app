@@ -23,6 +23,7 @@ router = APIRouter()
 class StatusUpdate(BaseModel):
     status: str
     application_id: Optional[str] = None
+    pending_documents: Optional[str] = None
 
 class NoteAdd(BaseModel):
     note: str

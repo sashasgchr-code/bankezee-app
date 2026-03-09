@@ -453,6 +453,29 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
    - ✅ User mapping flow tested
    - ✅ Export Stats with filters tested
 
+### Bug Fixes
+1. **Total Earnings & This Month Stats Fix (P0) ✅**
+   - Issue: Earnings stats were showing ₹0 on Admin and Ops dashboards
+   - Root cause: DashboardStats component was receiving hardcoded `{ total_earnings: 0, monthly_earnings: 0 }`
+   - Solution: Created `/api/crm/system-earnings` endpoint to calculate total system earnings from all commissions
+   - Admin/Ops dashboards now correctly show Total Earnings (₹37,500) and monthly earnings
+   
+2. **Disbursed Reversal Logic (P0) ✅**
+   - Issue: When disbursed was changed from 'yes' to 'no', commission was not being deducted
+   - Solution: Updated `/api/crm/{lead_id}/eligibilities` endpoint to:
+     - Track previous disbursed amounts and commissions
+     - Deduct commission when disbursed is reversed
+     - Log negative commission entry as "reversal" type
+     - Decrement converted_leads/approved_cases count
+   
+3. **Manager/Team Leader Account Management (P0) ✅**
+   - Issue: New Manager and Team Leader accounts not visible in Admin dashboard
+   - Solution: 
+     - Added Managers and Team Leaders sections to Users tab
+     - Added "Add Manager" button with create modal (Full Name, Email, Password, Phone)
+     - Added "Add Team Leader" button with create modal (Full Name, Email, Password, Phone, Manager selection)
+     - Created `/api/auth/admin/create-manager` and `/api/auth/admin/create-team-leader` endpoints
+
 ## Pending/Future Tasks
 
 ### P0 - Critical

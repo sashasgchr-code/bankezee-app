@@ -737,6 +737,7 @@ const AdminDashboard = () => {
       });
 
       // Add partner stats
+      // Add partner stats
       Object.values(partnerStats).forEach(stats => {
         csvRows.push([
           'Partner',
@@ -744,6 +745,8 @@ const AdminDashboard = () => {
           stats.code,
           stats.phone,
           stats.email,
+          `"${stats.manager}"`,
+          `"${stats.teamLeader}"`,
           stats.totalLeads,
           stats.new,
           stats.contacted,
@@ -789,8 +792,8 @@ const AdminDashboard = () => {
       }), { totalLeads: 0, disbursed: 0, totalDisbursedAmount: 0, totalCommission: 0 });
 
       csvRows.push('');
-      csvRows.push(`"AGENT TOTALS",,,,,${agentTotals.totalLeads},,,,${agentTotals.disbursed},,${agentTotals.totalDisbursedAmount},${agentTotals.totalCommission}`);
-      csvRows.push(`"PARTNER TOTALS",,,,,${partnerTotals.totalLeads},,,,${partnerTotals.disbursed},,${partnerTotals.totalDisbursedAmount},${partnerTotals.totalCommission}`);
+      csvRows.push(`"AGENT TOTALS",,,,,,${agentTotals.totalLeads},,,,,${agentTotals.disbursed},,${agentTotals.totalDisbursedAmount},${agentTotals.totalCommission}`);
+      csvRows.push(`"PARTNER TOTALS",,,,,,${partnerTotals.totalLeads},,,,,${partnerTotals.disbursed},,${partnerTotals.totalDisbursedAmount},${partnerTotals.totalCommission}`);
 
       const csvContent = csvRows.join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

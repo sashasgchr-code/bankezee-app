@@ -113,7 +113,7 @@ async def get_leads(
     if source_id and current_user.role in ["admin", "operations"]:
         query["source_id"] = source_id
     
-    # Optimized projection - fetch only fields needed for list view
+    # Optimized projection - fetch fields needed for list view and dashboard stats
     list_projection = {
         "_id": 0,
         "id": 1,
@@ -128,7 +128,8 @@ async def get_leads(
         "source_id": 1,
         "assigned_to": 1,
         "created_at": 1,
-        "updated_at": 1
+        "updated_at": 1,
+        "eligibilities": 1  # Needed for disbursed amount calculation
     }
     
     leads = await db.leads.find(query, list_projection).sort("created_at", -1).to_list(1000)

@@ -295,7 +295,19 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
        - `commissions`: lead_id, user_id
    - **Result:** Improved query performance and reduced data transfer
 
-5. **DB_NAME Environment Variable Fix (P1) ✅**
+5. **Total Disbursed Amount Not Calculating (P0) ✅ NEW**
+   - **Issue:** Total Disbursed showing ₹0 on Admin and Operations dashboards despite having 2 disbursed leads
+   - **Root Causes:**
+     1. List API projection didn't include `eligibilities` field needed for calculation
+     2. Dashboard code checking `disbursed === true` but data had boolean `True` (Python)
+   - **Fixes Applied:**
+     - Updated leads list endpoint projection to include `eligibilities` field
+     - Updated `calculateDashboardStats` in `constants.js` to check both `'yes'` and `true`
+     - Updated `AdminDashboard.js` Export Stats calculation
+     - Updated `OperationsDashboard.js` Export Stats calculation
+   - **Result:** Total Disbursed now correctly shows ₹1,350,000 (1,200,000 + 150,000)
+
+6. **DB_NAME Environment Variable Fix (P1) ✅**
    - Fixed deployment blocker by changing `os.environ['DB_NAME']` to `os.environ.get('DB_NAME', 'test_database')`
    - Updated in all 12 backend files (auth.py, leads.py, agents.py, partners.py, etc.)
    - Removed hardcoded DB_NAME from backend/.env

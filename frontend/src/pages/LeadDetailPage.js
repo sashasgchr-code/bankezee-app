@@ -420,6 +420,23 @@ const LeadDetailPage = () => {
               />
             )}
 
+            {/* Pending Documents Alert - Show when lead has pending documents */}
+            {lead.pending_documents && lead.status === 'documents_pending' && (
+              <Card className="border-amber-300 bg-amber-50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-amber-800 flex items-center gap-2">
+                    📋 Documents Pending
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-white p-4 rounded-lg border border-amber-200">
+                    <p className="text-sm font-semibold text-amber-800 mb-2">List of Pending Documents:</p>
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{lead.pending_documents}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Assign Lead - Only for Admin/Ops */}
             {canEdit && (
               <LeadAssignmentCard

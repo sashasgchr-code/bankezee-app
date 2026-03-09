@@ -93,16 +93,28 @@ async def get_leads(
     
     if current_user.role == "sales_agent":
         # For agents, show leads they created OR assigned to them
+        # Get agent's ID from agents collection
+        agent = await db.agents.find_one({"user_id": current_user.id}, {"_id": 0, "id": 1})
+        agent_id = agent.get("id") if agent else None
+        
         if source_id:
             query["source_id"] = source_id
         else:
-            query["$or"] = [
-                {"assigned_to": current_user.id},
-                {"source_id": current_user.id}
-            ]
+            # Build OR query with both user_id and agent_id
+            or_conditions = [{"assigned_to": current_user.id}]
+            if agent_id:
+                or_conditions.append({"source_id": agent_id})
+            or_conditions.append({"source_id": current_user.id})  # Fallback
+            query["$or"] = or_conditions
     elif current_user.role == "partner":
         # For partners, show leads they created
-        query["source_id"] = current_user.id
+        partner = await db.partners.find_one({"user_id": current_user.id}, {"_id": 0, "id": 1})
+        partner_id = partner.get("id") if partner else None
+        
+        if partner_id:
+            query["source_id"] = partner_id
+        else:
+            query["source_id"] = current_user.id  # Fallback
     elif current_user.role not in ["admin", "operations"]:
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     

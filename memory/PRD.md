@@ -96,6 +96,13 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 ## Test Credentials
 - **Admin:** admin@bankezee.com / admin123
 - **Operations:** ops@bankezee.com / ops123
+- **Manager (Saikrishna):** saikrishna@bankezee.com / manager123
+- **Manager (Manmith):** manmith@bankezee.com / manager123
+- **Manager (Saikiran):** saikiran@bankezee.com / manager123
+- **Team Leader (Anusha):** anusha@bankezee.com / teamlead123
+- **Team Leader (Sravan):** sravan@bankezee.com / teamlead123
+- **Team Leader (Shiva Sai):** shivasai@bankezee.com / teamlead123
+- **Team Leader (Pinky):** pinky@bankezee.com / teamlead123
 - **Mock OTP:** 123456
 
 ## Mocked Features

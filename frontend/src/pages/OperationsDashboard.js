@@ -184,9 +184,11 @@ const OperationsDashboard = () => {
               name: agent?.full_name || 'Unknown',
               code: agent?.agent_code || '',
               totalLeads: 0,
-              new: 0, contacted: 0, documents_collected: 0, sent_for_eligibility: 0,
+              new: 0, contacted: 0, documents_collected: 0, documents_pending: 0, sent_for_eligibility: 0,
               sent_for_login: 0, login: 0, sent_for_approval: 0, underwriting: 0,
-              fi: 0, query_hold: 0, approved: 0, disbursed: 0,
+              fi: 0, fi_negative: 0, fi_reinitiated: 0, query_hold: 0,
+              customer_not_interested: 0, customer_not_supporting: 0,
+              approved: 0, disbursed: 0,
               not_eligible: 0, not_login: 0, declined: 0, not_disbursed: 0, rejected: 0,
               totalDisbursedAmount: 0, totalCommission: 0
             };
@@ -208,9 +210,11 @@ const OperationsDashboard = () => {
               name: partner?.name || partner?.full_name || 'Unknown',
               code: partner?.referral_code || '',
               totalLeads: 0,
-              new: 0, contacted: 0, documents_collected: 0, sent_for_eligibility: 0,
+              new: 0, contacted: 0, documents_collected: 0, documents_pending: 0, sent_for_eligibility: 0,
               sent_for_login: 0, login: 0, sent_for_approval: 0, underwriting: 0,
-              fi: 0, query_hold: 0, approved: 0, disbursed: 0,
+              fi: 0, fi_negative: 0, fi_reinitiated: 0, query_hold: 0,
+              customer_not_interested: 0, customer_not_supporting: 0,
+              approved: 0, disbursed: 0,
               not_eligible: 0, not_login: 0, declined: 0, not_disbursed: 0, rejected: 0,
               totalDisbursedAmount: 0, totalCommission: 0
             };

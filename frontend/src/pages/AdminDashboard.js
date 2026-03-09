@@ -1597,6 +1597,47 @@ const AdminDashboard = () => {
         </div>
       )}
 
+      {/* Reset Password Modal for Manager/Team Leader */}
+      {showSetPasswordModal && selectedUserForPassword && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Key className="w-5 h-5 text-primary" />
+                Reset Password
+              </CardTitle>
+              <CardDescription>
+                Set a new password for {selectedUserForPassword.full_name} ({selectedUserForPassword.email})
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1">New Password <span className="text-red-500">*</span></label>
+                <Input
+                  type="password"
+                  placeholder="Min 6 characters"
+                  value={newPasswordForUser}
+                  onChange={(e) => setNewPasswordForUser(e.target.value)}
+                  data-testid="new-password-input"
+                />
+              </div>
+              <p className="text-xs text-slate-500">The user will need to use this password to log in. Share it securely.</p>
+              <div className="flex gap-3 pt-2">
+                <Button onClick={() => setShowSetPasswordModal(false)} variant="outline" className="flex-1">Cancel</Button>
+                <Button 
+                  onClick={handleSetPasswordForUser} 
+                  className="flex-1 bg-primary"
+                  disabled={settingPassword}
+                  data-testid="confirm-set-password-btn"
+                >
+                  {settingPassword ? 'Setting...' : 'Set Password'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <div className="px-6 md:px-12 lg:px-24 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full max-w-lg grid-cols-3 mb-6">

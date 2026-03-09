@@ -1189,6 +1189,83 @@ const AdminDashboard = () => {
         </div>
       )}
 
+      {/* User Mapping Modal */}
+      {showMappingModal && mappingUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-primary" />
+                Assign {mappingUserType === 'agent' ? 'Agent' : 'Partner'} to Hierarchy
+              </CardTitle>
+              <CardDescription>
+                Map {mappingUser.full_name || mappingUser.name} to a Manager and optionally a Team Leader
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1">
+                  Manager <span className="text-red-500">*</span>
+                </label>
+                <Select 
+                  value={selectedManagerId} 
+                  onValueChange={(v) => { setSelectedManagerId(v); setSelectedTeamLeaderId(''); }}
+                >
+                  <SelectTrigger data-testid="mapping-manager-select">
+                    <SelectValue placeholder="Select Manager" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allManagers.map(m => (
+                      <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1">
+                  Team Leader <span className="text-slate-400">(Optional)</span>
+                </label>
+                <Select 
+                  value={selectedTeamLeaderId} 
+                  onValueChange={setSelectedTeamLeaderId}
+                  disabled={!selectedManagerId}
+                >
+                  <SelectTrigger data-testid="mapping-tl-select">
+                    <SelectValue placeholder={selectedManagerId ? "Select Team Leader" : "Select Manager first"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None (Direct under Manager)</SelectItem>
+                    {getTeamLeadersForManager(selectedManagerId).map(tl => (
+                      <SelectItem key={tl.id} value={tl.id}>{tl.full_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-slate-500 mt-1">
+                  Only shows team leaders assigned to the selected manager
+                </p>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <Button 
+                  onClick={() => setShowMappingModal(false)} 
+                  variant="outline" 
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleSaveMapping} 
+                  className="flex-1 bg-primary"
+                  disabled={savingMapping || !selectedManagerId}
+                  data-testid="save-mapping-btn"
+                >
+                  {savingMapping ? 'Saving...' : 'Save Mapping'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <div className="px-6 md:px-12 lg:px-24 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full max-w-lg grid-cols-3 mb-6">

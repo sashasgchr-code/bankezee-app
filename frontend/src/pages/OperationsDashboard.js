@@ -33,6 +33,8 @@ const OperationsDashboard = () => {
   const [statsExportFromDate, setStatsExportFromDate] = useState('');
   const [statsExportToDate, setStatsExportToDate] = useState('');
   const [exportingStats, setExportingStats] = useState(false);
+  // Search
+  const [searchQuery, setSearchQuery] = useState('');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {

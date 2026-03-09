@@ -634,14 +634,18 @@ const AdminDashboard = () => {
           }
         }
 
-        if (lead.source === 'partner' && lead.source_id) {
+        if (lead.source === 'partner' && lead.source_id && filteredPartnerIds.has(lead.source_id)) {
           if (!partnerStats[lead.source_id]) {
-            const partner = allPartners.find(p => p.id === lead.source_id);
+            const partner = filteredPartners.find(p => p.id === lead.source_id);
+            const manager = allManagers.find(m => m.id === partner?.manager_id);
+            const teamLeader = allTeamLeaders.find(tl => tl.id === partner?.team_leader_id);
             partnerStats[lead.source_id] = {
               name: partner?.name || partner?.full_name || 'Unknown',
               code: partner?.referral_code || '',
               phone: partner?.mobile || partner?.phone || '',
               email: partner?.email || '',
+              manager: manager?.full_name || 'Unassigned',
+              teamLeader: teamLeader?.full_name || 'N/A',
               totalLeads: 0,
               new: 0,
               contacted: 0,

@@ -60,6 +60,8 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 - [x] Agent Dashboard - QR code, leads, commission, performance
 - [x] Partner Dashboard - QR code, leads, earnings, wallet balance
 - [x] Operations Dashboard - Assigned leads, status filters
+- [x] **Manager Dashboard** - Team overview, team leads (view-only), password change
+- [x] **Team Leader Dashboard** - Direct reports overview, leads (view-only), password change
 
 ## Tech Stack
 - **Frontend:** React, Tailwind CSS, Shadcn/UI, Axios

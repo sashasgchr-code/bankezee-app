@@ -24,6 +24,7 @@ const ManagerDashboard = () => {
   const [sourceFilter, setSourceFilter] = useState('all');
   const [sourceIdFilter, setSourceIdFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [earnings, setEarnings] = useState({ total_earnings: 0, monthly_earnings: 0 });
   
   // Password change
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -35,6 +36,7 @@ const ManagerDashboard = () => {
 
   useEffect(() => {
     fetchData();
+    fetchEarnings();
   }, []);
 
   const fetchData = async () => {
@@ -49,6 +51,15 @@ const ManagerDashboard = () => {
       toast.error('Failed to load data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchEarnings = async () => {
+    try {
+      const response = await api.get('/crm/system-earnings');
+      setEarnings(response.data);
+    } catch (error) {
+      console.error('Failed to fetch earnings');
     }
   };
 

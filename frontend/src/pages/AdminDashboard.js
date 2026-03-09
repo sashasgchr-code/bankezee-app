@@ -688,7 +688,7 @@ const AdminDashboard = () => {
 
       // Build CSV with all status columns
       const headers = [
-        'Type', 'Name', 'Code', 'Phone', 'Email', 'Total Leads',
+        'Type', 'Name', 'Code', 'Phone', 'Email', 'Manager', 'Team Leader', 'Total Leads',
         'New', 'Contacted', 'Docs Collected', 'Docs Pending', 'Sent for Eligibility', 'Sent for Login', 'Login',
         'Sent for Approval', 'Underwriting', 'FI', 'FI Negative', 'FI Reinitiated', 'Query/Hold',
         'Cust Not Interested', 'Cust Not Supporting',
@@ -706,6 +706,8 @@ const AdminDashboard = () => {
           stats.code,
           stats.phone,
           stats.email,
+          `"${stats.manager}"`,
+          `"${stats.teamLeader}"`,
           stats.totalLeads,
           stats.new,
           stats.contacted,

@@ -65,6 +65,24 @@ function App() {
           />
           
           <Route
+            path="/manager/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['manager']}>
+                <ManagerDashboard />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/team-leader/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['team_leader']}>
+                <TeamLeaderDashboard />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
             path="/agent/dashboard"
             element={
               <ProtectedRoute allowedRoles={['sales_agent']}>

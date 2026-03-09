@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { FileText, LogOut, LayoutDashboard, Eye, QrCode, Copy } from 'lucide-react';
+import { FileText, LogOut, LayoutDashboard, Eye, QrCode, Copy, Search } from 'lucide-react';
 import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
 import { filterByTimePeriod, filterByLoanType, calculateDashboardStats } from '@/utils/constants';
 
@@ -19,6 +20,7 @@ const PartnerDashboard = () => {
   const [loanTypeFilter, setLoanTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [earnings, setEarnings] = useState({ total_earnings: 0, monthly_earnings: 0 });
+  const [searchQuery, setSearchQuery] = useState('');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {

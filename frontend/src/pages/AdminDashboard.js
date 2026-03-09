@@ -1127,7 +1127,46 @@ const AdminDashboard = () => {
                   />
                 </div>
               </div>
-              <p className="text-xs text-slate-500">Leave dates empty to export all-time stats</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-slate-700 block mb-1">Manager</label>
+                  <Select 
+                    value={statsExportManagerFilter} 
+                    onValueChange={(v) => { setStatsExportManagerFilter(v); setStatsExportTeamLeaderFilter('all'); }}
+                  >
+                    <SelectTrigger data-testid="stats-manager-filter">
+                      <SelectValue placeholder="All Managers" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Managers</SelectItem>
+                      {allManagers.map(m => (
+                        <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700 block mb-1">Team Leader</label>
+                  <Select 
+                    value={statsExportTeamLeaderFilter} 
+                    onValueChange={setStatsExportTeamLeaderFilter}
+                  >
+                    <SelectTrigger data-testid="stats-tl-filter">
+                      <SelectValue placeholder="All Team Leaders" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Team Leaders</SelectItem>
+                      {(statsExportManagerFilter !== 'all' 
+                        ? allTeamLeaders.filter(tl => tl.manager_id === statsExportManagerFilter)
+                        : allTeamLeaders
+                      ).map(tl => (
+                        <SelectItem key={tl.id} value={tl.id}>{tl.full_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500">Leave filters empty to export all stats</p>
               <div className="flex gap-3 pt-2">
                 <Button 
                   onClick={() => setShowStatsExportModal(false)} 

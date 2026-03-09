@@ -98,6 +98,45 @@ async def map_user_to_hierarchy(
     return {"message": f"{mapping.user_type.capitalize()} mapped successfully"}
 
 
+class TeamLeaderMappingRequest(BaseModel):
+    team_leader_id: str
+    manager_id: str
+
+
+@router.post("/map-team-leader")
+async def map_team_leader_to_manager(
+    mapping: TeamLeaderMappingRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Map a team leader to a manager"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Only admin can map team leaders")
+    
+    # Verify manager exists
+    manager = await db.users.find_one({"id": mapping.manager_id, "role": "manager"})
+    if not manager:
+        raise HTTPException(status_code=404, detail="Manager not found")
+    
+    # Verify team leader exists
+    team_leader = await db.users.find_one({"id": mapping.team_leader_id, "role": "team_leader"})
+    if not team_leader:
+        raise HTTPException(status_code=404, detail="Team leader not found")
+    
+    # Update the team leader
+    result = await db.users.update_one(
+        {"id": mapping.team_leader_id, "role": "team_leader"},
+        {"$set": {
+            "manager_id": mapping.manager_id,
+            "mapped_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Team leader not found or already mapped")
+    
+    return {"message": "Team leader mapped to manager successfully"}
+
+
 @router.get("/my-team")
 async def get_my_team(current_user: User = Depends(get_current_user)):
     """Get team members under the current manager or team leader"""

@@ -2107,6 +2107,30 @@ const AdminDashboard = () => {
                                 <UserCog className="w-4 h-4 mr-1" />
                                 {manager ? 'Reassign' : 'Assign Manager'}
                               </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="text-purple-600 border-purple-200 hover:bg-purple-100"
+                                onClick={() => {
+                                  setSelectedUserForPassword(tl);
+                                  setNewPasswordForUser('');
+                                  setShowSetPasswordModal(true);
+                                }}
+                                data-testid={`reset-pwd-tl-${tl.id}`}
+                              >
+                                <Key className="w-4 h-4 mr-1" />
+                                Reset Password
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => handleDeleteUser(tl.id, 'team_leader')}
+                                disabled={deletingUser === tl.id}
+                                data-testid={`delete-tl-${tl.id}`}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
                             </div>
                           </div>
                         </div>

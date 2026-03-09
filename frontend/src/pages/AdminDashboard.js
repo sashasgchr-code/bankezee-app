@@ -125,7 +125,86 @@ const UserDetailCard = ({ user, type, onClose, onPasswordSet }) => {
             <p><span className="text-slate-500">IFSC Code:</span> <span className="font-medium">{bankDetails.ifsc_code || 'N/A'}</span></p>
           </div>
         </div>
+
+        {/* Account / Login Details */}
+        <div className="space-y-2">
+          <h5 className="text-sm font-medium text-slate-600 flex items-center gap-1">
+            <Key className="w-4 h-4" /> Account Details
+          </h5>
+          <div className="bg-slate-50 p-3 rounded-lg space-y-2 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">User ID:</span>
+              <div className="flex items-center gap-1">
+                <span className="font-mono text-xs bg-white px-2 py-1 rounded border">{user.user_id || user.id}</span>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-6 w-6 p-0"
+                  onClick={() => copyToClipboard(user.user_id || user.id)}
+                >
+                  <Copy className="w-3 h-3" />
+                </Button>
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">Email (Login):</span>
+              <div className="flex items-center gap-1">
+                <span className="font-medium">{user.email}</span>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-6 w-6 p-0"
+                  onClick={() => copyToClipboard(user.email)}
+                >
+                  <Copy className="w-3 h-3" />
+                </Button>
+              </div>
+            </div>
+            <div className="pt-2 border-t">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full"
+                onClick={() => setShowPasswordModal(true)}
+              >
+                <Key className="w-4 h-4 mr-2" />
+                Set/Reset Password
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Password Set Modal */}
+      <Dialog open={showPasswordModal} onOpenChange={setShowPasswordModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Set Password for {user.full_name || user.name}</DialogTitle>
+            <DialogDescription>
+              Enter a new password for this user. They will use their email ({user.email}) and this password to login.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">New Password</Label>
+              <Input
+                id="new-password"
+                type="text"
+                placeholder="Enter new password (min 6 characters)"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+              <p className="text-xs text-slate-500">Password is shown in plain text for your reference. Share it securely with the user.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPasswordModal(false)}>Cancel</Button>
+            <Button onClick={handleSetPassword} disabled={settingPassword || newPassword.length < 6}>
+              {settingPassword ? 'Setting...' : 'Set Password'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Performance Stats for approved users */}
       {user.is_approved && (type === 'agent' ? user.performance : true) && (

@@ -112,6 +112,18 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 
 ## What's Implemented (as of Feb 9, 2026)
 
+### Session 5 Highlights (March 9, 2026)
+1. **Manager/Team Leader Dashboard Earnings Fix ✅ NEW**
+   - Fixed earnings stats not displaying on Manager and Team Leader dashboards
+   - Added earnings state and fetchEarnings function to both dashboards
+   - Updated backend /api/crm/system-earnings endpoint to allow manager and team_leader roles
+   - Total Earnings and This Month now display correctly (₹37,500 verified)
+
+2. **Lead Detail Navigation Fix ✅ NEW**
+   - Fixed logout issue when Manager/Team Leader clicked "View" on a lead
+   - Routes /crm/lead/:id and /lead/:leadId now include manager and team_leader in allowedRoles
+   - Both roles can navigate to lead detail page without being logged out
+
 ### Session 4 Highlights (Current)
 1. **Loan Type Options Standardized ✅ NEW**
    - Updated all loan type dropdowns across the entire application

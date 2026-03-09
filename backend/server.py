@@ -55,6 +55,7 @@ api_router.include_router(dashboard_router, prefix="/dashboard", tags=["Dashboar
 api_router.include_router(google_drive_router, tags=["Google Drive"])
 api_router.include_router(file_storage_router, tags=["File Storage"])
 api_router.include_router(hierarchy_router, prefix="/hierarchy", tags=["Hierarchy"])
+api_router.include_router(reports_router, tags=["Reports"])
 
 app.include_router(api_router)
 

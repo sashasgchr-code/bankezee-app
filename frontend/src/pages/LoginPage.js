@@ -29,6 +29,10 @@ const LoginPage = () => {
         navigate('/admin/dashboard');
       } else if (role === 'operations') {
         navigate('/operations/dashboard');
+      } else if (role === 'manager') {
+        navigate('/manager/dashboard');
+      } else if (role === 'team_leader') {
+        navigate('/team-leader/dashboard');
       } else if (role === 'sales_agent') {
         navigate('/agent/dashboard');
       } else if (role === 'partner') {

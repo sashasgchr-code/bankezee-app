@@ -603,9 +603,9 @@ async def get_earnings(
 
 @router.get("/system-earnings")
 async def get_system_earnings(current_user: User = Depends(get_current_user)):
-    """Get total system earnings (for Admin/Ops dashboards)"""
-    if current_user.role not in ["admin", "operations"]:
-        raise HTTPException(status_code=403, detail="Only admin or operations can view system earnings")
+    """Get total system earnings (for Admin/Ops/Manager/Team Leader dashboards)"""
+    if current_user.role not in ["admin", "operations", "manager", "team_leader"]:
+        raise HTTPException(status_code=403, detail="Only admin, operations, manager or team leader can view system earnings")
     
     # Get all commissions
     commissions = await db.commissions.find({}, {"_id": 0}).to_list(10000)

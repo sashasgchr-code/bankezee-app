@@ -307,7 +307,17 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
      - Updated `OperationsDashboard.js` Export Stats calculation
    - **Result:** Total Disbursed now correctly shows ₹1,350,000 (1,200,000 + 150,000)
 
-6. **DB_NAME Environment Variable Fix (P1) ✅**
+6. **Added Balance Transfer+Top-Up Loan Type (Enhancement) ✅ NEW**
+   - Added new loan type option "Balance Transfer+Top-Up" across the application
+   - Updated files:
+     - `constants.js` - Added to LOAN_TYPES array
+     - `AgentLeadCreate.js` - Added to loan type dropdown
+     - `LeadFormPage.js` - Added to public lead form
+     - `PartnerLeadCreate.js` - Added to partner lead form
+   - Dashboard filters automatically use LOAN_TYPES constant
+   - Total loan types now: 9 options
+
+7. **DB_NAME Environment Variable Fix (P1) ✅**
    - Fixed deployment blocker by changing `os.environ['DB_NAME']` to `os.environ.get('DB_NAME', 'test_database')`
    - Updated in all 12 backend files (auth.py, leads.py, agents.py, partners.py, etc.)
    - Removed hardcoded DB_NAME from backend/.env

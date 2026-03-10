@@ -108,17 +108,9 @@ const DailyReportPage = () => {
 
   const loanTypeChartData = reportData ?
     Object.entries(reportData.summary.loan_type_distribution).map(([name, value]) => ({
-      name,
+      name: name || 'Not Specified',
       count: value
     })) : [];
-
-  const dailyActivityData = reportData ?
-    Object.entries(reportData.summary.daily_activity)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([date, count]) => ({
-        date: new Date(date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
-        activities: count
-      })) : [];
 
   const generatePDF = async () => {
     if (!reportData) return;

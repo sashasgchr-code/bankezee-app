@@ -198,8 +198,13 @@ async def get_daily_report(
                 }
                 eligibility_summary.append(elig_data)
                 
-                # Sum eligible amount ONLY where login_done = Yes
-                if elig.get("login_done") == "Yes":
+                # Sum eligible amount ONLY where login_done = yes (lowercase)
+                login_done_val = str(elig.get("login_done", "")).lower()
+                is_eligible_val = str(elig.get("is_eligible", "")).lower()
+                approval_status_val = str(elig.get("approval_status", "")).lower()
+                disbursed_val = str(elig.get("disbursed", "")).lower()
+                
+                if login_done_val == "yes":
                     try:
                         if elig.get("eligible_amount"):
                             total_eligible_amount += float(elig.get("eligible_amount", 0))
@@ -228,7 +233,7 @@ async def get_daily_report(
                 
                 # Collect ALL rejection reasons
                 # 1. Not eligible reason
-                if elig.get("is_eligible") == "No" and elig.get("not_eligible_reason"):
+                if is_eligible_val == "no" and elig.get("not_eligible_reason"):
                     reject_reasons.append({
                         "type": "Not Eligible",
                         "bank": bank_name,
@@ -237,7 +242,7 @@ async def get_daily_report(
                     })
                 
                 # 2. Login rejection reason
-                if elig.get("login_done") == "No" and elig.get("login_rejection_reason"):
+                if login_done_val == "no" and elig.get("login_rejection_reason"):
                     reject_reasons.append({
                         "type": "Login Rejected",
                         "bank": bank_name,
@@ -246,7 +251,7 @@ async def get_daily_report(
                     })
                 
                 # 3. Declined reason
-                if elig.get("approval_status") == "Declined" and elig.get("declined_reason"):
+                if approval_status_val == "declined" and elig.get("declined_reason"):
                     reject_reasons.append({
                         "type": "Declined",
                         "bank": bank_name,
@@ -255,7 +260,7 @@ async def get_daily_report(
                     })
                 
                 # 4. Disbursement rejection reason
-                if elig.get("disbursed") == "No" and elig.get("disbursement_rejection_reason"):
+                if disbursed_val == "no" and elig.get("disbursement_rejection_reason"):
                     reject_reasons.append({
                         "type": "Disbursement Rejected",
                         "bank": bank_name,

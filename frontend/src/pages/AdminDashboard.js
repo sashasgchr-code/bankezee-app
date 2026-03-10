@@ -1796,6 +1796,10 @@ const AdminDashboard = () => {
               agents={allAgents}
               partners={allPartners}
               showSourceFilter={true}
+              managerFilter={managerFilter}
+              onManagerFilterChange={setManagerFilter}
+              managers={allManagers}
+              showManagerFilter={true}
             />
 
             {/* Stats Cards */}

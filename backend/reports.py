@@ -273,11 +273,10 @@ async def get_daily_report(
             if "reject" in action.lower() or "decline" in action.lower() or "not eligible" in action.lower():
                 rejection_reasons.append(activity)
         
-        # Extract status-specific details
+        # Extract status-specific details (for backward compatibility)
         status_details = {
             "rejection_reason": "",
             "not_eligible_reason": "",
-            "login_amount": total_login_amount,
             "login_banks": [],
             "approved_banks": [],
             "disbursed_banks": [],

@@ -162,7 +162,7 @@ const DailyReportPage = () => {
         ['Total Disbursed Amount', formatCurrency(reportData.summary.total_disbursed_amount)]
       ];
       
-      pdf.autoTable({
+      autoTable(pdf, {
         startY: currentY,
         head: [['Metric', 'Value']],
         body: stats,

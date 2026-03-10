@@ -31,6 +31,10 @@ const OperationsDashboard = () => {
   const [allPartners, setAllPartners] = useState([]);
   const [allManagers, setAllManagers] = useState([]);
   const [managerFilter, setManagerFilter] = useState('all');
+  // Activity Time Filter (for Approved, Disbursed, Eligible stats)
+  const [activityTimeFilter, setActivityTimeFilter] = useState('all');
+  const [activityFromDate, setActivityFromDate] = useState('');
+  const [activityToDate, setActivityToDate] = useState('');
   const [showStatsExportModal, setShowStatsExportModal] = useState(false);
   const [statsExportFromDate, setStatsExportFromDate] = useState('');
   const [statsExportToDate, setStatsExportToDate] = useState('');

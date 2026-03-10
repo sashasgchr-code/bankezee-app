@@ -10,11 +10,19 @@ const DashboardFilters = ({
   statusFilter,
   onStatusFilterChange,
   showStatusFilter = true,
-  // Custom date range
+  // Custom date range for leads
   fromDate,
   toDate,
   onFromDateChange,
   onToDateChange,
+  // Activity time filter (for Approved, Disbursed, Eligible stats)
+  activityTimeFilter,
+  onActivityTimeFilterChange,
+  activityFromDate,
+  activityToDate,
+  onActivityFromDateChange,
+  onActivityToDateChange,
+  showActivityTimeFilter = false,
   // Agent/Partner filter
   sourceFilter,
   onSourceFilterChange,
@@ -31,8 +39,9 @@ const DashboardFilters = ({
 }) => {
   return (
     <div className="flex flex-wrap gap-3 mb-6 items-end">
-      {/* Time Period Filter */}
+      {/* Lead Time Period Filter - for Total Leads & New */}
       <div>
+        <label className="text-xs text-slate-500 block mb-1">Lead Created</label>
         <Select value={timeFilter} onValueChange={onTimeFilterChange}>
           <SelectTrigger className="w-40" data-testid="time-filter">
             <SelectValue placeholder="Time Period" />
@@ -45,7 +54,7 @@ const DashboardFilters = ({
         </Select>
       </div>
 
-      {/* Custom Date Range - shown when 'custom' is selected */}
+      {/* Custom Date Range for Leads - shown when 'custom' is selected */}
       {timeFilter === 'custom' && (
         <>
           <div>

@@ -281,7 +281,7 @@ const DailyReportPage = () => {
             e.not_eligible_reason || e.declined_reason || e.disbursement_rejection_reason || '-'
           ]);
           
-          pdf.autoTable({
+          autoTable(pdf, {
             startY: currentY,
             head: [['Bank', 'Eligible', 'Elig. Amt', 'Login', 'Approval', 'Appr. Amt', 'Disbursed', 'Disb. Amt', 'Reason']],
             body: eligData,

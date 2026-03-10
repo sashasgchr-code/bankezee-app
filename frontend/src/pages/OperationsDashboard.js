@@ -631,14 +631,21 @@ const OperationsDashboard = () => {
           onManagerFilterChange={setManagerFilter}
           managers={allManagers}
           showManagerFilter={true}
+          activityTimeFilter={activityTimeFilter}
+          onActivityTimeFilterChange={setActivityTimeFilter}
+          activityFromDate={activityFromDate}
+          activityToDate={activityToDate}
+          onActivityFromDateChange={setActivityFromDate}
+          onActivityToDateChange={setActivityToDate}
+          showActivityTimeFilter={true}
         />
 
         {/* Stats Cards */}
         <div ref={dashboardRef}>
-          <DashboardStats stats={stats} showEarnings={false} totalEligible={filteredTotalEligible} />
+          <DashboardStats stats={leadsStats} showEarnings={false} totalEligible={filteredTotalEligible} />
 
           {/* Performance Overview */}
-          <PerformanceOverview leads={filteredLeads} stats={stats} />
+          <PerformanceOverview leads={filteredLeads} stats={leadsStats} />
         </div>
 
         {/* Leads List */}

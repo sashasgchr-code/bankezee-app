@@ -681,3 +681,45 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
   "activities": []
 }
 ```
+
+
+
+## Changelog
+
+### 2025-12-10 (Current Session)
+- **UI/UX Improvements for Charts:**
+  - ✅ Dashboard pie charts now display absolute numbers instead of percentages (e.g., "New: 7" instead of "35%")
+  - ✅ "Loans by Type" bar charts now show value labels directly on bars
+  - ✅ Removed legend from "Status Distribution" pie chart on Daily Report page
+  - ✅ "Download PDF Report" functionality verified working on Daily Report page
+  
+- **Code Cleanup:**
+  - ✅ Removed temporary `/api/crm/backfill-timestamps` endpoint from `backend/crm.py`
+
+### Previous Sessions (Summary)
+- Dashboard statistics calculated based on activity dates, not lead creation dates
+- Two separate time filters implemented (lead creation date & activity date)
+- Manager filter moved to main filter bar and fixed to apply to all stats
+- Query/Hold reason feature implemented
+- UTC timezone handling fixed for all date comparisons
+- Data migration script created to backfill timestamps for historical data
+
+## Pending/Future Tasks
+
+### P0 (High Priority)
+- Implement Document Upload to Google Drive (currently mocked)
+
+### P1 (Medium Priority)
+- Commission Payout Reports feature
+- Bulk User Approval feature
+
+### P2 (Low Priority)
+- Activate Notifications System (Twilio SMS, Resend Email)
+- Bulk Agent Mapping feature
+- Refactor `AdminDashboard.js` (>2500 lines - needs to be broken into components)
+- Refactor `OperationsDashboard.js` (duplicated filtering/stats logic)
+
+## Known Mocked Features
+- Document Upload to Google Drive (uses local file storage)
+- SMS/OTP notifications (always accepts 123456)
+- Email notifications (not implemented)

@@ -213,49 +213,55 @@ const isDateInRange = (dateStr, filter, fromDate, toDate) => {
 };
 
 // Calculate dashboard statistics based on activity dates (when status/action happened)
+// This matches the Daily Report logic: filter LEADS by activity date, then sum ALL their eligibility amounts
 export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'all', fromDate = null, toDate = null) => {
   const total = leads.length;
   const newLeads = leads.filter(l => STATUS_CATEGORIES.new.includes(l.status)).length;
   
-  // Count leads where any eligibility was approved within the filter period
+  // In Progress: leads currently in progress (status-based)
+  const inProgress = leads.filter(l => STATUS_CATEGORIES.in_progress.includes(l.status)).length;
+  
+  // First, filter leads that have ANY activity in the time period
+  let leadsWithActivityInRange = leads;
+  
+  if (timeFilter !== 'all') {
+    leadsWithActivityInRange = leads.filter(lead => {
+      // Check if ANY activity falls within the filter period
+      const activities = lead.activities || [];
+      return activities.some(activity => {
+        const ts = activity.timestamp;
+        return isDateInRange(ts, timeFilter, fromDate, toDate);
+      });
+    });
+  }
+  
+  // Now sum ALL eligibility amounts from leads with activity in range
   let approved = 0;
   let disbursed = 0;
   let rejected = 0;
   let totalDisbursedAmount = 0;
   let totalApprovedAmount = 0;
   
-  // In Progress: leads currently in progress (status-based, not time-filtered for this stat)
-  const inProgress = leads.filter(l => STATUS_CATEGORIES.in_progress.includes(l.status)).length;
-  
-  leads.forEach(lead => {
+  leadsWithActivityInRange.forEach(lead => {
     if (!lead.eligibilities) return;
     
     lead.eligibilities.forEach(elig => {
-      // Check if approved within the filter period
+      // Count approved
       if (elig.approval_status === 'approved') {
-        const approvedAt = elig.approved_at;
-        if (timeFilter === 'all' || isDateInRange(approvedAt, timeFilter, fromDate, toDate)) {
-          approved++;
-          totalApprovedAmount += parseFloat(elig.approved_amount) || 0;
-        }
+        approved++;
+        totalApprovedAmount += parseFloat(elig.approved_amount) || 0;
       }
       
-      // Check if disbursed within the filter period (handle both 'yes' and true)
+      // Count disbursed (handle both 'yes' and true)
       const disbursedValue = String(elig.disbursed || '').toLowerCase();
       if (disbursedValue === 'yes' || disbursedValue === 'true') {
-        const disbursedAt = elig.disbursed_at;
-        if (timeFilter === 'all' || isDateInRange(disbursedAt, timeFilter, fromDate, toDate)) {
-          disbursed++;
-          totalDisbursedAmount += parseFloat(elig.disbursed_amount) || 0;
-        }
+        disbursed++;
+        totalDisbursedAmount += parseFloat(elig.disbursed_amount) || 0;
       }
       
-      // Check if rejected within the filter period
+      // Count rejected
       if (elig.approval_status === 'declined') {
-        const rejectedAt = elig.rejected_at;
-        if (timeFilter === 'all' || isDateInRange(rejectedAt, timeFilter, fromDate, toDate)) {
-          rejected++;
-        }
+        rejected++;
       }
     });
   });
@@ -268,7 +274,8 @@ export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'al
     inProgress,
     rejected,
     totalDisbursedAmount,
-    totalApprovedAmount
+    totalApprovedAmount,
+    leadsWithActivity: leadsWithActivityInRange.length
   };
 };
 

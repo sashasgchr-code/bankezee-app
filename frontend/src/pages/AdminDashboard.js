@@ -1706,7 +1706,7 @@ const AdminDashboard = () => {
             />
 
             {/* Stats Cards */}
-            <DashboardStats stats={stats} earnings={systemEarnings} />
+            <DashboardStats stats={stats} showEarnings={false} totalEligible={totalEligible} />
 
             {/* Performance Overview */}
             <PerformanceOverview leads={filteredLeads} stats={stats} />

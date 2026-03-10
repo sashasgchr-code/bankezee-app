@@ -22,7 +22,12 @@ const DashboardFilters = ({
   onSourceIdFilterChange,
   agents = [],
   partners = [],
-  showSourceFilter = false
+  showSourceFilter = false,
+  // Manager filter
+  managerFilter,
+  onManagerFilterChange,
+  managers = [],
+  showManagerFilter = false
 }) => {
   return (
     <div className="flex flex-wrap gap-3 mb-6 items-end">
@@ -89,6 +94,23 @@ const DashboardFilters = ({
             <SelectItem value="all">All Status</SelectItem>
             {LEAD_STATUSES.map(status => (
               <SelectItem key={status.value} value={status.value}>{status.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      {/* Manager Filter */}
+      {showManagerFilter && managers.length > 0 && (
+        <Select value={managerFilter || 'all'} onValueChange={onManagerFilterChange}>
+          <SelectTrigger className="w-44" data-testid="manager-filter">
+            <SelectValue placeholder="Manager" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Managers</SelectItem>
+            {managers.map(manager => (
+              <SelectItem key={manager.id} value={manager.id}>
+                {manager.full_name}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>

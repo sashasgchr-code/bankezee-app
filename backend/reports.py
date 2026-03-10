@@ -74,14 +74,37 @@ async def get_daily_report(
     
     # If manager_id filter is applied, filter leads by agents/partners under that manager
     if manager_id:
-        # Get all agents and partners under this manager
+        # Get all user IDs under this manager
         team_user_ids = set()
         for u in users:
             if u.get("manager_id") == manager_id:
                 team_user_ids.add(u["id"])
         
+        # Also get agent IDs that belong to users under this manager
+        # Agents are linked via user_id field in agents collection
+        team_agent_ids = set()
+        for agent in agents:
+            if agent.get("user_id") in team_user_ids:
+                team_agent_ids.add(agent["id"])
+            # Also check if agent ID itself is a user ID under the manager
+            if agent["id"] in team_user_ids:
+                team_agent_ids.add(agent["id"])
+        
+        # Get partner IDs that belong to users under this manager
+        # Partners are linked via user_id field in partners collection
+        team_partner_ids = set()
+        for partner in partners:
+            if partner.get("user_id") in team_user_ids:
+                team_partner_ids.add(partner["id"])
+            # Also check if partner ID itself is a user ID under the manager
+            if partner["id"] in team_user_ids:
+                team_partner_ids.add(partner["id"])
+        
+        # Combine all valid source IDs
+        valid_source_ids = team_user_ids | team_agent_ids | team_partner_ids
+        
         # Filter leads by source_id
-        leads = [l for l in leads if l.get("source_id") in team_user_ids]
+        leads = [l for l in leads if l.get("source_id") in valid_source_ids]
     
     # Enrich leads with additional data
     enriched_leads = []

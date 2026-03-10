@@ -40,7 +40,7 @@ const OperationsDashboard = () => {
   useEffect(() => {
     fetchAssignedLeads();
     fetchAllUsers();
-    fetchSystemEarnings();
+    fetchTotalEligible();
   }, []);
 
   const fetchAllUsers = async () => {

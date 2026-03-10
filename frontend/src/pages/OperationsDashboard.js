@@ -7,7 +7,7 @@ import api from '@/utils/api';
 import { toast } from 'sonner';
 import { FileText, LogOut, LayoutDashboard, Eye, Download, BarChart3, Search } from 'lucide-react';
 import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
-import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats } from '@/utils/constants';
+import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats, calculateTotalEligible } from '@/utils/constants';
 
 const OperationsDashboard = () => {
   const navigate = useNavigate();
@@ -16,7 +16,6 @@ const OperationsDashboard = () => {
   const [timeFilter, setTimeFilter] = useState('all');
   const [loanTypeFilter, setLoanTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [totalEligible, setTotalEligible] = useState(0);
   const [exporting, setExporting] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportFromDate, setExportFromDate] = useState('');
@@ -41,7 +40,6 @@ const OperationsDashboard = () => {
   useEffect(() => {
     fetchAssignedLeads();
     fetchAllUsers();
-    fetchTotalEligible();
     fetchManagers();
   }, []);
 

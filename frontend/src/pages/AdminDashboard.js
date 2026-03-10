@@ -1127,9 +1127,10 @@ const AdminDashboard = () => {
     );
   }
 
-  const stats = calculateDashboardStats(filteredLeads);
-  // Calculate total eligible from filtered leads (linked to all filters)
-  const filteredTotalEligible = calculateTotalEligible(filteredLeads);
+  // Calculate stats based on activity dates (when login/approval/disbursement happened)
+  const stats = calculateDashboardStatsWithActivityDates(filteredLeads, timeFilter, filterFromDate, filterToDate);
+  // Calculate total eligible based on when login was done (activity date)
+  const filteredTotalEligible = calculateTotalEligibleWithActivityDate(filteredLeads, timeFilter, filterFromDate, filterToDate);
 
   if (loading) {
     return (

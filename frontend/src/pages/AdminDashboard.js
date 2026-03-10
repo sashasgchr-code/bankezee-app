@@ -1768,6 +1768,10 @@ const AdminDashboard = () => {
                 statusFilter={statusFilter}
                 onStatusFilterChange={setStatusFilter}
                 showStatusFilter={true}
+                managerFilter={managerFilter}
+                onManagerFilterChange={setManagerFilter}
+                managers={allManagers}
+                showManagerFilter={true}
               />
             </div>
             {/* Select All */}

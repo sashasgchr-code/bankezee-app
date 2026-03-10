@@ -464,7 +464,7 @@ async def update_eligibilities(
     # Check for eligibilities that were removed entirely (they also need to be deducted)
     new_bank_names = {e.get('bank_name', '') for e in eligibilities_data}
     for bank_name, prev_commission in existing_commissions.items():
-        if bank_name not in new_bank_names and prev_commission > 0:
+        if bank_name not in new_bank_names and (prev_commission or 0) > 0:
             deducted_commission += prev_commission
         if bank_name not in new_bank_names and bank_name in existing_disbursed_amounts:
             deducted_disbursed_amount += existing_disbursed_amounts[bank_name]

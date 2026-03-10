@@ -24,6 +24,7 @@ class StatusUpdate(BaseModel):
     status: str
     application_id: Optional[str] = None
     pending_documents: Optional[str] = None
+    query_hold_reason: Optional[str] = None
 
 class NoteAdd(BaseModel):
     note: str
@@ -181,11 +182,17 @@ async def update_lead_status(
     if status_update.status == "documents_pending" and status_update.pending_documents:
         update_data["pending_documents"] = status_update.pending_documents
     
+    # Add query_hold_reason if status is query_hold
+    if status_update.status == "query_hold" and status_update.query_hold_reason:
+        update_data["query_hold_reason"] = status_update.query_hold_reason
+    
     activity_message = f"Status changed to {status_update.status}"
     if status_update.application_id:
         activity_message += f" (Application ID: {status_update.application_id})"
     if status_update.pending_documents:
         activity_message += f" | Pending Documents: {status_update.pending_documents}"
+    if status_update.query_hold_reason:
+        activity_message += f" | Query/Hold Reason: {status_update.query_hold_reason}"
     
     result = await db.leads.update_one(
         {"id": lead_id},
@@ -199,6 +206,7 @@ async def update_lead_status(
                     "to_status": status_update.status,
                     "application_id": status_update.application_id,
                     "pending_documents": status_update.pending_documents,
+                    "query_hold_reason": status_update.query_hold_reason,
                     "by": current_user.id,
                     "timestamp": datetime.now(timezone.utc).isoformat()
                 }

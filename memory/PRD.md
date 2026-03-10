@@ -133,6 +133,12 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
    - Shows sum of approved amounts based on activity date filter
    - Purple-themed card with ₹ currency format
 
+4. **Manager Filter Bug Fix ✅**
+   - Fixed undefined `allUsers` variable in AdminDashboard.js
+   - Manager filter now correctly applies to BOTH stats AND lead list
+   - Added: `const allUsers = [...allAgents, ...allPartners]` at line 1118
+   - File: `/app/frontend/src/pages/AdminDashboard.js`
+
 ### Session 10 Highlights (December 2025)
 1. **Total Eligible Stat Linked to All Filters ✅**
    - Total Eligible (Login=Yes) now calculates from filtered leads instead of a separate API call

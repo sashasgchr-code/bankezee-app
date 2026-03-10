@@ -1240,6 +1240,16 @@ const AdminDashboard = () => {
             Export Stats
           </Button>
           <Button
+            onClick={handleExportDashboardPDF}
+            variant="outline"
+            size="sm"
+            disabled={exportingPDF}
+            data-testid="export-pdf-btn"
+          >
+            <FileDown className="w-4 h-4 mr-1" />
+            {exportingPDF ? 'Exporting...' : 'Export PDF'}
+          </Button>
+          <Button
             onClick={() => setShowAddOpsModal(true)}
             className="bg-primary text-primary-foreground"
             size="sm"

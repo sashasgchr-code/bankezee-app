@@ -168,6 +168,14 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
    - When Activity Date = "Today", dashboard shows stats for leads with activity today
    - Files: `/app/frontend/src/utils/constants.js` (calculateDashboardStatsWithActivityDates, calculateTotalEligibleWithActivityDate)
 
+9. **UTC Timezone Fix for All Time Filters ✅**
+   - **Bug:** JavaScript's `getMonth()` returns local timezone month, causing late-night UTC dates to shift to next month in IST
+   - **Example:** `2026-02-28T23:59:59Z` was showing as March 1 in IST, failing "Last Month" filter
+   - **Fix:** All date comparisons now use UTC methods: `getUTCFullYear()`, `getUTCMonth()`, `getUTCDate()`, `getUTCDay()`, `Date.UTC()`
+   - Affects both `isDateInRange()` (activity dates) and `filterByTimePeriod()` (lead creation dates)
+   - Dashboard stats now match Daily Report values regardless of user's browser timezone
+   - Files: `/app/frontend/src/utils/constants.js`
+
 ### Session 10 Highlights (December 2025)
 1. **Total Eligible Stat Linked to All Filters ✅**
    - Total Eligible (Login=Yes) now calculates from filtered leads instead of a separate API call

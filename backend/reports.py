@@ -159,7 +159,8 @@ async def get_daily_report(
                     pass
         
         # Extract eligibility summary
-        eligibilities = lead.get("additional_data", {}).get("bank_eligibilities", [])
+        # Check both locations: direct eligibilities field and additional_data.bank_eligibilities
+        eligibilities = lead.get("eligibilities", []) or lead.get("additional_data", {}).get("bank_eligibilities", [])
         eligibility_summary = []
         
         total_eligible_amount = 0  # Only sum where login_done = Yes

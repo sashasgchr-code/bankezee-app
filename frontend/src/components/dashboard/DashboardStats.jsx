@@ -30,14 +30,25 @@ const DashboardStats = ({ stats, earnings = {}, showEarnings = true, totalEligib
       value: stats.approved || 0, 
       icon: CheckCircle, 
       color: 'text-green-600',
-      bgColor: 'bg-green-50'
+      bgColor: 'bg-green-50',
+      subtitle: 'Based on activity date'
+    },
+    { 
+      title: 'Total Approved', 
+      value: `₹${(stats.totalApprovedAmount || 0).toLocaleString()}`, 
+      icon: TrendingUp, 
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+      isAmount: true,
+      subtitle: 'Based on activity date'
     },
     { 
       title: 'Disbursed', 
       value: stats.disbursed || 0, 
       icon: Banknote, 
       color: 'text-emerald-600',
-      bgColor: 'bg-emerald-50'
+      bgColor: 'bg-emerald-50',
+      subtitle: 'Based on activity date'
     },
     { 
       title: 'Total Disbursed', 
@@ -45,7 +56,8 @@ const DashboardStats = ({ stats, earnings = {}, showEarnings = true, totalEligib
       icon: DollarSign, 
       color: 'text-green-700',
       bgColor: 'bg-green-100',
-      isAmount: true
+      isAmount: true,
+      subtitle: 'Based on activity date'
     },
     { 
       title: 'Rejected', 
@@ -53,7 +65,7 @@ const DashboardStats = ({ stats, earnings = {}, showEarnings = true, totalEligib
       icon: XCircle, 
       color: 'text-red-600',
       bgColor: 'bg-red-50',
-      subtitle: 'Not eligible, Declined, etc.'
+      subtitle: 'Based on activity date'
     }
   ];
 

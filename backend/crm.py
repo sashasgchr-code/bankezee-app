@@ -442,8 +442,9 @@ async def update_eligibilities(
         
         # Track timestamps for key field changes
         # Login done timestamp
-        was_login_done = existing_elig.get('login_done') == 'yes'
-        is_login_done = elig_dict.get('login_done') == 'yes'
+        # Handle both string 'yes' and boolean True
+        was_login_done = str(existing_elig.get('login_done', '')).lower() in ('yes', 'true')
+        is_login_done = str(elig_dict.get('login_done', '')).lower() in ('yes', 'true')
         if is_login_done and not was_login_done:
             elig_dict['login_done_at'] = now
         elif is_login_done and was_login_done:

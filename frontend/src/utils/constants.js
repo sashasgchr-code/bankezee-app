@@ -230,13 +230,10 @@ const isDateInRange = (dateStr, filter, fromDate, toDate) => {
 };
 
 // Calculate dashboard statistics based on activity dates (when status/action happened)
-// This matches the Daily Report logic: filter LEADS by activity date, then sum ALL their eligibility amounts
+// This matches the Daily Report logic: filter LEADS by activity date, then count/sum based on that filtered set
 export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'all', fromDate = null, toDate = null) => {
   const total = leads.length;
   const newLeads = leads.filter(l => STATUS_CATEGORIES.new.includes(l.status)).length;
-  
-  // In Progress: leads currently in progress (status-based)
-  const inProgress = leads.filter(l => STATUS_CATEGORIES.in_progress.includes(l.status)).length;
   
   // First, filter leads that have ANY activity in the time period
   let leadsWithActivityInRange = leads;
@@ -251,6 +248,9 @@ export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'al
       });
     });
   }
+  
+  // In Progress: count from leads with activity in range
+  const inProgress = leadsWithActivityInRange.filter(l => STATUS_CATEGORIES.in_progress.includes(l.status)).length;
   
   // Now sum ALL eligibility amounts from leads with activity in range
   let approved = 0;

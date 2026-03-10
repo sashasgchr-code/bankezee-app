@@ -457,9 +457,9 @@ const DailyReportPage = () => {
               </Card>
             </div>
 
-            {/* Charts Section */}
-            <div ref={chartsRef} className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              {/* Status Distribution Pie Chart */}
+            {/* Charts Section - 2 charts (removed Daily Activity Trend) */}
+            <div ref={chartsRef} className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {/* Status Distribution Pie Chart - Shows COUNT instead of % */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">Status Distribution</CardTitle>
@@ -476,39 +476,15 @@ const DailyReportPage = () => {
                           outerRadius={80}
                           paddingAngle={2}
                           dataKey="value"
-                          label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                          label={({ value }) => value}
                         >
                           {statusChartData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
-                        <Tooltip />
+                        <Tooltip formatter={(value) => [`${value} leads`, 'Count']} />
                         <Legend />
                       </PieChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="h-[250px] flex items-center justify-center text-slate-400">
-                      No data available
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Daily Activity Line Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Daily Activity Trend</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {dailyActivityData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={250}>
-                      <LineChart data={dailyActivityData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                        <YAxis tick={{ fontSize: 10 }} />
-                        <Tooltip />
-                        <Line type="monotone" dataKey="activities" stroke="#22af47" strokeWidth={2} dot={{ fill: '#22af47' }} />
-                      </LineChart>
                     </ResponsiveContainer>
                   ) : (
                     <div className="h-[250px] flex items-center justify-center text-slate-400">
@@ -529,7 +505,7 @@ const DailyReportPage = () => {
                       <BarChart data={loanTypeChartData} layout="vertical">
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis type="number" tick={{ fontSize: 10 }} />
-                        <YAxis dataKey="name" type="category" tick={{ fontSize: 8 }} width={80} />
+                        <YAxis dataKey="name" type="category" tick={{ fontSize: 8 }} width={100} />
                         <Tooltip />
                         <Bar dataKey="count" fill="#22af47" />
                       </BarChart>

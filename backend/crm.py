@@ -57,10 +57,12 @@ class EligibilityEntry(BaseModel):
     eligible_roi: Optional[float] = None  # ROI percentage
     not_eligible_reason: Optional[str] = None
     login_done: Optional[str] = None  # 'yes' or 'no'
+    login_done_at: Optional[str] = None  # Timestamp when login was done
     login_bank: Optional[str] = None
     application_id: Optional[str] = None  # Application ID when login_done is 'yes'
     login_rejection_reason: Optional[str] = None
     approval_status: Optional[str] = None  # approved, declined
+    approved_at: Optional[str] = None  # Timestamp when approved
     approved_bank: Optional[str] = None
     approved_amount: Optional[float] = None
     approved_tenure: Optional[int] = None
@@ -68,11 +70,13 @@ class EligibilityEntry(BaseModel):
     declined_bank: Optional[str] = None
     declined_reason: Optional[str] = None
     disbursed: Optional[str] = None  # 'yes' or 'no'
+    disbursed_at: Optional[str] = None  # Timestamp when disbursed
     disbursed_bank: Optional[str] = None
     disbursed_amount: Optional[float] = None
     disbursed_tenure: Optional[int] = None
     disbursed_roi: Optional[float] = None
     disbursement_rejection_reason: Optional[str] = None
+    rejected_at: Optional[str] = None  # Timestamp when rejected
     # Commission fields - entered manually by ops when disbursed
     commission_percentage: Optional[float] = None
     commission_amount: Optional[float] = None

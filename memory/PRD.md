@@ -114,6 +114,25 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 
 ## What's Implemented (as of Dec 2025)
 
+### Session 11 Highlights (December 2025)
+1. **Activity Date-Based Dashboard Stats ✅**
+   - Dashboard stats (Approved, Total Approved, Disbursed, Total Disbursed, Rejected, Total Eligible) now calculate based on when the action happened, not when the lead was created
+   - Backend stores timestamps: `login_done_at`, `approved_at`, `disbursed_at`, `rejected_at` in eligibility records
+   - Frontend uses `calculateDashboardStatsWithActivityDates` and `calculateTotalEligibleWithActivityDate` functions
+   - Stats cards show "Based on activity date" subtitle
+   - Files: `/app/backend/crm.py`, `/app/frontend/src/utils/constants.js`, `/app/frontend/src/components/dashboard/DashboardStats.jsx`
+
+2. **Daily Report PDF Export Fix ✅**
+   - Fixed PDF generation errors in Daily Report page
+   - Improved error handling for `pdf.lastAutoTable` being undefined
+   - Added better null checks and fallbacks in generatePDF function
+   - File: `/app/frontend/src/pages/DailyReportPage.js`
+
+3. **New "Total Approved Amount" Stat ✅**
+   - Added new stat card to Admin and Ops dashboards
+   - Shows sum of approved amounts based on activity date filter
+   - Purple-themed card with ₹ currency format
+
 ### Session 10 Highlights (December 2025)
 1. **Total Eligible Stat Linked to All Filters ✅**
    - Total Eligible (Login=Yes) now calculates from filtered leads instead of a separate API call

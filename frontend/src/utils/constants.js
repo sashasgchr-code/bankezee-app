@@ -280,7 +280,7 @@ export const calculateTotalEligibleWithActivityDate = (leads, timeFilter = 'all'
     
     lead.eligibilities.forEach(elig => {
       const loginDone = String(elig.login_done || '').toLowerCase();
-      if (loginDone === 'yes') {
+      if (loginDone === 'yes' || loginDone === 'true') {
         const loginDoneAt = elig.login_done_at;
         if (timeFilter === 'all' || isDateInRange(loginDoneAt, timeFilter, fromDate, toDate)) {
           total += parseFloat(elig.eligible_amount) || 0;
@@ -297,9 +297,9 @@ export const calculateTotalEligible = (leads) => {
   return leads.reduce((sum, lead) => {
     if (lead.eligibilities) {
       for (const elig of lead.eligibilities) {
-        // Check for login_done = 'yes' (lowercase string)
+        // Check for login_done = 'yes' or true (boolean)
         const loginDone = String(elig.login_done || '').toLowerCase();
-        if (loginDone === 'yes') {
+        if (loginDone === 'yes' || loginDone === 'true') {
           const amount = parseFloat(elig.eligible_amount) || 0;
           sum += amount;
         }

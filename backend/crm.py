@@ -418,9 +418,9 @@ async def update_eligibilities(
     for e in existing_eligibilities:
         bank_name = e.get("bank_name", "")
         if bank_name:
-            existing_commissions[bank_name] = e.get("commission_amount", 0)
+            existing_commissions[bank_name] = e.get("commission_amount") or 0
             if e.get("disbursed") == "yes":
-                existing_disbursed_amounts[bank_name] = e.get("disbursed_amount", 0)
+                existing_disbursed_amounts[bank_name] = e.get("disbursed_amount") or 0
     
     # Convert eligibilities to dict format and calculate commission
     eligibilities_data = []

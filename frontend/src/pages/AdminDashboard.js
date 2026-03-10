@@ -387,15 +387,6 @@ const AdminDashboard = () => {
     }
   };
 
-  const fetchTotalEligible = async () => {
-    try {
-      const response = await api.get('/crm/total-eligible');
-      setTotalEligible(response.data.total_eligible || 0);
-    } catch (error) {
-      console.error('Failed to fetch total eligible');
-    }
-  };
-
   const fetchPendingApprovals = async () => {
     try {
       const [agentsRes, partnersRes] = await Promise.all([

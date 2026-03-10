@@ -87,7 +87,7 @@
   "retest_needed": false,
   "should_main_agent_self_test": false,
   
-  "context_for_next_testing_agent": "QR code generation and display is fully working for both agents and partners. OTP login with mock code 123456 works correctly. The QR URLs correctly use the public preview URL (https://sales-partner-hub-1.preview.emergentagent.com). Fixed trailing slash issue in API calls and added partner role to leads endpoint permissions.",
+  "context_for_next_testing_agent": "QR code generation and display is fully working for both agents and partners. OTP login with mock code 123456 works correctly. The QR URLs correctly use the public preview URL (https://lead-commission-sys.preview.emergentagent.com). Fixed trailing slash issue in API calls and added partner role to leads endpoint permissions.",
   
   "features_verified": {
     "qr_code_generation_agent": "PASS - QR code displays on Agent Dashboard with correct agent_code",
@@ -96,6 +96,6 @@
     "partner_registration_creates_record": "PASS - Existing partner records work correctly",
     "otp_login_agents": "PASS - OTP login with mock code 123456 works",
     "otp_login_partners": "PASS - OTP login with mock code 123456 works",
-    "qr_url_public_url": "PASS - QR URLs contain https://sales-partner-hub-1.preview.emergentagent.com (not localhost)"
+    "qr_url_public_url": "PASS - QR URLs contain https://lead-commission-sys.preview.emergentagent.com (not localhost)"
   }
 }

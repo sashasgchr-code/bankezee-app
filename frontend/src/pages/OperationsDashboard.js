@@ -307,8 +307,8 @@ const OperationsDashboard = () => {
     }
   };
 
-  // Apply filters (excluding time filter for stats calculation)
-  // First, apply non-time filters to get base filtered leads for stats
+  // Apply filters
+  // Apply non-time filters to get base filtered leads
   let baseFilteredLeads = filterByLoanType(leads, loanTypeFilter);
   baseFilteredLeads = filterBySource(baseFilteredLeads, sourceFilter, sourceIdFilter === 'all' ? null : sourceIdFilter);
   if (statusFilter !== 'all') {
@@ -328,14 +328,20 @@ const OperationsDashboard = () => {
     );
   }
 
-  // Calculate stats based on activity dates (when login/approval/disbursement happened)
-  // Use baseFilteredLeads (not time-filtered) so stats are calculated based on activity dates
-  const stats = calculateDashboardStatsWithActivityDates(baseFilteredLeads, timeFilter, filterFromDate, filterToDate);
+  // Calculate activity-based stats using ACTIVITY TIME FILTER (Approved, Disbursed, Rejected, Total Eligible)
+  const stats = calculateDashboardStatsWithActivityDates(baseFilteredLeads, activityTimeFilter, activityFromDate, activityToDate);
   // Calculate total eligible based on when login was done (activity date)
-  const filteredTotalEligible = calculateTotalEligibleWithActivityDate(baseFilteredLeads, timeFilter, filterFromDate, filterToDate);
+  const filteredTotalEligible = calculateTotalEligibleWithActivityDate(baseFilteredLeads, activityTimeFilter, activityFromDate, activityToDate);
   
-  // For the leads list, also apply time filter based on lead creation date
+  // For the leads list & "Total Leads"/"New" stats, apply LEAD TIME FILTER (based on lead creation date)
   let filteredLeads = filterByTimePeriod(baseFilteredLeads, timeFilter, filterFromDate, filterToDate);
+  
+  // Override total and newLeads in stats to use lead creation date filter
+  const leadsStats = {
+    ...stats,
+    total: filteredLeads.length,
+    newLeads: filteredLeads.filter(l => ['new', 'fresh'].includes(l.status)).length
+  };
 
   // Export Dashboard to PDF
   const handleExportDashboardPDF = async () => {

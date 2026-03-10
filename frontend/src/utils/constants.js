@@ -59,47 +59,50 @@ export const STATUS_CATEGORIES = {
   rejected: ['not_eligible', 'not_login', 'declined', 'not_disbursed', 'rejected']
 };
 
-// Filter leads by time period
+// Filter leads by time period (uses UTC to match backend)
 export const filterByTimePeriod = (leads, filter, fromDate = null, toDate = null) => {
   if (filter === 'all') return leads;
   
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth();
+  const nowYear = now.getUTCFullYear();
+  const nowMonth = now.getUTCMonth();
+  const nowDay = now.getUTCDate();
+  const todayUTC = new Date(Date.UTC(nowYear, nowMonth, nowDay));
   
   return leads.filter(lead => {
     const leadDate = new Date(lead.created_at);
-    const leadYear = leadDate.getFullYear();
-    const leadMonth = leadDate.getMonth();
-    const leadDay = new Date(leadYear, leadMonth, leadDate.getDate());
+    const leadYear = leadDate.getUTCFullYear();
+    const leadMonth = leadDate.getUTCMonth();
+    const leadDay = leadDate.getUTCDate();
+    const leadDayUTC = new Date(Date.UTC(leadYear, leadMonth, leadDay));
     
     switch (filter) {
       case 'today':
-        return leadDay.getTime() === today.getTime();
+        return leadDayUTC.getTime() === todayUTC.getTime();
       case 'this_week':
-        const weekStart = new Date(today);
-        weekStart.setDate(today.getDate() - today.getDay());
-        return leadDate >= weekStart;
+        const dayOfWeek = todayUTC.getUTCDay();
+        const weekStartUTC = new Date(Date.UTC(nowYear, nowMonth, nowDay - dayOfWeek));
+        return leadDayUTC >= weekStartUTC;
       case 'this_month':
-        return leadYear === currentYear && leadMonth === currentMonth;
+        return leadYear === nowYear && leadMonth === nowMonth;
       case 'last_month':
-        const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-        const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+        const lastMonth = nowMonth === 0 ? 11 : nowMonth - 1;
+        const lastMonthYear = nowMonth === 0 ? nowYear - 1 : nowYear;
         return leadYear === lastMonthYear && leadMonth === lastMonth;
       case 'last_3_months':
-        const threeMonthsAgo = new Date(currentYear, currentMonth - 3, 1);
-        return leadDate >= threeMonthsAgo;
+        const threeMonthsAgoUTC = new Date(Date.UTC(nowYear, nowMonth - 3, 1));
+        return leadDate >= threeMonthsAgoUTC;
       case 'last_6_months':
-        const sixMonthsAgo = new Date(currentYear, currentMonth - 6, 1);
-        return leadDate >= sixMonthsAgo;
+        const sixMonthsAgoUTC = new Date(Date.UTC(nowYear, nowMonth - 6, 1));
+        return leadDate >= sixMonthsAgoUTC;
       case 'this_year':
-        return leadYear === currentYear;
+        return leadYear === nowYear;
       case 'custom':
         if (fromDate && toDate) {
-          const from = new Date(fromDate);
-          const to = new Date(toDate);
-          to.setHours(23, 59, 59, 999);
+          const fromParts = fromDate.split('-').map(Number);
+          const toParts = toDate.split('-').map(Number);
+          const from = new Date(Date.UTC(fromParts[0], fromParts[1] - 1, fromParts[2], 0, 0, 0));
+          const to = new Date(Date.UTC(toParts[0], toParts[1] - 1, toParts[2], 23, 59, 59, 999));
           return leadDate >= from && leadDate <= to;
         }
         return true;

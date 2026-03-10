@@ -320,8 +320,8 @@ const AdminDashboard = () => {
   const [selectedUserForPassword, setSelectedUserForPassword] = useState(null);
   const [newPasswordForUser, setNewPasswordForUser] = useState('');
   const [settingPassword, setSettingPassword] = useState(false);
-  // System earnings
-  const [systemEarnings, setSystemEarnings] = useState({ total_earnings: 0, monthly_earnings: 0 });
+  // Total Eligible (Login=Yes)
+  const [totalEligible, setTotalEligible] = useState(0);
   // Search
   const [searchQuery, setSearchQuery] = useState('');
   const user = JSON.parse(localStorage.getItem('user') || '{}');

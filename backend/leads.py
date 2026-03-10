@@ -295,7 +295,7 @@ async def export_disbursed_leads(
             ops_user = await db.users.find_one({"id": lead["assigned_to"]}, {"_id": 0, "full_name": 1, "email": 1})
             lead["assigned_to_details"] = ops_user
         
-        # Extract disbursement details from eligibilities
+        # Extract disbursement details from bank_eligibilities in additional_data
         disbursement_info = {
             "disbursed_bank": None,
             "disbursed_amount": 0,
@@ -304,13 +304,25 @@ async def export_disbursed_leads(
             "commission_amount": 0
         }
         
-        for elig in lead.get("eligibilities", []):
-            if elig.get("disbursed") == True:
-                disbursement_info["disbursed_bank"] = elig.get("disbursed_bank") or elig.get("bank_name")
-                disbursement_info["disbursed_amount"] = elig.get("disbursed_amount", 0) or 0
-                disbursement_info["disbursed_roi"] = elig.get("disbursed_roi")
-                disbursement_info["commission_percentage"] = elig.get("commission_percentage", 0) or 0
-                disbursement_info["commission_amount"] = elig.get("commission_amount", 0) or 0
+        bank_eligibilities = lead.get("additional_data", {}).get("bank_eligibilities", [])
+        for elig in bank_eligibilities:
+            # Check for disbursed = "yes" (lowercase string)
+            disbursed_val = str(elig.get("disbursed", "")).lower()
+            if disbursed_val == "yes":
+                disbursement_info["disbursed_bank"] = elig.get("bank_name", "")
+                try:
+                    disbursement_info["disbursed_amount"] = float(elig.get("disbursed_amount", 0) or 0)
+                except:
+                    disbursement_info["disbursed_amount"] = 0
+                disbursement_info["disbursed_roi"] = elig.get("disbursed_roi", "")
+                try:
+                    disbursement_info["commission_percentage"] = float(elig.get("commission_percentage", 0) or 0)
+                except:
+                    disbursement_info["commission_percentage"] = 0
+                try:
+                    disbursement_info["commission_amount"] = float(elig.get("commission_amount", 0) or 0)
+                except:
+                    disbursement_info["commission_amount"] = 0
                 break
         
         lead["disbursement_info"] = disbursement_info

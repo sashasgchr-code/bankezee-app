@@ -7,7 +7,7 @@ import api from '@/utils/api';
 import { toast } from 'sonner';
 import { FileText, LogOut, LayoutDashboard, Eye, Download, BarChart3, Search, FileDown } from 'lucide-react';
 import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
-import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats, calculateTotalEligible } from '@/utils/constants';
+import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats, calculateTotalEligible, calculateDashboardStatsWithActivityDates, calculateTotalEligibleWithActivityDate } from '@/utils/constants';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 

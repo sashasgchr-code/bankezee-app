@@ -389,12 +389,12 @@ const AdminDashboard = () => {
     }
   };
 
-  const fetchSystemEarnings = async () => {
+  const fetchTotalEligible = async () => {
     try {
-      const response = await api.get('/crm/system-earnings');
-      setSystemEarnings(response.data);
+      const response = await api.get('/crm/total-eligible');
+      setTotalEligible(response.data.total_eligible || 0);
     } catch (error) {
-      console.error('Failed to fetch system earnings');
+      console.error('Failed to fetch total eligible');
     }
   };
 

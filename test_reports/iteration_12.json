@@ -1,0 +1,99 @@
+{
+  "summary": "Completed testing of Query/Hold reason feature and Daily Report calculations. All 8 requested features verified working: Backend PUT /api/crm/{lead_id}/status with query_hold_reason saves correctly, reason appears in activity log, Frontend displays reason input box when Query/Hold selected (purple styling), saved reason displays in purple alert card, Daily Report endpoint returns correct data with total_approved_amount (₹32,10,000) and total_disbursed_amount (₹32,10,000), loan_type is populated from additional_data.type_of_loan.",
+
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+
+  "passed_tests": [
+    "Backend: Existing lead with query_hold status has query_hold_reason saved - PASS",
+    "Backend: query_hold_reason appears in activity log - PASS",
+    "Backend: PUT /api/crm/{lead_id}/status with query_hold_reason saves correctly - PASS",
+    "Backend: query_hold status can be set without reason (optional) - PASS",
+    "Backend: GET /api/reports/daily-report returns correct structure - PASS",
+    "Backend: total_approved_amount calculation correct (₹32,10,000) - PASS",
+    "Backend: total_disbursed_amount calculation correct (₹32,10,000) - PASS",
+    "Backend: loan_type populated from additional_data.type_of_loan - PASS",
+    "Backend: Daily report lead structure has required fields - PASS",
+    "Backend: Operations user can access daily report - PASS",
+    "Backend: Unauthenticated access blocked (401) - PASS",
+    "Backend: Invalid date format returns 400 - PASS",
+    "Frontend: Query/Hold reason input box appears when Query/Hold selected - PASS",
+    "Frontend: Query/Hold reason input has purple styling (bg-purple-50, border-purple-200) - PASS",
+    "Frontend: Saved Query/Hold reason displays in purple alert card - PASS",
+    "Frontend: Activity log shows Query/Hold reason in status change entry - PASS",
+    "Frontend: Daily Report page loads with summary cards - PASS",
+    "Frontend: Daily Report shows Total Approved (₹32,10,000) - PASS",
+    "Frontend: Daily Report shows Total Disbursed (₹32,10,000) - PASS",
+    "Frontend: Daily Report shows Leads by Loan Type chart - PASS",
+    "Frontend: Daily Report shows Status Distribution pie chart - PASS",
+    "Frontend: Daily Report detailed table shows Loan Type column - PASS"
+  ],
+
+  "test_report_links": [
+    "/app/backend/tests/test_query_hold_and_daily_report.py",
+    "/app/test_reports/pytest/query_hold_daily_report_results.xml"
+  ],
+
+  "action_items": [],
+
+  "critical_code_review_comments": [
+    "Backend crm.py correctly handles query_hold_reason in StatusUpdate model and saves to lead document",
+    "Backend crm.py correctly adds query_hold_reason to activity log entry",
+    "Backend reports.py correctly extracts loan_type from additional_data.type_of_loan",
+    "Backend reports.py correctly calculates total_approved_amount and total_disbursed_amount from eligibilities",
+    "Frontend StatusUpdateCard.jsx correctly shows purple-styled reason input when Query/Hold selected",
+    "Frontend LeadDetailPage.js correctly displays purple alert card when lead has query_hold_reason"
+  ],
+
+  "updated_files": [
+    "/app/backend/tests/test_query_hold_and_daily_report.py"
+  ],
+
+  "success_rate": {
+    "backend": "100% (12/12 tests passed)",
+    "frontend": "100%"
+  },
+
+  "test_credentials": {
+    "admin": "admin@bankezee.com / admin123",
+    "operations": "ops@bankezee.com / ops123"
+  },
+
+  "seed_data_creation": "Used existing test lead ID 0683f437-c4df-4509-b1e6-d20017180102 (Test Customer 2) with query_hold status and reason 'Awaiting customer response regarding income verification documents'",
+
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+
+  "context_for_next_testing_agent": "Query/Hold reason feature fully implemented and tested. Lead detail page URL format is /crm/lead/{id} not /leads/{id}. Daily Report API returns 13 leads with total_approved_amount=3210000 and total_disbursed_amount=3210000. loan_type is correctly populated from additional_data.type_of_loan field.",
+
+  "features_verified": {
+    "query_hold_backend_status_update": "PASS - PUT /api/crm/{lead_id}/status with query_hold_reason saves to lead document",
+    "query_hold_backend_activity_log": "PASS - query_hold_reason appears in activity log entry",
+    "query_hold_frontend_reason_input": "PASS - Purple-styled textarea appears when Query/Hold selected",
+    "query_hold_frontend_reason_card": "PASS - Purple alert card displays saved reason",
+    "daily_report_total_approved": "PASS - ₹32,10,000 calculated correctly from eligibilities",
+    "daily_report_total_disbursed": "PASS - ₹32,10,000 calculated correctly from eligibilities",
+    "daily_report_loan_type": "PASS - Populated from additional_data.type_of_loan",
+    "daily_report_loan_type_distribution": "PASS - Shows breakdown by loan type in chart"
+  },
+
+  "api_endpoints_tested": {
+    "PUT /api/crm/{lead_id}/status (query_hold)": "PASS - Saves query_hold_reason to lead and activity log",
+    "GET /api/crm/{lead_id}/activities": "PASS - Returns activities with query_hold_reason",
+    "GET /api/reports/daily-report": "PASS - Returns summary with total_approved_amount, total_disbursed_amount, loan_type_distribution",
+    "GET /api/leads/{lead_id}": "PASS - Returns lead with query_hold_reason field"
+  },
+
+  "mocked_apis": {
+    "has_mocked_apis": true,
+    "mocked_apis_list": ["Google Drive Upload", "Twilio SMS OTP (use 123456)"]
+  }
+}

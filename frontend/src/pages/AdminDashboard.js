@@ -321,8 +321,6 @@ const AdminDashboard = () => {
   const [selectedUserForPassword, setSelectedUserForPassword] = useState(null);
   const [newPasswordForUser, setNewPasswordForUser] = useState('');
   const [settingPassword, setSettingPassword] = useState(false);
-  // Total Eligible (Login=Yes)
-  const [totalEligible, setTotalEligible] = useState(0);
   // Search
   const [searchQuery, setSearchQuery] = useState('');
   const user = JSON.parse(localStorage.getItem('user') || '{}');

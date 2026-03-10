@@ -181,7 +181,7 @@ const DailyReportPage = () => {
       ]);
       
       if (statusData.length > 0) {
-        pdf.autoTable({
+        autoTable(pdf, {
           startY: currentY,
           head: [['Status', 'Count']],
           body: statusData,

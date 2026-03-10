@@ -520,7 +520,7 @@ const OperationsDashboard = () => {
         />
 
         {/* Stats Cards */}
-        <DashboardStats stats={stats} earnings={earnings} />
+        <DashboardStats stats={stats} showEarnings={false} totalEligible={totalEligible} />
 
         {/* Performance Overview */}
         <PerformanceOverview leads={filteredLeads} stats={stats} />

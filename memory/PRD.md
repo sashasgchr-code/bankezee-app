@@ -139,6 +139,12 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
    - Added: `const allUsers = [...allAgents, ...allPartners]` at line 1118
    - File: `/app/frontend/src/pages/AdminDashboard.js`
 
+5. **Manager Filter Position Fix ✅**
+   - Moved manager filter to top filter bar (above stats)
+   - Manager filter now displays alongside Time, Loan Type, Status, Source filters
+   - Removed duplicate filter from leads section
+   - File: `/app/frontend/src/pages/AdminDashboard.js`
+
 ### Session 10 Highlights (December 2025)
 1. **Total Eligible Stat Linked to All Filters ✅**
    - Total Eligible (Login=Yes) now calculates from filtered leads instead of a separate API call

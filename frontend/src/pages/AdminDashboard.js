@@ -12,7 +12,7 @@ import api from '@/utils/api';
 import { toast } from 'sonner';
 import { Users, LogOut, LayoutDashboard, Eye, UserPlus, CheckSquare, X, Trash2, UserCog, Building, Briefcase, Download, FileText, Clock, CheckCircle, XCircle, ChevronDown, ChevronUp, CreditCard, User, MapPin, Phone, Mail, Hash, Building2, BarChart3, Key, Copy, Search } from 'lucide-react';
 import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
-import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats, LOAN_TYPES, TIME_FILTERS } from '@/utils/constants';
+import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats, calculateTotalEligible, LOAN_TYPES, TIME_FILTERS } from '@/utils/constants';
 
 // Detail Card Component for showing all user info
 const UserDetailCard = ({ user, type, onClose, onPasswordSet }) => {

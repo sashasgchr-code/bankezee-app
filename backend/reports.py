@@ -356,14 +356,14 @@ async def get_daily_report(
             "manager_info": manager_info,
             "assigned_to": assigned_info,
             "eligibility_summary": eligibility_summary,
-            "total_eligible_amount": total_eligible_amount,
+            "total_eligible_amount": total_eligible_amount,  # Only where login=Yes
             "total_approved_amount": total_approved_amount,
             "total_disbursed_amount": total_disbursed_amount,
-            "total_login_amount": total_login_amount,
+            "login_bank_details": login_bank_details,  # Bank name, amount, ROI where login=Yes
+            "reject_reasons": reject_reasons,  # Comprehensive rejection reasons
             "status_details": status_details,
             "activities_in_period": activities_in_range,
             "all_activities": all_activities,
-            "rejection_reasons": rejection_reasons,
             "created_at": lead.get("created_at", ""),
             "additional_data": lead.get("additional_data", {})
         }

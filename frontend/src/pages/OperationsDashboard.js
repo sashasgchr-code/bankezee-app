@@ -316,6 +316,11 @@ const OperationsDashboard = () => {
   if (statusFilter !== 'all') {
     filteredLeads = filteredLeads.filter(l => l.status === statusFilter);
   }
+  // Apply manager filter
+  if (managerFilter !== 'all') {
+    const usersUnderManager = [...allAgents, ...allPartners].filter(u => u.manager_id === managerFilter).map(u => u.id);
+    filteredLeads = filteredLeads.filter(l => usersUnderManager.includes(l.source_id));
+  }
   // Apply search filter
   if (searchQuery.trim()) {
     const query = searchQuery.toLowerCase().trim();

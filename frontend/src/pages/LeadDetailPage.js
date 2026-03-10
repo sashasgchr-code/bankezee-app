@@ -447,6 +447,23 @@ const LeadDetailPage = () => {
               </Card>
             )}
 
+            {/* Query/Hold Reason Alert - Show when lead is on query/hold */}
+            {lead.query_hold_reason && lead.status === 'query_hold' && (
+              <Card className="border-purple-300 bg-purple-50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-purple-800 flex items-center gap-2">
+                    ❓ Query/Hold Reason
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-white p-4 rounded-lg border border-purple-200">
+                    <p className="text-sm font-semibold text-purple-800 mb-2">Reason for Query/Hold:</p>
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{lead.query_hold_reason}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Assign Lead - Only for Admin/Ops */}
             {canEdit && (
               <LeadAssignmentCard

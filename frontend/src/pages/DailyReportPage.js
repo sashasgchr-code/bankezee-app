@@ -155,8 +155,7 @@ const DailyReportPage = () => {
       pdf.setFontSize(10);
       const stats = [
         ['Total Leads with Activity', reportData.summary.total_leads.toString()],
-        ['Total Eligible Amount', formatCurrency(reportData.summary.total_eligible_amount)],
-        ['Total Login Amount', formatCurrency(reportData.summary.total_login_amount || 0)],
+        ['Total Eligible (Login=Yes)', formatCurrency(reportData.summary.total_eligible_amount)],
         ['Total Approved Amount', formatCurrency(reportData.summary.total_approved_amount)],
         ['Total Disbursed Amount', formatCurrency(reportData.summary.total_disbursed_amount)]
       ];

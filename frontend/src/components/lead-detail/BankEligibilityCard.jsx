@@ -134,6 +134,28 @@ const BankEligibilityCard = ({
                 )}
               </div>
             )}
+            {/* SM Name - Only visible to Admin/Ops when Login Done is Yes */}
+            {elig.login_done === 'yes' && showSmFields && (
+              <div>
+                <p className="text-xs text-slate-500 mb-1">SM Name</p>
+                {canEdit ? (
+                  <Input value={elig.sm_name || ''} onChange={(e) => updateField('sm_name', e.target.value)} className="h-9 bg-white" placeholder="SM Name" />
+                ) : (
+                  <p className="font-medium">{elig.sm_name || '-'}</p>
+                )}
+              </div>
+            )}
+            {/* SM Number - Only visible to Admin/Ops when Login Done is Yes */}
+            {elig.login_done === 'yes' && showSmFields && (
+              <div>
+                <p className="text-xs text-slate-500 mb-1">SM Number</p>
+                {canEdit ? (
+                  <Input value={elig.sm_number || ''} onChange={(e) => updateField('sm_number', e.target.value)} className="h-9 bg-white" placeholder="SM Number" />
+                ) : (
+                  <p className="font-medium">{elig.sm_number || '-'}</p>
+                )}
+              </div>
+            )}
             {elig.login_done === 'no' && (
               <div className="col-span-3">
                 <p className="text-xs text-slate-500 mb-1">Login Rejection Reason</p>

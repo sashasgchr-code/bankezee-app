@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, CheckCircle, DollarSign, Clock, XCircle, TrendingUp, Banknote } from 'lucide-react';
 
-const DashboardStats = ({ stats, earnings = {} }) => {
+const DashboardStats = ({ stats, earnings = {}, showEarnings = true, totalEligible = null }) => {
   const statCards = [
     { 
       title: 'Total Leads', 
@@ -54,27 +54,48 @@ const DashboardStats = ({ stats, earnings = {} }) => {
       color: 'text-red-600',
       bgColor: 'bg-red-50',
       subtitle: 'Not eligible, Declined, etc.'
-    },
-    { 
-      title: 'Total Earnings', 
-      value: `₹${(earnings.total_earnings || 0).toLocaleString()}`, 
-      icon: TrendingUp, 
-      color: 'text-primary',
-      bgColor: 'bg-primary/10',
-      isAmount: true
-    },
-    { 
-      title: 'This Month', 
-      value: `₹${(earnings.monthly_earnings || 0).toLocaleString()}`, 
-      icon: DollarSign, 
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      isAmount: true
     }
   ];
 
+  // Add Total Eligible (Login=Yes) if provided (for Admin/Ops dashboards)
+  if (totalEligible !== null) {
+    statCards.push({
+      title: 'Total Eligible',
+      value: `₹${(totalEligible || 0).toLocaleString()}`,
+      icon: TrendingUp,
+      color: 'text-cyan-600',
+      bgColor: 'bg-cyan-50',
+      isAmount: true,
+      subtitle: 'Login = Yes'
+    });
+  }
+
+  // Add earnings stats only if showEarnings is true (for Agent/Partner/Manager/TL dashboards)
+  if (showEarnings) {
+    statCards.push(
+      { 
+        title: 'Total Earnings', 
+        value: `₹${(earnings.total_earnings || 0).toLocaleString()}`, 
+        icon: TrendingUp, 
+        color: 'text-primary',
+        bgColor: 'bg-primary/10',
+        isAmount: true
+      },
+      { 
+        title: 'This Month', 
+        value: `₹${(earnings.monthly_earnings || 0).toLocaleString()}`, 
+        icon: DollarSign, 
+        color: 'text-green-600',
+        bgColor: 'bg-green-50',
+        isAmount: true
+      }
+    );
+  }
+
+  const gridCols = showEarnings ? 'lg:grid-cols-5 xl:grid-cols-9' : 'lg:grid-cols-4 xl:grid-cols-8';
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9 gap-4 mb-8">
+    <div className={`grid grid-cols-2 md:grid-cols-3 ${gridCols} gap-4 mb-8`}>
       {statCards.map((stat, index) => (
         <Card key={index} className="hover-lift" data-testid={`stat-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

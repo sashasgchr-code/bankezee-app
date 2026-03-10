@@ -112,10 +112,26 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 - Email notifications via Resend
 - Document upload to Google Drive
 
-## What's Implemented (as of Feb 9, 2026)
+## What's Implemented (as of Dec 2025)
+
+### Session 9 Highlights (December 2025)
+1. **Query/Hold Reason Feature ✅ COMPLETED**
+   - When lead status is changed to 'Query/Hold', a purple-styled text box appears
+   - User must enter a reason before updating status
+   - Reason is saved to lead document (`query_hold_reason` field)
+   - Reason is recorded in activity log
+   - Purple alert card displays the reason on lead detail page when status is 'query_hold'
+   - Files modified: `/app/backend/crm.py`, `/app/frontend/src/pages/LeadDetailPage.js`
+   - Testing: 100% backend and frontend tests passed
+
+2. **Daily Report Calculations Verified ✅**
+   - Total Approved Amount calculation working correctly (₹32,10,000)
+   - Total Disbursed Amount calculation working correctly (₹32,10,000)
+   - Loan Type populated correctly from `additional_data.type_of_loan`
+   - Loan Type Distribution chart displays breakdown by loan type
 
 ### Session 5 Highlights (March 9, 2026)
-1. **Manager/Team Leader Dashboard Earnings Fix ✅ NEW**
+1. **Manager/Team Leader Dashboard Earnings Fix ✅**
    - Fixed earnings stats not displaying on Manager and Team Leader dashboards
    - Added earnings state and fetchEarnings function to both dashboards
    - Updated backend /api/crm/system-earnings endpoint to allow manager and team_leader roles

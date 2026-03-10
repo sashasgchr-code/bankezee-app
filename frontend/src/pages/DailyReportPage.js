@@ -126,26 +126,33 @@ const DailyReportPage = () => {
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 15;
+      let currentY = 20;
       
       // Title
       pdf.setFontSize(20);
       pdf.setTextColor(34, 175, 71); // Brand green
-      pdf.text('Bankezee Daily Report', margin, 20);
+      pdf.text('Bankezee Daily Report', margin, currentY);
+      currentY += 8;
       
       // Date range
       pdf.setFontSize(10);
       pdf.setTextColor(100, 100, 100);
-      pdf.text(`Report Period: ${fromDate} to ${toDate}`, margin, 28);
-      pdf.text(`Generated: ${new Date().toLocaleString('en-IN')}`, margin, 33);
+      pdf.text(`Report Period: ${fromDate} to ${toDate}`, margin, currentY);
+      currentY += 5;
+      pdf.text(`Generated: ${new Date().toLocaleString('en-IN')}`, margin, currentY);
+      currentY += 5;
       if (selectedManager !== 'all') {
         const manager = managers.find(m => m.id === selectedManager);
-        pdf.text(`Manager: ${manager?.name || 'Unknown'}`, margin, 38);
+        pdf.text(`Manager: ${manager?.name || 'Unknown'}`, margin, currentY);
+        currentY += 5;
       }
       
       // Summary Stats
+      currentY += 8;
       pdf.setFontSize(14);
       pdf.setTextColor(0, 0, 0);
-      pdf.text('Summary Statistics', margin, 48);
+      pdf.text('Summary Statistics', margin, currentY);
+      currentY += 5;
       
       pdf.setFontSize(10);
       const stats = [
@@ -156,7 +163,7 @@ const DailyReportPage = () => {
       ];
       
       pdf.autoTable({
-        startY: 52,
+        startY: currentY,
         head: [['Metric', 'Value']],
         body: stats,
         theme: 'grid',
@@ -165,15 +172,17 @@ const DailyReportPage = () => {
         tableWidth: 80
       });
       
+      currentY = pdf.lastAutoTable ? pdf.lastAutoTable.finalY + 10 : currentY + 40;
+      
       // Status Distribution
-      const statusData = Object.entries(reportData.summary.status_distribution).map(([status, count]) => [
+      const statusData = Object.entries(reportData.summary.status_distribution || {}).map(([status, count]) => [
         status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
         count.toString()
       ]);
       
       if (statusData.length > 0) {
         pdf.autoTable({
-          startY: pdf.lastAutoTable.finalY + 10,
+          startY: currentY,
           head: [['Status', 'Count']],
           body: statusData,
           theme: 'grid',
@@ -181,20 +190,31 @@ const DailyReportPage = () => {
           margin: { left: margin, right: margin },
           tableWidth: 80
         });
+        currentY = pdf.lastAutoTable ? pdf.lastAutoTable.finalY + 10 : currentY + 40;
       }
       
       // Capture charts as image
       if (chartsRef.current) {
-        const chartsCanvas = await html2canvas(chartsRef.current, { scale: 2, useCORS: true });
-        const chartsImg = chartsCanvas.toDataURL('image/png');
-        const imgWidth = pageWidth - (margin * 2);
-        const imgHeight = (chartsCanvas.height * imgWidth) / chartsCanvas.width;
-        
-        if (pdf.lastAutoTable.finalY + imgHeight + 20 > pageHeight) {
-          pdf.addPage();
-          pdf.addImage(chartsImg, 'PNG', margin, 20, imgWidth, Math.min(imgHeight, 100));
-        } else {
-          pdf.addImage(chartsImg, 'PNG', margin, pdf.lastAutoTable.finalY + 10, imgWidth, Math.min(imgHeight, 100));
+        try {
+          const chartsCanvas = await html2canvas(chartsRef.current, { 
+            scale: 2, 
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff'
+          });
+          const chartsImg = chartsCanvas.toDataURL('image/png');
+          const imgWidth = pageWidth - (margin * 2);
+          const imgHeight = (chartsCanvas.height * imgWidth) / chartsCanvas.width;
+          
+          if (currentY + imgHeight + 10 > pageHeight) {
+            pdf.addPage();
+            pdf.addImage(chartsImg, 'PNG', margin, 20, imgWidth, Math.min(imgHeight, 100));
+          } else {
+            pdf.addImage(chartsImg, 'PNG', margin, currentY, imgWidth, Math.min(imgHeight, 100));
+          }
+        } catch (chartError) {
+          console.error('Chart capture error:', chartError);
+          // Continue without charts
         }
       }
       

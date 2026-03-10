@@ -286,6 +286,7 @@ const AdminDashboard = () => {
   const [filterToDate, setFilterToDate] = useState('');
   const [sourceFilter, setSourceFilter] = useState('all');
   const [sourceIdFilter, setSourceIdFilter] = useState('all');
+  const [managerFilter, setManagerFilter] = useState('all');
   // Stats export modal
   const [showStatsExportModal, setShowStatsExportModal] = useState(false);
   const [statsExportFromDate, setStatsExportFromDate] = useState('');

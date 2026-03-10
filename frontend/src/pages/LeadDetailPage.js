@@ -53,6 +53,7 @@ const LeadDetailPage = () => {
   const [note, setNote] = useState('');
   const [newStatus, setNewStatus] = useState('');
   const [pendingDocuments, setPendingDocuments] = useState('');
+  const [queryHoldReason, setQueryHoldReason] = useState('');
   const [applicationId, setApplicationId] = useState('');
   const [uploading, setUploading] = useState(false);
   const [opsTeam, setOpsTeam] = useState([]);

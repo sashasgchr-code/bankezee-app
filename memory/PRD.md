@@ -161,6 +161,13 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
    - Stats cards show "Based on activity date" label where applicable
    - Files: `DashboardFilters.jsx`, `AdminDashboard.js`, `OperationsDashboard.js`
 
+8. **Activity Date Filter Logic Fix ✅ (Matches Daily Report)**
+   - **Old logic:** Filtered each eligibility by its individual timestamp (approved_at, disbursed_at)
+   - **New logic:** Filters LEADS that have ANY activity in date range, then sums ALL their eligibility amounts
+   - This now matches exactly how the Daily Report calculates values
+   - When Activity Date = "Today", dashboard shows stats for leads with activity today
+   - Files: `/app/frontend/src/utils/constants.js` (calculateDashboardStatsWithActivityDates, calculateTotalEligibleWithActivityDate)
+
 ### Session 10 Highlights (December 2025)
 1. **Total Eligible Stat Linked to All Filters ✅**
    - Total Eligible (Login=Yes) now calculates from filtered leads instead of a separate API call

@@ -169,6 +169,129 @@ export const getLoanTypeLabel = (value) => {
   return type ? type.label : value || '-';
 };
 
+// Helper to check if a date falls within a filter period
+const isDateInRange = (dateStr, filter, fromDate, toDate) => {
+  if (!dateStr) return false;
+  
+  const date = new Date(dateStr);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
+  switch (filter) {
+    case 'today':
+      const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      return dateOnly.getTime() === today.getTime();
+    case 'this_week':
+      const weekStart = new Date(today);
+      weekStart.setDate(today.getDate() - today.getDay());
+      return date >= weekStart;
+    case 'this_month':
+      return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
+    case 'last_month':
+      const lastMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
+      const lastMonthYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+      return date.getFullYear() === lastMonthYear && date.getMonth() === lastMonth;
+    case 'last_3_months':
+      const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+      return date >= threeMonthsAgo;
+    case 'last_6_months':
+      const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+      return date >= sixMonthsAgo;
+    case 'this_year':
+      return date.getFullYear() === now.getFullYear();
+    case 'custom':
+      if (fromDate && toDate) {
+        const from = new Date(fromDate);
+        const to = new Date(toDate);
+        to.setHours(23, 59, 59, 999);
+        return date >= from && date <= to;
+      }
+      return true;
+    default:
+      return true;
+  }
+};
+
+// Calculate dashboard statistics based on activity dates (when status/action happened)
+export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'all', fromDate = null, toDate = null) => {
+  const total = leads.length;
+  const newLeads = leads.filter(l => STATUS_CATEGORIES.new.includes(l.status)).length;
+  
+  // Count leads where any eligibility was approved within the filter period
+  let approved = 0;
+  let disbursed = 0;
+  let rejected = 0;
+  let totalDisbursedAmount = 0;
+  let totalApprovedAmount = 0;
+  
+  // In Progress: leads currently in progress (status-based, not time-filtered for this stat)
+  const inProgress = leads.filter(l => STATUS_CATEGORIES.in_progress.includes(l.status)).length;
+  
+  leads.forEach(lead => {
+    if (!lead.eligibilities) return;
+    
+    lead.eligibilities.forEach(elig => {
+      // Check if approved within the filter period
+      if (elig.approval_status === 'approved') {
+        const approvedAt = elig.approved_at;
+        if (timeFilter === 'all' || isDateInRange(approvedAt, timeFilter, fromDate, toDate)) {
+          approved++;
+          totalApprovedAmount += parseFloat(elig.approved_amount) || 0;
+        }
+      }
+      
+      // Check if disbursed within the filter period
+      if (elig.disbursed === 'yes') {
+        const disbursedAt = elig.disbursed_at;
+        if (timeFilter === 'all' || isDateInRange(disbursedAt, timeFilter, fromDate, toDate)) {
+          disbursed++;
+          totalDisbursedAmount += parseFloat(elig.disbursed_amount) || 0;
+        }
+      }
+      
+      // Check if rejected within the filter period
+      if (elig.approval_status === 'declined') {
+        const rejectedAt = elig.rejected_at;
+        if (timeFilter === 'all' || isDateInRange(rejectedAt, timeFilter, fromDate, toDate)) {
+          rejected++;
+        }
+      }
+    });
+  });
+  
+  return {
+    total,
+    newLeads,
+    approved,
+    disbursed,
+    inProgress,
+    rejected,
+    totalDisbursedAmount,
+    totalApprovedAmount
+  };
+};
+
+// Calculate total eligible amount based on when login was done (activity date)
+export const calculateTotalEligibleWithActivityDate = (leads, timeFilter = 'all', fromDate = null, toDate = null) => {
+  let total = 0;
+  
+  leads.forEach(lead => {
+    if (!lead.eligibilities) return;
+    
+    lead.eligibilities.forEach(elig => {
+      const loginDone = String(elig.login_done || '').toLowerCase();
+      if (loginDone === 'yes') {
+        const loginDoneAt = elig.login_done_at;
+        if (timeFilter === 'all' || isDateInRange(loginDoneAt, timeFilter, fromDate, toDate)) {
+          total += parseFloat(elig.eligible_amount) || 0;
+        }
+      }
+    });
+  });
+  
+  return total;
+};
+
 // Calculate total eligible amount (where login_done = yes) from leads
 export const calculateTotalEligible = (leads) => {
   return leads.reduce((sum, lead) => {

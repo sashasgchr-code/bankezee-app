@@ -10,7 +10,8 @@ const EligibilityTracker = ({
   onAdd, 
   onRemove, 
   onSave,
-  isSaving
+  isSaving,
+  showSmFields = false  // Only for Admin/Ops
 }) => {
   return (
     <Card data-testid="eligibility-card">
@@ -38,6 +39,7 @@ const EligibilityTracker = ({
                 canEdit={canEdit}
                 onUpdate={onUpdate}
                 onRemove={onRemove}
+                showSmFields={showSmFields}
               />
             ))}
           </div>

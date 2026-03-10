@@ -16,7 +16,7 @@ const OperationsDashboard = () => {
   const [timeFilter, setTimeFilter] = useState('all');
   const [loanTypeFilter, setLoanTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [earnings, setEarnings] = useState({ total_earnings: 0, monthly_earnings: 0 });
+  const [totalEligible, setTotalEligible] = useState(0);
   const [exporting, setExporting] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportFromDate, setExportFromDate] = useState('');

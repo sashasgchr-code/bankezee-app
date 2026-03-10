@@ -447,6 +447,16 @@ const OperationsDashboard = () => {
             <BarChart3 className="w-4 h-4 mr-1" />
             Export Stats
           </Button>
+          <Button
+            onClick={handleExportDashboardPDF}
+            variant="outline"
+            size="sm"
+            disabled={exportingPDF}
+            data-testid="export-pdf-btn"
+          >
+            <FileDown className="w-4 h-4 mr-1" />
+            {exportingPDF ? 'Exporting...' : 'Export PDF'}
+          </Button>
           <Button onClick={handleLogout} variant="ghost" size="sm" className="text-slate-600" data-testid="logout-btn">
             <LogOut className="w-4 h-4 mr-1" />
             Logout

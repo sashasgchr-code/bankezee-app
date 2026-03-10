@@ -88,14 +88,14 @@ const PerformanceOverview = ({ leads = [], stats = {} }) => {
                   outerRadius={70}
                   paddingAngle={2}
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, value }) => `${name}: ${value}`}
                   labelLine={false}
                 >
                   {statusData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip formatter={(value, name) => [`${value} leads`, name]} />
               </PieChart>
             </ResponsiveContainer>
           ) : (
@@ -139,7 +139,9 @@ const PerformanceOverview = ({ leads = [], stats = {} }) => {
                 <XAxis type="number" tick={{ fontSize: 11 }} />
                 <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} width={80} />
                 <Tooltip />
-                <Bar dataKey="value" fill="#22c55e" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="value" fill="#22c55e" radius={[0, 4, 4, 0]}>
+                  <LabelList dataKey="value" position="right" style={{ fontSize: 10, fill: '#334155' }} />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           ) : (

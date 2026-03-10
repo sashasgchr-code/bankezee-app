@@ -12,7 +12,7 @@ import {
   DollarSign, CheckCircle, XCircle, Clock, Building2,
   Calendar, Filter, Loader2
 } from 'lucide-react';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
@@ -464,7 +464,6 @@ const DailyReportPage = () => {
                           ))}
                         </Pie>
                         <Tooltip formatter={(value, name) => [`${value} leads`, name]} />
-                        <Legend formatter={(value) => value} />
                       </PieChart>
                     </ResponsiveContainer>
                   ) : (
@@ -488,7 +487,9 @@ const DailyReportPage = () => {
                         <XAxis type="number" tick={{ fontSize: 10 }} />
                         <YAxis dataKey="name" type="category" tick={{ fontSize: 8 }} width={100} />
                         <Tooltip />
-                        <Bar dataKey="count" fill="#22af47" />
+                        <Bar dataKey="count" fill="#22af47">
+                          <LabelList dataKey="count" position="right" style={{ fontSize: 10, fill: '#334155' }} />
+                        </Bar>
                       </BarChart>
                     </ResponsiveContainer>
                   ) : (

@@ -170,40 +170,54 @@ export const getLoanTypeLabel = (value) => {
 };
 
 // Helper to check if a date falls within a filter period
+// Uses UTC dates to match backend Daily Report behavior
 const isDateInRange = (dateStr, filter, fromDate, toDate) => {
   if (!dateStr) return false;
   
   const date = new Date(dateStr);
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
+  // Use UTC methods to avoid timezone issues
+  const dateYear = date.getUTCFullYear();
+  const dateMonth = date.getUTCMonth();
+  const dateDay = date.getUTCDate();
+  
+  const nowYear = now.getUTCFullYear();
+  const nowMonth = now.getUTCMonth();
+  const nowDay = now.getUTCDate();
+  
+  // Today in UTC
+  const todayUTC = new Date(Date.UTC(nowYear, nowMonth, nowDay));
+  const dateOnlyUTC = new Date(Date.UTC(dateYear, dateMonth, dateDay));
   
   switch (filter) {
     case 'today':
-      const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-      return dateOnly.getTime() === today.getTime();
+      return dateOnlyUTC.getTime() === todayUTC.getTime();
     case 'this_week':
-      const weekStart = new Date(today);
-      weekStart.setDate(today.getDate() - today.getDay());
-      return date >= weekStart;
+      const dayOfWeek = todayUTC.getUTCDay();
+      const weekStartUTC = new Date(Date.UTC(nowYear, nowMonth, nowDay - dayOfWeek));
+      return dateOnlyUTC >= weekStartUTC;
     case 'this_month':
-      return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
+      return dateYear === nowYear && dateMonth === nowMonth;
     case 'last_month':
-      const lastMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
-      const lastMonthYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
-      return date.getFullYear() === lastMonthYear && date.getMonth() === lastMonth;
+      const lastMonth = nowMonth === 0 ? 11 : nowMonth - 1;
+      const lastMonthYear = nowMonth === 0 ? nowYear - 1 : nowYear;
+      return dateYear === lastMonthYear && dateMonth === lastMonth;
     case 'last_3_months':
-      const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
-      return date >= threeMonthsAgo;
+      const threeMonthsAgoUTC = new Date(Date.UTC(nowYear, nowMonth - 3, 1));
+      return date >= threeMonthsAgoUTC;
     case 'last_6_months':
-      const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
-      return date >= sixMonthsAgo;
+      const sixMonthsAgoUTC = new Date(Date.UTC(nowYear, nowMonth - 6, 1));
+      return date >= sixMonthsAgoUTC;
     case 'this_year':
-      return date.getFullYear() === now.getFullYear();
+      return dateYear === nowYear;
     case 'custom':
       if (fromDate && toDate) {
-        const from = new Date(fromDate);
-        const to = new Date(toDate);
-        to.setHours(23, 59, 59, 999);
+        // Parse custom dates as local dates at start/end of day in UTC
+        const fromParts = fromDate.split('-').map(Number);
+        const toParts = toDate.split('-').map(Number);
+        const from = new Date(Date.UTC(fromParts[0], fromParts[1] - 1, fromParts[2], 0, 0, 0));
+        const to = new Date(Date.UTC(toParts[0], toParts[1] - 1, toParts[2], 23, 59, 59, 999));
         return date >= from && date <= to;
       }
       return true;

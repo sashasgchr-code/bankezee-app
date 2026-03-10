@@ -417,8 +417,8 @@ const DailyReportPage = () => {
         {/* Report Content */}
         {reportData && (
           <div ref={reportRef}>
-            {/* Summary Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+            {/* Summary Stats - 4 cards (removed Total Login Amt) */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <Card className="bg-blue-50 border-blue-200">
                 <CardContent className="p-4 text-center">
                   <Users className="w-8 h-8 mx-auto text-blue-600 mb-2" />
@@ -434,16 +434,7 @@ const DailyReportPage = () => {
                   <p className="text-lg font-bold text-green-700" data-testid="total-eligible">
                     {formatCurrency(reportData.summary.total_eligible_amount)}
                   </p>
-                  <p className="text-sm text-green-600">Total Eligible</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-cyan-50 border-cyan-200">
-                <CardContent className="p-4 text-center">
-                  <FileText className="w-8 h-8 mx-auto text-cyan-600 mb-2" />
-                  <p className="text-lg font-bold text-cyan-700" data-testid="total-login">
-                    {formatCurrency(reportData.summary.total_login_amount || 0)}
-                  </p>
-                  <p className="text-sm text-cyan-600">Total Login Amt</p>
+                  <p className="text-sm text-green-600">Total Eligible (Login=Yes)</p>
                 </CardContent>
               </Card>
               <Card className="bg-purple-50 border-purple-200">

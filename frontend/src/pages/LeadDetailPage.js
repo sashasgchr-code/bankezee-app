@@ -425,6 +425,8 @@ const LeadDetailPage = () => {
                 onUpdate={handleStatusUpdate}
                 pendingDocuments={pendingDocuments}
                 onPendingDocumentsChange={setPendingDocuments}
+                queryHoldReason={queryHoldReason}
+                onQueryHoldReasonChange={setQueryHoldReason}
               />
             )}
 

@@ -585,7 +585,6 @@ const DailyReportPage = () => {
                           </td>
                         </tr>
                       ))}
-                      })}
                     </tbody>
                   </table>
                 </div>

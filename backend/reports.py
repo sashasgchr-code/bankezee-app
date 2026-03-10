@@ -294,13 +294,19 @@ async def get_daily_report(
             bank = elig.get("bank_name", "")
             if not bank:
                 continue
+            
+            # Convert values to lowercase for comparison
+            is_elig = str(elig.get("is_eligible", "")).lower()
+            login_done = str(elig.get("login_done", "")).lower()
+            approval_stat = str(elig.get("approval_status", "")).lower()
+            disbursed_stat = str(elig.get("disbursed", "")).lower()
                 
             # Not eligible reasons
-            if elig.get("is_eligible") == "No" and elig.get("not_eligible_reason"):
+            if is_elig == "no" and elig.get("not_eligible_reason"):
                 status_details["not_eligible_reason"] = elig.get("not_eligible_reason", "")
             
             # Login details
-            if elig.get("login_done") == "Yes":
+            if login_done == "yes":
                 login_info = {
                     "bank": bank,
                     "amount": elig.get("eligible_amount", ""),
@@ -313,7 +319,7 @@ async def get_daily_report(
                 status_details["rejection_reason"] = elig.get("login_rejection_reason", "")
             
             # Approved details
-            if elig.get("approval_status") == "Approved":
+            if approval_stat == "approved":
                 approved_info = {
                     "bank": bank,
                     "amount": elig.get("approved_amount", ""),
@@ -323,7 +329,7 @@ async def get_daily_report(
                 status_details["approved_banks"].append(approved_info)
             
             # Declined details
-            if elig.get("approval_status") == "Declined":
+            if approval_stat == "declined":
                 declined_info = {
                     "bank": bank,
                     "reason": elig.get("declined_reason", "")
@@ -333,7 +339,7 @@ async def get_daily_report(
                     status_details["rejection_reason"] = elig.get("declined_reason", "")
             
             # Disbursed details
-            if elig.get("disbursed") == "Yes":
+            if disbursed_stat == "yes":
                 disbursed_info = {
                     "bank": bank,
                     "amount": elig.get("disbursed_amount", ""),
@@ -342,7 +348,7 @@ async def get_daily_report(
                 status_details["disbursed_banks"].append(disbursed_info)
             
             # Disbursement rejection
-            if elig.get("disbursed") == "No" and elig.get("disbursement_rejection_reason"):
+            if disbursed_stat == "no" and elig.get("disbursement_rejection_reason"):
                 status_details["rejection_reason"] = elig.get("disbursement_rejection_reason", "")
         
         enriched_lead = {

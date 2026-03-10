@@ -406,6 +406,7 @@ const LeadDetailPage = () => {
               onRemove={removeEligibility}
               onSave={saveEligibilities}
               isSaving={savingEligibilities}
+              showSmFields={['admin', 'operations'].includes(user.role)}
             />
 
             {/* Status Update - Only for Admin/Ops */}

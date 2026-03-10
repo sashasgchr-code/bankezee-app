@@ -633,3 +633,32 @@ async def get_system_earnings(current_user: User = Depends(get_current_user)):
         "monthly_earnings": monthly_earnings,
         "commission_count": len(commissions)
     }
+
+
+
+@router.get("/total-eligible")
+async def get_total_eligible(current_user: User = Depends(get_current_user)):
+    """Get total eligible amount where login_done = yes (for Admin/Ops dashboards)"""
+    if current_user.role not in ["admin", "operations"]:
+        raise HTTPException(status_code=403, detail="Only admin or operations can view total eligible")
+    
+    # Get all leads
+    leads = await db.leads.find({}, {"_id": 0}).to_list(10000)
+    
+    total_eligible = 0
+    
+    for lead in leads:
+        bank_eligibilities = lead.get("additional_data", {}).get("bank_eligibilities", [])
+        for elig in bank_eligibilities:
+            # Only sum where login_done = yes (lowercase)
+            login_done = str(elig.get("login_done", "")).lower()
+            if login_done == "yes":
+                try:
+                    amount = float(elig.get("eligible_amount", 0) or 0)
+                    total_eligible += amount
+                except:
+                    pass
+    
+    return {
+        "total_eligible": total_eligible
+    }

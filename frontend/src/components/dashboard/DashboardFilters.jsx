@@ -80,6 +80,51 @@ const DashboardFilters = ({
         </>
       )}
 
+      {/* Activity Time Filter - for Approved, Disbursed, Eligible stats */}
+      {showActivityTimeFilter && (
+        <>
+          <div className="border-l border-slate-300 pl-3">
+            <label className="text-xs text-slate-500 block mb-1">Activity Date</label>
+            <Select value={activityTimeFilter || 'all'} onValueChange={onActivityTimeFilterChange}>
+              <SelectTrigger className="w-40" data-testid="activity-time-filter">
+                <SelectValue placeholder="Activity Period" />
+              </SelectTrigger>
+              <SelectContent>
+                {TIME_FILTERS.map(filter => (
+                  <SelectItem key={filter.value} value={filter.value}>{filter.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Custom Date Range for Activity - shown when 'custom' is selected */}
+          {activityTimeFilter === 'custom' && (
+            <>
+              <div>
+                <label className="text-xs text-slate-500 block mb-1">Activity From</label>
+                <Input
+                  type="date"
+                  value={activityFromDate || ''}
+                  onChange={(e) => onActivityFromDateChange?.(e.target.value)}
+                  className="w-36 h-9"
+                  data-testid="activity-from-date-filter"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-slate-500 block mb-1">Activity To</label>
+                <Input
+                  type="date"
+                  value={activityToDate || ''}
+                  onChange={(e) => onActivityToDateChange?.(e.target.value)}
+                  className="w-36 h-9"
+                  data-testid="activity-to-date-filter"
+                />
+              </div>
+            </>
+          )}
+        </>
+      )}
+
       {/* Loan Type Filter */}
       <Select value={loanTypeFilter} onValueChange={onLoanTypeFilterChange}>
         <SelectTrigger className="w-48" data-testid="loan-type-filter">

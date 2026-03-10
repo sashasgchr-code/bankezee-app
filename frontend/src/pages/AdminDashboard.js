@@ -1796,10 +1796,12 @@ const AdminDashboard = () => {
             />
 
             {/* Stats Cards */}
-            <DashboardStats stats={stats} showEarnings={false} totalEligible={filteredTotalEligible} />
+            <div ref={dashboardRef}>
+              <DashboardStats stats={stats} showEarnings={false} totalEligible={filteredTotalEligible} />
 
-            {/* Performance Overview */}
-            <PerformanceOverview leads={filteredLeads} stats={stats} />
+              {/* Performance Overview */}
+              <PerformanceOverview leads={filteredLeads} stats={stats} />
+            </div>
 
         {/* Leads List */}
         <Card data-testid="recent-leads-card">

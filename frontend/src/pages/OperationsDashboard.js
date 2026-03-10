@@ -37,6 +37,9 @@ const OperationsDashboard = () => {
   const [exportingStats, setExportingStats] = useState(false);
   // Search
   const [searchQuery, setSearchQuery] = useState('');
+  // PDF Export
+  const [exportingPDF, setExportingPDF] = useState(false);
+  const dashboardRef = useRef(null);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {

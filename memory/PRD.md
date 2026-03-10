@@ -114,6 +114,25 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 
 ## What's Implemented (as of Dec 2025)
 
+### Session 10 Highlights (December 2025)
+1. **Total Eligible Stat Linked to All Filters ✅**
+   - Total Eligible (Login=Yes) now calculates from filtered leads instead of a separate API call
+   - Updates dynamically when any filter (time, loan type, status, source, manager) is applied
+   - Added `calculateTotalEligible` function to `/app/frontend/src/utils/constants.js`
+   - Applied to both Admin and Operations dashboards
+
+2. **Eligibility Save Bug Fix ✅**
+   - Fixed "Failed to save eligibility" error caused by NoneType comparison
+   - Modified `/app/backend/crm.py` to handle null `commission_amount` values
+   - Eligibility saves now work correctly even with null/missing fields
+
+3. **Dashboard PDF Export ✅**
+   - Added "Export PDF" button to Admin and Ops dashboards
+   - Exports stats summary and performance charts to PDF
+   - Uses jspdf and html2canvas libraries
+   - PDF includes: title, date, summary statistics, and chart screenshot
+   - Files: AdminDashboard.js, OperationsDashboard.js
+
 ### Session 9 Highlights (December 2025)
 1. **Query/Hold Reason Feature ✅ COMPLETED**
    - When lead status is changed to 'Query/Hold', a purple-styled text box appears

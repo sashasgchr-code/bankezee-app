@@ -1850,22 +1850,6 @@ const AdminDashboard = () => {
             )}
           </CardHeader>
           <CardContent>
-            {/* Inline Filters */}
-            <div className="mb-4">
-              <DashboardFilters
-                timeFilter={timeFilter}
-                onTimeFilterChange={setTimeFilter}
-                loanTypeFilter={loanTypeFilter}
-                onLoanTypeFilterChange={setLoanTypeFilter}
-                statusFilter={statusFilter}
-                onStatusFilterChange={setStatusFilter}
-                showStatusFilter={true}
-                managerFilter={managerFilter}
-                onManagerFilterChange={setManagerFilter}
-                managers={allManagers}
-                showManagerFilter={true}
-              />
-            </div>
             {/* Select All */}
             {filteredLeads.length > 0 && (
               <div className="flex items-center gap-3 pb-3 mb-3 border-b">

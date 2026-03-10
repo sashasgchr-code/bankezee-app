@@ -1132,14 +1132,6 @@ const AdminDashboard = () => {
   // Calculate total eligible based on when login was done (activity date)
   const filteredTotalEligible = calculateTotalEligibleWithActivityDate(filteredLeads, timeFilter, filterFromDate, filterToDate);
 
-  // Debug: Log when manager filter is applied
-  console.log('Dashboard Stats Debug:', {
-    managerFilter,
-    filteredLeadsCount: filteredLeads.length,
-    stats,
-    filteredTotalEligible
-  });
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">

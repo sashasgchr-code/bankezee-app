@@ -320,6 +320,8 @@ const OperationsDashboard = () => {
   }
 
   const stats = calculateDashboardStats(filteredLeads);
+  // Calculate total eligible from filtered leads (linked to all filters)
+  const filteredTotalEligible = calculateTotalEligible(filteredLeads);
 
   if (loading) {
     return (

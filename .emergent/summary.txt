@@ -17,47 +17,64 @@ Build a full-stack web application for a fintech company called Bankezee. The pl
 **User's preferred language**: English
 
 **what currently exists?**
-A full-stack CRM application with a comprehensive role-based access control system for Admin, Operations, Manager, Team Leader, Agent, and Partner roles. The application supports a full hierarchical structure where Admins can create and map users. All dashboards are equipped with analytics, advanced filtering, and a newly added search bar for leads.
+A full-stack CRM application with role-based access control and a comprehensive user hierarchy. The system includes lead management, QR code generation, and role-specific dashboards with analytics.
 
-Recent key features include:
-- **Full Hierarchy Management:** Admins can create, delete, reset passwords for, and map Managers, Team Leaders, Agents, and Partners from a dedicated Users tab.
-- **Redesigned Dashboards:** Manager and Team Leader dashboards now mirror the Agent dashboard layout, providing detailed lead lists and performance charts, with team-specific summary stats at the top.
-- **System-Wide Earnings Stats:** Total and monthly earnings are now calculated on the backend and displayed correctly on Admin and Operations dashboards.
-- **Commission Reversal Logic:** The backend now correctly deducts commission if a lead's Disbursed status is reversed.
-- **Search Functionality:** A search bar has been implemented on all user dashboards to allow for quick filtering of leads by name or mobile number.
+Key recent accomplishments include:
+- A Query/Hold Reason feature has been fully implemented and tested.
+- Dashboard statistics have been significantly overhauled. They are now calculated based on the date of relevant activities (e.g., status changes, approvals) rather than lead creation dates.
+- All time-based filters in the frontend have been fixed to use UTC, resolving a critical bug that caused incorrect calculations for users in different timezones.
+- The logic for dashboard stats now correctly mirrors the logic of the Daily Report, providing consistent data across the application.
+- The manager filter has been fixed and now applies correctly to all dashboard stats. Its position has been moved to the main filter bar for better UX.
+- A data migration script was created and run to backfill timestamps for historical data, ensuring the new activity-based stats work for all leads.
+- Two separate time filters have been implemented on dashboards: one for lead creation dates and one for activity dates.
 
 **Last working item**:
-- **Last item agent was working:** The user reported that on the Manager and Team Leader dashboards, 1) earnings stats were not showing, and 2) clicking to view a lead's details caused a logout. The agent identified that the dashboards weren't fetching earnings data and the frontend routes for lead details were missing the  and  roles. The agent began implementing fixes by modifying  to update route permissions and started adding earnings fetch logic to .
+- **Last item agent was working:** The user requested several UI/UX improvements for graphs and stats across the dashboards and reports.
+    1.  Filter In Progress and Rejected stats based on activity date.
+    2.  Display absolute numbers instead of percentages on pie charts.
+    3.  Show value labels directly on the bars of the Loans by Type graph.
+    4.  Remove the legend from the Status Distribution graph on the Daily Report page.
 - **Status**: IN PROGRESS
 - **Agent Testing Done**: N
-- **Which testing method agent to use?** Frontend testing agent. The agent should test the following flows:
-    1.  Log in as a Manager. Verify the dashboard displays total and monthly earnings. Verify clicking on a lead's View button navigates to the lead detail page successfully.
-    2.  Log in as a Team Leader. Verify the dashboard displays total and monthly earnings. Verify clicking on a lead's View button navigates to the lead detail page successfully.
+- **Which testing method agent to use?** Frontend testing agent. The agent should be instructed to verify the UI changes on the graphs on both the Admin Dashboard and the Daily Report page using the screenshot tool.
 - **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
-- **Issue 1:** Fix Manager and Team Leader dashboard functionality (P0)
+- **Issue 1:** Complete the graph and stats UI/UX changes (P0)
+- **Issue 2:** Fix the Download to PDF functionality on the Daily Report page (P1)
 
 **Issues Detail:**
-- **Issue 1:** Fix Manager and Team Leader dashboard functionality.
-    - **Attempted fixes:** The agent updated the  component in  to include  and  roles for the  route. The agent also began adding state and fetch logic for  in .
+- **Issue 1:** Complete the graph and stats UI/UX changes
+    - **Attempted fixes:** The agent has modified  to begin updating the stats calculation logic for In Progress and Rejected statuses.
     - **Next debug checklist:**
-        1.  Complete the changes in : call the  function in a  hook and pass the  prop to the  component.
-        2.  Apply the exact same earnings logic to .
-        3.  In , ensure the  for both  and  includes  and  in the  array.
-        4.  Manually test the complete end-to-end flow for both Manager and Team Leader roles.
-    - **Why fix this issue and what will be achieved with the fix?** This will make the Manager and Team Leader dashboards fully functional, allowing them to view their team's earnings and inspect individual leads, which is critical for their role.
+        1.  Modify  to show numbers on the pie chart and add data labels to the bar chart.
+        2.  Modify  to remove the legend from the status distribution chart and add data labels to the loan type chart.
+        3.  Test the changes using the screenshot tool on both the Admin Dashboard () and the Daily Report Page ().
+    - **Why fix this issue and what will be achieved with the fix?** This will improve data visualization and dashboard readability as per the user's direct request.
     - **Status:** IN PROGRESS
     - **Is recurring issue?** N
-    - **Should Test frontend/backend/both after fix?** both
+    - **Should Test frontend/backend/both after fix?** frontend
+    - **Blocked on other issue:** None
+
+- **Issue 2:** Daily Report Download to PDF is not working
+    - **Attempted fixes:** A minor patch was added to  to prevent a crash if table data was empty, but the user reported the feature is still not working.
+    - **Next debug checklist:**
+        1.  Navigate to the  page.
+        2.  Click the Download to PDF button.
+        3.  Use the screenshot tool with  to check for any new frontend errors that appear upon clicking.
+        4.  Review the  function in  to identify the root cause of the failure.
+    - **Why fix this issue and what will be achieved with the fix?** This is a key feature of the Daily Report that the user needs for their workflow.
+    - **Status:** NOT STARTED
+    - **Is recurring issue?** Y
+    - **Should Test frontend/backend/both after fix?** frontend
     - **Blocked on other issue:** None
 
 **In progress Task List**:
-- **Task 1:** Complete Manager/Team Leader Dashboard Fixes
-    - **Where to resume:** Resume work in  to finish implementing the earnings display. Then, replicate the fix in  and double-check routing in .
-    - **What will be achieved with this?** Managers and Team Leaders will have fully functional dashboards with correct data and navigation.
+- **Task 1:** Complete UI/UX changes for graphs and stats.
+    - **Where to resume:** Continue by modifying  and  to implement the required chart changes.
+    - **What will be achieved with this?** The dashboards and reports will provide clearer, more direct data visualization.
     - **Status:** IN PROGRESS
-    - **Should Test frontend/backend/both after fix?** both
+    - **Should Test frontend/backend/both after fix?** frontend
     - **Blocked on something:** None
 
 **Upcoming and Future Tasks**
@@ -68,18 +85,23 @@ Recent key features include:
 - **Future Tasks:**
     - **(P2) Activate Notifications System:** Implement Twilio (SMS) and Resend (Email) notifications.
     - **(P2) Bulk Agent Mapping:** Create a feature to allow admins to assign multiple agents to a manager/team leader at once.
+    - **(P2) Refactor :** This file has grown to over 2,500 lines and needs to be broken into smaller, maintainable components.
 
 **Completed work in this session**
-- **Feature: Hierarchical User Management:** Implemented a full Manager -> Team Leader -> Agent/Partner system. Admins can create, delete, reset passwords for, and map all roles via the UI.
-- **Feature: Lead Search:** A search bar was added to all dashboards to find leads by name or mobile number.
-- **Enhancement: Dashboard Redesign:** Manager and Team Leader dashboards were updated to match the Agent dashboard's layout, showing team stats, performance charts, and lead lists.
-- **Bug Fix: System Earnings Display:** Fixed a bug where total and monthly earnings were not showing on Admin and Ops dashboards.
-- **Bug Fix: Commission Reversal:** Corrected the logic to ensure commissions are deducted when a lead's disbursed status is reversed.
-- **Bug Fix: Seeded Account Cleanup:** Deleted initial seeded Manager/Team Leader accounts that were causing login conflicts, enabling Admins to create fresh accounts.
-- **Task Completion: Admin Password Reset:** The admin password reset feature for Agents/Partners was fully tested and verified.
+- **Feature:** Implemented a 'Query/Hold' reason text box, including backend storage and frontend UI.
+- **Bug Fix:** The Total Eligible stat on dashboards now correctly updates when filters are applied.
+- **Bug Fix:** Fixed a 500 server error when saving bank eligibilities with null commission values.
+- **Feature:** Added a Download to PDF button for the main dashboard's stats and graphs.
+- **Core Logic Change:** Reworked all dashboard stats to be calculated based on activity log dates, ensuring data consistency with the Daily Report.
+- **Data Migration:** Created and executed a one-time backend script to backfill  timestamps for historical data to support the new stats logic.
+- **Bug Fix:** Fixed a critical bug where the manager filter was not being applied to stats due to an undefined variable.
+- **UI/UX:** Moved the manager filter to the main filter bar above the stats cards on the Admin dashboard.
+- **Bug Fix:** Fixed a critical timezone bug in all frontend time filters by forcing all date comparisons to use UTC methods.
+- **Feature:** Implemented two separate time filters on dashboards: one for lead creation date and another for activity date.
 
 **Earlier issues found/mentioned but not fixed**
-- None.
+- **Issue 1:** User reported being logged out when clicking View Customer Info in a previous session. This was never reproduced or resolved.
+- **Issue 2:** The Download to PDF button on the Daily Report page is not working, as reported by the user in this session (message 206).
 
 **Known issue recurrence from previous fork**
 - None.
@@ -88,87 +110,86 @@ Recent key features include:
 
 
 **Key Technical Concepts**
-- **Frontend:** React, Tailwind CSS, Shadcn/UI, Axios, Recharts.
-- **Backend:** FastAPI, MongoDB (via  async driver).
-- **Authentication:** JWT tokens (email/password). Passwords hashed with .
-- **Architecture:** Hierarchical data modeling implemented on the backend (,  fields in user documents) and managed via a dedicated UI in the Admin dashboard.
+- **Frontend:** React, Tailwind CSS, Shadcn/UI, Recharts, , , .
+- **Backend:** FastAPI, MongoDB ().
+- **Authentication:** JWT tokens.
+- **Key Logic:** The application now heavily relies on activity-based date filtering for its statistics. A critical concept is the consistent use of UTC for all date comparisons in the frontend (, , etc.) to avoid timezone-related bugs.
 
 **key DB schema**
-- **users:**  - The  collection is now used to store mapping information. Agents/Partners can have a  and . Team Leaders have a .
+- **users:** 
+- **leads:** . The  timestamp fields were added to the  sub-documents to track when key events occurred.
 
 **changes in tech stack**
-- None.
+- Added  as a frontend dependency for PDF generation.
 
 **All files of reference**
-- : Needs to be fixed to display earnings.
-- : Needs the same earnings fix applied.
-- : Contains the routing logic that needs to be verified for lead detail pages.
-- : Contains the  endpoint.
-- : The main hub for all the new hierarchy management features.
+-  (for stats calculation)
+-  (for dashboard graphs)
+-  (for report graphs)
+- 
+- 
+- 
 
 **Areas that need refactoring**:
-- **:** This file has exceeded 2,300 lines and is becoming difficult to maintain. It should be broken down into smaller, more manageable components, especially the content for each of the main tabs (Dashboard, Users, Approval Queue).
+- **:** Now over 2,500 lines. The large block of code that calculates  and  is extremely complex and should be extracted into a custom hook (e.g., ).
+- **:** Contains a lot of duplicated filtering and stats logic from . This should be consolidated into shared hooks or components.
+- **:** The stats calculation functions are becoming complex and interdependent. They could be refactored into a more organized structure or class.
+- **:** The temporary  endpoint should be removed to clean up the API.
 
 **key api endpoints**
-- **Hierarchy Management:**
-  - 
-  - 
-  -  | 
-  - 
-- **User Creation:**
-  -  | 
-- **Earnings & Data:**
-  - 
-- **User Deletion (Updated):**
-  - 
+- **Modified:**
+  - : Logic updated to add  timestamps when key fields (, , etc.) change.
+- **To Be Removed:**
+  - : This temporary data migration endpoint is no longer needed.
 
 **Critical Info for New Agent**
-- Your immediate priority is to fix the two user-reported bugs for Manager and Team Leader dashboards: displaying earnings and allowing access to lead detail pages.
-- The agent was mid-fix. Resume by completing the logic in , replicating it in , and ensuring all relevant routes in  are updated.
-- The  file is extremely large and is a high-priority candidate for refactoring once the current bug fixes are complete.
-- All seeded/test manager and team leader accounts have been deleted. To test the hierarchy, you must create new Manager and Team Leader accounts as an Admin first, then map users accordingly.
+- Your immediate priority is to finish the UI changes for the graphs and stats as detailed in the Last working item.
+- After that, investigate why the Download to PDF function on the Daily Report page is failing.
+- Be mindful of the application's date handling: all frontend date comparisons **must** use UTC methods (e.g., ) to work correctly across timezones. This logic is primarily in .
+- The dashboard statistics are now calculated based on activity dates, not lead creation dates. The logic (1) filters for leads with *any* activity in the selected time range, and then (2) sums up *all* their relevant data. This is different from filtering each data point by its individual timestamp.
 
 **documents and test reports created in this job**
-- 
-- 
-- 
+-  (Updated)
+-  to 
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Fix Manager/TL earnings stats and the logout issue on viewing lead details. (Status: **IN PROGRESS**)
-2.  **User:** The seeded manager/TL accounts aren't working; please delete them. (Status: **COMPLETED**)
-3.  **User:** Add options for admin to delete and reset passwords for manager/TL accounts. (Status: **COMPLETED**)
-4.  **User:** Make the manager/TL dashboards look exactly like the agent dashboard but with team stats. (Status: **COMPLETED**)
-5.  **User:** Add a search bar to all user dashboards to find leads faster. (Status: **COMPLETED**)
-6.  **User:** Fix three issues: earnings stats on Admin/Ops, disbursed amount reversal, and add option for admin to create manager/TL accounts. (Status: **COMPLETED**)
-7.  **User:** Create a manager/team lead hierarchy system. (Status: **COMPLETED**)
-8.  **User:** Confirmed the plan to implement the hierarchy system. (Status: **COMPLETED**)
-9.  **User:** Confirmed to proceed with testing the admin password reset feature. (Status: **COMPLETED**)
-10. **Agent:** Proposed a plan for implementing the hierarchy system. (Status: **COMPLETED**)
+1. **User:** The Last Month filter is giving the wrong result on the dashboard stats. (Status: **COMPLETED** - Fixed with UTC date logic)
+2. **User:** The dashboard activity time filter is still not populating correctly. (Status: **COMPLETED** - Fixed by changing the calculation logic to match the Daily Report)
+3. **User:** The Daily Report shows correct values, but the dashboard activity filter is incorrect. (Status: **COMPLETED**)
+4. **User:** The time filter for activity logs is not working correctly. Wants two separate time filters. (Status: **COMPLETED**)
+5. **User:** The time filter for activity-based stats is still not working correctly. (Status: **COMPLETED**)
+6. **User:** The manager filter should apply to stats and leads, but it's only applying to leads. (Status: **COMPLETED** - Fixed an undefined variable bug).
+7. **User:** The All Managers dropdown should be displayed above the stats. (Status: **COMPLETED**)
+8. **User:** The Daily Report PDF export is not working. The dashboard stats should be calculated based on activity log date. (Status: **PARTIALLY COMPLETED** - Stats logic was fixed, but PDF export was not).
+9. **User:** The total eligible amount should be linked to all filters.  is giving an error. Add PDF export to dashboard stats. (Status: **COMPLETED**)
+10. **Agent:** Finished implementing the Query/Hold reason feature. (Status: **COMPLETED**)
 
 **Project Health Check:**
-- **Broken:** Manager and Team Leader dashboards are partially non-functional (missing earnings data, broken navigation to lead details).
+- **Broken:**
+    - The Download to PDF functionality on the Daily Report page.
 - **Mocked:**
-    - Document Upload to Google Drive (currently uses local server storage).
+    - Document Upload to Google Drive.
     - Notifications System (SMS/Email via Twilio/Resend).
 
 **3rd Party Integrations**
-- **qrcode (Python Library):** Implemented and working.
-- **Recharts (React Library):** Implemented and working for dashboard charts.
-- **Google Drive API (Python):** Planned/Mocked.
-- **Twilio (SMS):** Planned/Mocked.
-- **Resend (Email):** Planned/Mocked.
+- **qrcode (Python Library):** Implemented.
+- **Recharts (React Library):** Implemented.
+- **jspdf / jspdf-autotable (JS Libraries):** Implemented.
+- **html2canvas (JS Library):** Implemented.
+- **Google Drive API (Python):** Planned.
+- **Twilio (SMS):** Planned.
+- **Resend (Email):** Planned.
 
 **Testing status**
-- **Testing agent used after significant changes:** YES (ran twice, generating  and )
+- **Testing agent used after significant changes:** YES (used 9 times in this session)
 - **Troubleshoot agent used after agent stuck in loop:** NO
 - **Test files created:** None
-- **Known regressions:** None
+- **Known regressions:** The Daily Report Download to PDF feature was reported as broken by the user.
 
 **Credentials to test flow:**
 - **Admin:**  / 
 - **Operations:**  / 
-- **Other Roles:** Manager, Team Leader, Agent, and Partner accounts must now be created by the Admin via the Users tab in the dashboard for testing purposes.
 
 **What agent forgot to execute**
-- The agent started fixing the earnings issue on  but did not apply the same changes to  yet.
-- The agent updated the  for  in  but may have overlooked the similar route  which also needs to be updated for  and  roles.</analysis>
+- The agent did not fix the Download to PDF on the Daily Report page after the user reported it was broken (message 206), prioritizing the stats calculation fixes instead.
+- The agent did not remove the temporary  endpoint from  after it was used.</analysis>

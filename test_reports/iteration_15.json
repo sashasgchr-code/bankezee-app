@@ -47,7 +47,7 @@
     "admin": "admin@bankezee.com / admin123"
   },
 
-  "seed_data_creation": "Used existing test data - Test Manager with source_id=7f497e42-007e-4395-8e8d-aebfa2b7d145 and manager_id=bd1b2a6d-9a30-412d-a9ff-a3643988e0e4",
+  "seed_data_creation": "Used existing test data - Test Manager with source_id=fintech-lead-mgmt and manager_id=fintech-lead-mgmt",
 
   "retest_needed": false,
   "should_main_agent_self_test": false,

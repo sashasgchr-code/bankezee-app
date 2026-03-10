@@ -255,7 +255,7 @@ const DailyReportPage = () => {
       });
       
       // Add eligibility details for each lead
-      let currentY = pdf.lastAutoTable.finalY + 15;
+      currentY = pdf.lastAutoTable.finalY + 15;
       
       for (const lead of reportData.leads) {
         if (lead.eligibility_summary && lead.eligibility_summary.length > 0) {

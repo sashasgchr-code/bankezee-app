@@ -351,13 +351,16 @@ async def get_daily_report(
             if disbursed_stat == "no" and elig.get("disbursement_rejection_reason"):
                 status_details["rejection_reason"] = elig.get("disbursement_rejection_reason", "")
         
+        # Get type_of_loan from additional_data (this is the "Type of Loan" field in CRM)
+        type_of_loan = lead.get("additional_data", {}).get("type_of_loan", "") or lead.get("loan_type", "")
+        
         enriched_lead = {
             "id": lead.get("id"),
             "full_name": lead.get("full_name"),
             "mobile": lead.get("mobile"),
             "email": lead.get("email", ""),
             "city": lead.get("city", ""),
-            "loan_type": lead.get("loan_type", ""),
+            "loan_type": type_of_loan,  # Use type_of_loan from additional_data
             "loan_amount": lead.get("loan_amount", 0),
             "current_status": lead.get("status", "new"),
             "last_status_before_period": last_status,
@@ -369,8 +372,6 @@ async def get_daily_report(
             "total_eligible_amount": total_eligible_amount,  # Only where login=Yes
             "total_approved_amount": total_approved_amount,
             "total_disbursed_amount": total_disbursed_amount,
-            "login_bank_details": login_bank_details,  # Bank name, amount, ROI where login=Yes
-            "reject_reasons": reject_reasons,  # Comprehensive rejection reasons
             "status_details": status_details,
             "activities_in_period": activities_in_range,
             "all_activities": all_activities,

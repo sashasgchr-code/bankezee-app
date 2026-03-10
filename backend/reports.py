@@ -162,17 +162,24 @@ async def get_daily_report(
         eligibilities = lead.get("additional_data", {}).get("bank_eligibilities", [])
         eligibility_summary = []
         
-        total_eligible_amount = 0
+        total_eligible_amount = 0  # Only sum where login_done = Yes
         total_approved_amount = 0
         total_disbursed_amount = 0
-        total_login_amount = 0
+        
+        # Login bank details (where login = Yes)
+        login_bank_details = []
+        
+        # Comprehensive reject reasons
+        reject_reasons = []
         
         for elig in eligibilities:
             if elig.get("bank_name"):
+                bank_name = elig.get("bank_name", "")
                 elig_data = {
-                    "bank": elig.get("bank_name", ""),
+                    "bank": bank_name,
                     "is_eligible": elig.get("is_eligible", ""),
                     "eligible_amount": elig.get("eligible_amount", ""),
+                    "eligible_roi": elig.get("eligible_roi", ""),
                     "not_eligible_reason": elig.get("not_eligible_reason", ""),
                     "login_done": elig.get("login_done", ""),
                     "login_bank": elig.get("login_bank", ""),
@@ -191,28 +198,70 @@ async def get_daily_report(
                 }
                 eligibility_summary.append(elig_data)
                 
-                # Sum amounts
-                try:
-                    if elig.get("eligible_amount"):
-                        total_eligible_amount += float(elig.get("eligible_amount", 0))
-                except:
-                    pass
+                # Sum eligible amount ONLY where login_done = Yes
+                if elig.get("login_done") == "Yes":
+                    try:
+                        if elig.get("eligible_amount"):
+                            total_eligible_amount += float(elig.get("eligible_amount", 0))
+                    except:
+                        pass
+                    # Add to login bank details
+                    login_bank_details.append({
+                        "bank": bank_name,
+                        "amount": elig.get("eligible_amount", ""),
+                        "roi": elig.get("eligible_roi", "")
+                    })
+                
+                # Sum approved amounts
                 try:
                     if elig.get("approved_amount"):
                         total_approved_amount += float(elig.get("approved_amount", 0))
                 except:
                     pass
+                    
+                # Sum disbursed amounts
                 try:
                     if elig.get("disbursed_amount"):
                         total_disbursed_amount += float(elig.get("disbursed_amount", 0))
                 except:
                     pass
-                # Sum login amounts (eligible amount when login is done)
-                try:
-                    if elig.get("login_done") == "Yes" and elig.get("eligible_amount"):
-                        total_login_amount += float(elig.get("eligible_amount", 0))
-                except:
-                    pass
+                
+                # Collect ALL rejection reasons
+                # 1. Not eligible reason
+                if elig.get("is_eligible") == "No" and elig.get("not_eligible_reason"):
+                    reject_reasons.append({
+                        "type": "Not Eligible",
+                        "bank": bank_name,
+                        "amount": elig.get("eligible_amount", ""),
+                        "reason": elig.get("not_eligible_reason", "")
+                    })
+                
+                # 2. Login rejection reason
+                if elig.get("login_done") == "No" and elig.get("login_rejection_reason"):
+                    reject_reasons.append({
+                        "type": "Login Rejected",
+                        "bank": bank_name,
+                        "amount": elig.get("eligible_amount", ""),
+                        "reason": elig.get("login_rejection_reason", "")
+                    })
+                
+                # 3. Declined reason
+                if elig.get("approval_status") == "Declined" and elig.get("declined_reason"):
+                    reject_reasons.append({
+                        "type": "Declined",
+                        "bank": bank_name,
+                        "amount": elig.get("approved_amount", "") or elig.get("eligible_amount", ""),
+                        "reason": elig.get("declined_reason", "")
+                    })
+                
+                # 4. Disbursement rejection reason
+                if elig.get("disbursed") == "No" and elig.get("disbursement_rejection_reason"):
+                    reject_reasons.append({
+                        "type": "Disbursement Rejected",
+                        "bank": bank_name,
+                        "amount": elig.get("approved_amount", ""),
+                        "reason": elig.get("disbursement_rejection_reason", "")
+                    })
         
         # Get pending documents
         pending_docs = lead.get("pending_documents", "")

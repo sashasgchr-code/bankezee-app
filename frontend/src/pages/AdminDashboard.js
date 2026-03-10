@@ -1027,6 +1027,84 @@ const AdminDashboard = () => {
     }
   };
 
+  // Export Dashboard to PDF
+  const handleExportDashboardPDF = async () => {
+    if (!dashboardRef.current) return;
+    
+    setExportingPDF(true);
+    toast.info('Generating PDF...');
+    
+    try {
+      const element = dashboardRef.current;
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#f8fafc'
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const imgX = (pdfWidth - imgWidth * ratio) / 2;
+      const imgY = 10;
+      
+      // Add title
+      pdf.setFontSize(18);
+      pdf.setTextColor(34, 175, 71);
+      pdf.text('Bankezee Dashboard Report', pdfWidth / 2, 15, { align: 'center' });
+      
+      // Add date
+      pdf.setFontSize(10);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text(`Generated on: ${new Date().toLocaleString()}`, pdfWidth / 2, 22, { align: 'center' });
+      
+      // Add stats summary as text
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 0, 0);
+      let yPos = 35;
+      pdf.text('Summary Statistics:', 15, yPos);
+      yPos += 8;
+      pdf.setFontSize(10);
+      pdf.text(`Total Leads: ${stats.total}`, 20, yPos);
+      yPos += 6;
+      pdf.text(`New: ${stats.newLeads} | In Progress: ${stats.inProgress} | Approved: ${stats.approved}`, 20, yPos);
+      yPos += 6;
+      pdf.text(`Disbursed: ${stats.disbursed} | Rejected: ${stats.rejected}`, 20, yPos);
+      yPos += 6;
+      pdf.text(`Total Disbursed Amount: ₹${(stats.totalDisbursedAmount || 0).toLocaleString()}`, 20, yPos);
+      yPos += 6;
+      pdf.text(`Total Eligible (Login=Yes): ₹${(filteredTotalEligible || 0).toLocaleString()}`, 20, yPos);
+      
+      // Add the screenshot of charts below
+      const chartStartY = yPos + 15;
+      const chartImgWidth = pdfWidth - 20;
+      const chartImgHeight = (imgHeight * chartImgWidth) / imgWidth;
+      
+      // Only add the image if it fits, otherwise add a new page
+      if (chartStartY + chartImgHeight > pdfHeight - 10) {
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 10, 10, chartImgWidth, Math.min(chartImgHeight, pdfHeight - 20));
+      } else {
+        pdf.addImage(imgData, 'PNG', 10, chartStartY, chartImgWidth, Math.min(chartImgHeight, pdfHeight - chartStartY - 10));
+      }
+      
+      // Download the PDF
+      const dateStr = new Date().toISOString().split('T')[0];
+      pdf.save(`bankezee_dashboard_report_${dateStr}.pdf`);
+      toast.success('Dashboard PDF exported successfully');
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast.error('Failed to export PDF');
+    } finally {
+      setExportingPDF(false);
+    }
+  };
+
   // Apply filters
   let filteredLeads = filterByTimePeriod(leads, timeFilter, filterFromDate, filterToDate);
   filteredLeads = filterByLoanType(filteredLeads, loanTypeFilter);

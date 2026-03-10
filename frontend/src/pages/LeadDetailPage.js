@@ -223,9 +223,15 @@ const LeadDetailPage = () => {
         payload.pending_documents = pendingDocuments.trim();
       }
       
+      // Include query/hold reason if status is query_hold
+      if (newStatus === 'query_hold' && queryHoldReason?.trim()) {
+        payload.query_hold_reason = queryHoldReason.trim();
+      }
+      
       await api.put(`/crm/${leadId}/status`, payload);
       toast.success('Status updated successfully');
       setPendingDocuments(''); // Reset pending documents
+      setQueryHoldReason(''); // Reset query/hold reason
       fetchLead();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to update status');

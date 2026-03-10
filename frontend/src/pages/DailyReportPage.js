@@ -462,14 +462,15 @@ const DailyReportPage = () => {
                           outerRadius={80}
                           paddingAngle={2}
                           dataKey="value"
-                          label={({ value }) => value}
+                          label={({ name, value }) => `${name}: ${value}`}
+                          labelLine={false}
                         >
                           {statusChartData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(value) => [`${value} leads`, 'Count']} />
-                        <Legend />
+                        <Tooltip formatter={(value, name) => [`${value} leads`, name]} />
+                        <Legend formatter={(value) => value} />
                       </PieChart>
                     </ResponsiveContainer>
                   ) : (

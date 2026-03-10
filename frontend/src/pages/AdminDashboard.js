@@ -1114,6 +1114,8 @@ const AdminDashboard = () => {
   }
   // Apply manager filter - filter leads by source's manager_id
   if (managerFilter !== 'all') {
+    // Combine agents and partners to get all users with manager_id
+    const allUsers = [...allAgents, ...allPartners];
     // Get all users under this manager
     const usersUnderManager = allUsers.filter(u => u.manager_id === managerFilter).map(u => u.id);
     filteredLeads = filteredLeads.filter(l => usersUnderManager.includes(l.source_id));

@@ -297,6 +297,8 @@ const LeadDetailPage = () => {
         login_bank: e.login_bank || null,
         application_id: e.application_id || null,
         login_rejection_reason: e.login_rejection_reason || null,
+        sm_name: e.sm_name || null,  // Sales Manager Name
+        sm_number: e.sm_number || null,  // Sales Manager Number
         approval_status: e.approval_status || null,
         approved_bank: e.approved_bank || null,
         approved_amount: e.approved_amount ? parseFloat(e.approved_amount) : null,

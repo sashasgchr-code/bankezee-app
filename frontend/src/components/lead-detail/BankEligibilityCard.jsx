@@ -8,7 +8,8 @@ const BankEligibilityCard = ({
   index, 
   canEdit, 
   onUpdate, 
-  onRemove 
+  onRemove,
+  showSmFields = false  // Only for Admin/Ops
 }) => {
   const elig = eligibility;
   

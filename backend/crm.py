@@ -648,7 +648,8 @@ async def get_total_eligible(current_user: User = Depends(get_current_user)):
     total_eligible = 0
     
     for lead in leads:
-        bank_eligibilities = lead.get("additional_data", {}).get("bank_eligibilities", [])
+        # Check both locations for eligibilities
+        bank_eligibilities = lead.get("eligibilities", []) or lead.get("additional_data", {}).get("bank_eligibilities", [])
         for elig in bank_eligibilities:
             # Only sum where login_done = yes (lowercase)
             login_done = str(elig.get("login_done", "")).lower()

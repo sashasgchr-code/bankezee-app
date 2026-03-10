@@ -325,6 +325,9 @@ const AdminDashboard = () => {
   const [settingPassword, setSettingPassword] = useState(false);
   // Search
   const [searchQuery, setSearchQuery] = useState('');
+  // PDF Export
+  const [exportingPDF, setExportingPDF] = useState(false);
+  const dashboardRef = useRef(null);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const toggleUserDetails = (userId) => {

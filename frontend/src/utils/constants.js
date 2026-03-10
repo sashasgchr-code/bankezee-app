@@ -240,8 +240,9 @@ export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'al
         }
       }
       
-      // Check if disbursed within the filter period
-      if (elig.disbursed === 'yes') {
+      // Check if disbursed within the filter period (handle both 'yes' and true)
+      const disbursedValue = String(elig.disbursed || '').toLowerCase();
+      if (disbursedValue === 'yes' || disbursedValue === 'true') {
         const disbursedAt = elig.disbursed_at;
         if (timeFilter === 'all' || isDateInRange(disbursedAt, timeFilter, fromDate, toDate)) {
           disbursed++;

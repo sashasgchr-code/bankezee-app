@@ -61,6 +61,8 @@ class EligibilityEntry(BaseModel):
     login_bank: Optional[str] = None
     application_id: Optional[str] = None  # Application ID when login_done is 'yes'
     login_rejection_reason: Optional[str] = None
+    sm_name: Optional[str] = None  # Sales Manager Name
+    sm_number: Optional[str] = None  # Sales Manager Number
     approval_status: Optional[str] = None  # approved, declined
     approved_at: Optional[str] = None  # Timestamp when approved
     approved_bank: Optional[str] = None

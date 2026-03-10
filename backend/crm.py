@@ -469,7 +469,7 @@ async def update_eligibilities(
         
         # Check if disbursed is being reversed (was 'yes', now 'no' or None)
         was_disbursed = bank_name in existing_disbursed_amounts
-        is_disbursed = elig_dict.get('disbursed') == 'yes'
+        is_disbursed = str(elig_dict.get('disbursed', '')).lower() in ('yes', 'true')
         
         # Disbursed timestamp
         if is_disbursed and not was_disbursed:

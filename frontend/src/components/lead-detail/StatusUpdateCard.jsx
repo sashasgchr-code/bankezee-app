@@ -11,8 +11,18 @@ const StatusUpdateCard = ({
   onStatusChange, 
   onUpdate,
   pendingDocuments,
-  onPendingDocumentsChange
+  onPendingDocumentsChange,
+  queryHoldReason,
+  onQueryHoldReasonChange
 }) => {
+  const isQueryHoldStatus = newStatus === 'query_hold';
+  const isDocsPendingStatus = newStatus === 'documents_pending';
+  
+  const isUpdateDisabled = 
+    newStatus === currentStatus || 
+    (isDocsPendingStatus && !pendingDocuments?.trim()) ||
+    (isQueryHoldStatus && !queryHoldReason?.trim());
+
   return (
     <Card data-testid="status-update-card">
       <CardHeader><CardTitle>Update Status</CardTitle></CardHeader>
@@ -28,7 +38,7 @@ const StatusUpdateCard = ({
           </Select>
           <Button 
             onClick={onUpdate} 
-            disabled={newStatus === currentStatus || (newStatus === 'documents_pending' && !pendingDocuments?.trim())} 
+            disabled={isUpdateDisabled} 
             className="bg-primary text-primary-foreground"
           >
             Update Status
@@ -36,7 +46,7 @@ const StatusUpdateCard = ({
         </div>
         
         {/* Show pending documents input when Documents Pending is selected */}
-        {newStatus === 'documents_pending' && (
+        {isDocsPendingStatus && (
           <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg space-y-2">
             <Label className="text-amber-800 font-semibold">
               📄 List of Documents Pending *
@@ -49,6 +59,23 @@ const StatusUpdateCard = ({
               data-testid="pending-documents-input"
             />
             <p className="text-xs text-amber-600">Enter each document on a new line or separated by commas</p>
+          </div>
+        )}
+
+        {/* Show Query/Hold reason input when Query/Hold status is selected */}
+        {isQueryHoldStatus && (
+          <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg space-y-2">
+            <Label className="text-purple-800 font-semibold">
+              ❓ Query/Hold Reason *
+            </Label>
+            <Textarea
+              value={queryHoldReason || ''}
+              onChange={(e) => onQueryHoldReasonChange?.(e.target.value)}
+              placeholder="Enter the reason for query or hold (e.g., Awaiting customer response, Additional documents required, Verification pending...)"
+              className="min-h-[100px] bg-white"
+              data-testid="query-hold-reason-input"
+            />
+            <p className="text-xs text-purple-600">Please provide a clear reason for placing this lead on Query/Hold</p>
           </div>
         )}
       </CardContent>

@@ -390,8 +390,10 @@ async def get_daily_report(
         status = lead["current_status"]
         status_counts[status] = status_counts.get(status, 0) + 1
         
-        # Loan type counts
-        loan_type = lead.get("loan_type", "Unknown")
+        # Loan type counts - use loan_type which now has type_of_loan value
+        loan_type = lead.get("loan_type") or "Not Specified"
+        if not loan_type.strip():
+            loan_type = "Not Specified"
         loan_type_counts[loan_type] = loan_type_counts.get(loan_type, 0) + 1
         
         # Daily activity counts

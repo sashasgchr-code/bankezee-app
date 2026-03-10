@@ -279,20 +279,32 @@ export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'al
   };
 };
 
-// Calculate total eligible amount based on when login was done (activity date)
+// Calculate total eligible amount based on activity date
+// This matches the Daily Report logic: filter LEADS by activity date, then sum ALL their eligible amounts where login_done=yes
 export const calculateTotalEligibleWithActivityDate = (leads, timeFilter = 'all', fromDate = null, toDate = null) => {
+  // First, filter leads that have ANY activity in the time period
+  let leadsWithActivityInRange = leads;
+  
+  if (timeFilter !== 'all') {
+    leadsWithActivityInRange = leads.filter(lead => {
+      const activities = lead.activities || [];
+      return activities.some(activity => {
+        const ts = activity.timestamp;
+        return isDateInRange(ts, timeFilter, fromDate, toDate);
+      });
+    });
+  }
+  
+  // Now sum ALL eligible amounts from leads with activity in range (where login_done = yes)
   let total = 0;
   
-  leads.forEach(lead => {
+  leadsWithActivityInRange.forEach(lead => {
     if (!lead.eligibilities) return;
     
     lead.eligibilities.forEach(elig => {
       const loginDone = String(elig.login_done || '').toLowerCase();
       if (loginDone === 'yes' || loginDone === 'true') {
-        const loginDoneAt = elig.login_done_at;
-        if (timeFilter === 'all' || isDateInRange(loginDoneAt, timeFilter, fromDate, toDate)) {
-          total += parseFloat(elig.eligible_amount) || 0;
-        }
+        total += parseFloat(elig.eligible_amount) || 0;
       }
     });
   });

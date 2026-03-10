@@ -419,10 +419,12 @@ async def update_eligibilities(
     existing_eligibilities = lead.get("eligibilities", [])
     existing_commissions = {}
     existing_disbursed_amounts = {}
+    existing_eligibilities_map = {}
     for e in existing_eligibilities:
         bank_name = e.get("bank_name", "")
         if bank_name:
             existing_commissions[bank_name] = e.get("commission_amount") or 0
+            existing_eligibilities_map[bank_name] = e
             if e.get("disbursed") == "yes":
                 existing_disbursed_amounts[bank_name] = e.get("disbursed_amount") or 0
     
@@ -431,14 +433,48 @@ async def update_eligibilities(
     new_commission = 0
     deducted_commission = 0
     deducted_disbursed_amount = 0
+    now = datetime.now(timezone.utc).isoformat()
     
     for e in eligibility_update.eligibilities:
         elig_dict = e.dict()
         bank_name = elig_dict.get('bank_name', '')
+        existing_elig = existing_eligibilities_map.get(bank_name, {})
+        
+        # Track timestamps for key field changes
+        # Login done timestamp
+        was_login_done = existing_elig.get('login_done') == 'yes'
+        is_login_done = elig_dict.get('login_done') == 'yes'
+        if is_login_done and not was_login_done:
+            elig_dict['login_done_at'] = now
+        elif is_login_done and was_login_done:
+            # Preserve existing timestamp
+            elig_dict['login_done_at'] = existing_elig.get('login_done_at') or now
+        
+        # Approved timestamp
+        was_approved = existing_elig.get('approval_status') == 'approved'
+        is_approved = elig_dict.get('approval_status') == 'approved'
+        if is_approved and not was_approved:
+            elig_dict['approved_at'] = now
+        elif is_approved and was_approved:
+            elig_dict['approved_at'] = existing_elig.get('approved_at') or now
+        
+        # Rejected timestamp
+        was_rejected = existing_elig.get('approval_status') == 'declined'
+        is_rejected = elig_dict.get('approval_status') == 'declined'
+        if is_rejected and not was_rejected:
+            elig_dict['rejected_at'] = now
+        elif is_rejected and was_rejected:
+            elig_dict['rejected_at'] = existing_elig.get('rejected_at') or now
         
         # Check if disbursed is being reversed (was 'yes', now 'no' or None)
         was_disbursed = bank_name in existing_disbursed_amounts
         is_disbursed = elig_dict.get('disbursed') == 'yes'
+        
+        # Disbursed timestamp
+        if is_disbursed and not was_disbursed:
+            elig_dict['disbursed_at'] = now
+        elif is_disbursed and was_disbursed:
+            elig_dict['disbursed_at'] = existing_elig.get('disbursed_at') or now
         
         if was_disbursed and not is_disbursed:
             # Disbursement is being reversed - deduct the commission

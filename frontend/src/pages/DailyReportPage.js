@@ -235,7 +235,7 @@ const DailyReportPage = () => {
         formatCurrency(lead.total_disbursed_amount)
       ]);
       
-      pdf.autoTable({
+      autoTable(pdf, {
         startY: 25,
         head: [['Name', 'Mobile', 'Loan Type', 'Status', 'Agent/Partner', 'Approved', 'Disbursed']],
         body: leadsTableData,

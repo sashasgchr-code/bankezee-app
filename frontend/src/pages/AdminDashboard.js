@@ -1105,12 +1105,12 @@ const AdminDashboard = () => {
     }
   };
 
-  // Apply filters
-  let filteredLeads = filterByTimePeriod(leads, timeFilter, filterFromDate, filterToDate);
-  filteredLeads = filterByLoanType(filteredLeads, loanTypeFilter);
-  filteredLeads = filterBySource(filteredLeads, sourceFilter, sourceIdFilter === 'all' ? null : sourceIdFilter);
+  // Apply filters (excluding time filter for stats calculation)
+  // First, apply non-time filters to get base filtered leads for stats
+  let baseFilteredLeads = filterByLoanType(leads, loanTypeFilter);
+  baseFilteredLeads = filterBySource(baseFilteredLeads, sourceFilter, sourceIdFilter === 'all' ? null : sourceIdFilter);
   if (statusFilter !== 'all') {
-    filteredLeads = filteredLeads.filter(l => l.status === statusFilter);
+    baseFilteredLeads = baseFilteredLeads.filter(l => l.status === statusFilter);
   }
   // Apply manager filter - filter leads by source's manager_id
   if (managerFilter !== 'all') {
@@ -1118,21 +1118,25 @@ const AdminDashboard = () => {
     const allUsers = [...allAgents, ...allPartners];
     // Get all users under this manager
     const usersUnderManager = allUsers.filter(u => u.manager_id === managerFilter).map(u => u.id);
-    filteredLeads = filteredLeads.filter(l => usersUnderManager.includes(l.source_id));
+    baseFilteredLeads = baseFilteredLeads.filter(l => usersUnderManager.includes(l.source_id));
   }
   // Apply search filter
   if (searchQuery.trim()) {
     const query = searchQuery.toLowerCase().trim();
-    filteredLeads = filteredLeads.filter(l => 
+    baseFilteredLeads = baseFilteredLeads.filter(l => 
       (l.full_name && l.full_name.toLowerCase().includes(query)) ||
       (l.mobile && l.mobile.includes(query))
     );
   }
 
   // Calculate stats based on activity dates (when login/approval/disbursement happened)
-  const stats = calculateDashboardStatsWithActivityDates(filteredLeads, timeFilter, filterFromDate, filterToDate);
+  // Use baseFilteredLeads (not time-filtered) so stats are calculated based on activity dates
+  const stats = calculateDashboardStatsWithActivityDates(baseFilteredLeads, timeFilter, filterFromDate, filterToDate);
   // Calculate total eligible based on when login was done (activity date)
-  const filteredTotalEligible = calculateTotalEligibleWithActivityDate(filteredLeads, timeFilter, filterFromDate, filterToDate);
+  const filteredTotalEligible = calculateTotalEligibleWithActivityDate(baseFilteredLeads, timeFilter, filterFromDate, filterToDate);
+  
+  // For the leads list, also apply time filter based on lead creation date
+  let filteredLeads = filterByTimePeriod(baseFilteredLeads, timeFilter, filterFromDate, filterToDate);
 
   if (loading) {
     return (

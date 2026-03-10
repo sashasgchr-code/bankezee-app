@@ -295,7 +295,7 @@ async def export_disbursed_leads(
             ops_user = await db.users.find_one({"id": lead["assigned_to"]}, {"_id": 0, "full_name": 1, "email": 1})
             lead["assigned_to_details"] = ops_user
         
-        # Extract disbursement details from bank_eligibilities in additional_data
+        # Extract disbursement details from eligibilities
         disbursement_info = {
             "disbursed_bank": None,
             "disbursed_amount": 0,
@@ -304,7 +304,8 @@ async def export_disbursed_leads(
             "commission_amount": 0
         }
         
-        bank_eligibilities = lead.get("additional_data", {}).get("bank_eligibilities", [])
+        # Check both locations for eligibilities
+        bank_eligibilities = lead.get("eligibilities", []) or lead.get("additional_data", {}).get("bank_eligibilities", [])
         for elig in bank_eligibilities:
             # Check for disbursed = "yes" (lowercase string)
             disbursed_val = str(elig.get("disbursed", "")).lower()

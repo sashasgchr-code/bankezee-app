@@ -145,6 +145,14 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
    - Removed duplicate filter from leads section
    - File: `/app/frontend/src/pages/AdminDashboard.js`
 
+6. **Time Filter Fix for Activity-Based Stats ✅**
+   - Fixed issue where "Today" filter showed 0 for Approved/Disbursed/Eligible stats
+   - Root cause: Time filter was applied to leads by creation date BEFORE stats calculation
+   - Fix: Stats now use `baseFilteredLeads` (without time filter) and calculate based on activity timestamps
+   - Backend handles both `'yes'` string AND boolean `true` for `login_done`/`disbursed` fields
+   - Added `/api/crm/backfill-timestamps` endpoint to migrate existing data
+   - Files: `AdminDashboard.js`, `OperationsDashboard.js`, `/app/backend/crm.py`, `/app/frontend/src/utils/constants.js`
+
 ### Session 10 Highlights (December 2025)
 1. **Total Eligible Stat Linked to All Filters ✅**
    - Total Eligible (Login=Yes) now calculates from filtered leads instead of a separate API call

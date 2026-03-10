@@ -67,15 +67,19 @@ class TestQueryHoldFeature:
     
     def test_update_status_to_query_hold_with_reason(self):
         """Test updating a lead status to query_hold with reason"""
-        # First, get a lead that's not in query_hold status
-        response = requests.get(f"{BASE_URL}/api/leads", headers=self.headers)
+        # First, get a lead that's not in query_hold status using daily report
+        response = requests.get(
+            f"{BASE_URL}/api/reports/daily-report",
+            headers=self.headers,
+            params={"from_date": "2026-01-01", "to_date": "2026-12-31"}
+        )
         assert response.status_code == 200
-        leads = response.json()
+        leads = response.json().get("leads", [])
         
         # Find a lead not in query_hold status
         test_lead = None
         for lead in leads:
-            if lead.get("status") != "query_hold":
+            if lead.get("current_status") != "query_hold":
                 test_lead = lead
                 break
         
@@ -83,7 +87,7 @@ class TestQueryHoldFeature:
             pytest.skip("No lead available for testing status update")
         
         lead_id = test_lead["id"]
-        original_status = test_lead["status"]
+        original_status = test_lead["current_status"]
         test_reason = f"Test query hold reason - {uuid.uuid4().hex[:8]}"
         
         # Update status to query_hold with reason
@@ -133,14 +137,18 @@ class TestQueryHoldFeature:
     
     def test_query_hold_without_reason_should_work(self):
         """Test that query_hold status can be set without reason (reason is optional)"""
-        # Get a lead
-        response = requests.get(f"{BASE_URL}/api/leads", headers=self.headers)
+        # Get a lead using daily report
+        response = requests.get(
+            f"{BASE_URL}/api/reports/daily-report",
+            headers=self.headers,
+            params={"from_date": "2026-01-01", "to_date": "2026-12-31"}
+        )
         assert response.status_code == 200
-        leads = response.json()
+        leads = response.json().get("leads", [])
         
         test_lead = None
         for lead in leads:
-            if lead.get("status") != "query_hold":
+            if lead.get("current_status") != "query_hold":
                 test_lead = lead
                 break
         
@@ -148,7 +156,7 @@ class TestQueryHoldFeature:
             pytest.skip("No lead available for testing")
         
         lead_id = test_lead["id"]
-        original_status = test_lead["status"]
+        original_status = test_lead["current_status"]
         
         # Update status to query_hold WITHOUT reason
         response = requests.put(

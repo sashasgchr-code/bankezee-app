@@ -42,6 +42,7 @@ const OperationsDashboard = () => {
     fetchAssignedLeads();
     fetchAllUsers();
     fetchTotalEligible();
+    fetchManagers();
   }, []);
 
   const fetchAllUsers = async () => {

@@ -28,7 +28,8 @@ const OperationsDashboard = () => {
   const [sourceIdFilter, setSourceIdFilter] = useState('all');
   const [allAgents, setAllAgents] = useState([]);
   const [allPartners, setAllPartners] = useState([]);
-  // Stats export
+  const [allManagers, setAllManagers] = useState([]);
+  const [managerFilter, setManagerFilter] = useState('all');
   const [showStatsExportModal, setShowStatsExportModal] = useState(false);
   const [statsExportFromDate, setStatsExportFromDate] = useState('');
   const [statsExportToDate, setStatsExportToDate] = useState('');

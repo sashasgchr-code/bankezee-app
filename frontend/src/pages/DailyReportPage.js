@@ -17,7 +17,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 
-const COLORS = ['#22af47', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
+const COLORS = ['#22af47', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#14b8a6'];
 
 const STATUS_COLORS = {
   new: '#f59e0b',
@@ -25,10 +25,13 @@ const STATUS_COLORS = {
   documents_pending: '#8b5cf6',
   documents_collected: '#06b6d4',
   sent_to_bank: '#ec4899',
+  sent_for_login: '#f97316',
+  login: '#84cc16',
   approved: '#22af47',
   disbursed: '#10b981',
   rejected: '#ef4444',
-  not_eligible: '#6b7280'
+  not_eligible: '#6b7280',
+  eligibility: '#14b8a6'
 };
 
 const DailyReportPage = () => {

@@ -335,7 +335,7 @@ const AdminDashboard = () => {
     fetchOpsTeam();
     fetchPendingApprovals();
     fetchAllUsers();
-    fetchSystemEarnings();
+    fetchTotalEligible();
   }, []);
 
   useEffect(() => {

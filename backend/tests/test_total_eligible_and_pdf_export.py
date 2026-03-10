@@ -21,10 +21,10 @@ class TestAuthentication:
         })
         assert response.status_code == 200, f"Admin login failed: {response.text}"
         data = response.json()
-        assert "access_token" in data, "No access_token in response"
+        assert "token" in data, "No token in response"
         assert data.get("user", {}).get("role") == "admin", "User is not admin"
         print(f"Admin login successful: {data.get('user', {}).get('email')}")
-        return data["access_token"]
+        return data["token"]
     
     def test_ops_login(self):
         """Test operations user login"""
@@ -34,10 +34,10 @@ class TestAuthentication:
         })
         assert response.status_code == 200, f"Ops login failed: {response.text}"
         data = response.json()
-        assert "access_token" in data, "No access_token in response"
+        assert "token" in data, "No token in response"
         assert data.get("user", {}).get("role") == "operations", "User is not operations"
         print(f"Ops login successful: {data.get('user', {}).get('email')}")
-        return data["access_token"]
+        return data["token"]
 
 
 class TestTotalEligibleCalculation:
@@ -49,7 +49,7 @@ class TestTotalEligibleCalculation:
             "email": "admin@bankezee.com",
             "password": "admin123"
         })
-        return response.json().get("access_token")
+        return response.json().get("token")
     
     def test_get_all_leads(self, admin_token):
         """Test fetching all leads"""
@@ -114,7 +114,7 @@ class TestEligibilitySave:
             "email": "admin@bankezee.com",
             "password": "admin123"
         })
-        return response.json().get("access_token")
+        return response.json().get("token")
     
     def test_get_test_lead(self, admin_token):
         """Get the test lead for eligibility testing"""
@@ -293,7 +293,7 @@ class TestLeadsAPI:
             "email": "admin@bankezee.com",
             "password": "admin123"
         })
-        return response.json().get("access_token")
+        return response.json().get("token")
     
     def test_leads_have_required_fields_for_filtering(self, admin_token):
         """Test that leads have fields needed for filtering"""

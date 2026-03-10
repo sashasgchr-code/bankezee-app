@@ -204,36 +204,12 @@ const DailyReportPage = () => {
       pdf.setTextColor(0, 0, 0);
       pdf.text('Detailed Lead Report', margin, 20);
       
-      // Generate Login Bank Details for PDF
-      const getLoginBankDetailForPDF = (lead) => {
-        const loginBankDetails = lead.login_bank_details || [];
-        if (loginBankDetails.length > 0) {
-          return loginBankDetails.map(b => 
-            `${b.bank}: ${formatCurrency(b.amount)}${b.roi ? ` @ ${b.roi}%` : ''}`
-          ).join(', ');
-        }
-        return '-';
-      };
-      
-      // Generate Reject Reason for PDF
-      const getRejectReasonForPDF = (lead) => {
-        const rejectReasons = lead.reject_reasons || [];
-        if (rejectReasons.length > 0) {
-          return rejectReasons.map(r => 
-            `${r.bank} (${r.type}): ${r.reason}`
-          ).join(' | ');
-        }
-        return '-';
-      };
-      
-      // Leads table with new columns
+      // Leads table - simplified columns
       const leadsTableData = reportData.leads.map(lead => [
         lead.full_name || '-',
         lead.mobile || '-',
         lead.loan_type || '-',
         (lead.current_status || 'new').replace(/_/g, ' '),
-        getLoginBankDetailForPDF(lead),
-        getRejectReasonForPDF(lead),
         lead.source_info?.name || '-',
         formatCurrency(lead.total_approved_amount),
         formatCurrency(lead.total_disbursed_amount)
@@ -241,22 +217,20 @@ const DailyReportPage = () => {
       
       pdf.autoTable({
         startY: 25,
-        head: [['Name', 'Mobile', 'Loan Type', 'Status', 'Login Bank Details', 'Reject Reason', 'Agent/Partner', 'Approved', 'Disbursed']],
+        head: [['Name', 'Mobile', 'Loan Type', 'Status', 'Agent/Partner', 'Approved', 'Disbursed']],
         body: leadsTableData,
         theme: 'grid',
-        headStyles: { fillColor: [34, 175, 71], fontSize: 7 },
-        bodyStyles: { fontSize: 6 },
-        margin: { left: 5, right: 5 },
+        headStyles: { fillColor: [34, 175, 71], fontSize: 8 },
+        bodyStyles: { fontSize: 7 },
+        margin: { left: 10, right: 10 },
         columnStyles: {
-          0: { cellWidth: 18 },
-          1: { cellWidth: 16 },
-          2: { cellWidth: 16 },
-          3: { cellWidth: 14 },
+          0: { cellWidth: 30 },
+          1: { cellWidth: 25 },
+          2: { cellWidth: 30 },
+          3: { cellWidth: 25 },
           4: { cellWidth: 30 },
-          5: { cellWidth: 35 },
-          6: { cellWidth: 18 },
-          7: { cellWidth: 16 },
-          8: { cellWidth: 16 }
+          5: { cellWidth: 25 },
+          6: { cellWidth: 25 }
         }
       });
       

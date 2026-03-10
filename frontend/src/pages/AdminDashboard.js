@@ -289,6 +289,10 @@ const AdminDashboard = () => {
   const [sourceFilter, setSourceFilter] = useState('all');
   const [sourceIdFilter, setSourceIdFilter] = useState('all');
   const [managerFilter, setManagerFilter] = useState('all');
+  // Activity Time Filter (for Approved, Disbursed, Eligible stats)
+  const [activityTimeFilter, setActivityTimeFilter] = useState('all');
+  const [activityFromDate, setActivityFromDate] = useState('');
+  const [activityToDate, setActivityToDate] = useState('');
   // Stats export modal
   const [showStatsExportModal, setShowStatsExportModal] = useState(false);
   const [statsExportFromDate, setStatsExportFromDate] = useState('');

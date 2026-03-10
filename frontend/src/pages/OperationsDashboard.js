@@ -63,6 +63,15 @@ const OperationsDashboard = () => {
     }
   };
 
+  const fetchManagers = async () => {
+    try {
+      const response = await api.get('/hierarchy/managers');
+      setAllManagers(response.data);
+    } catch (error) {
+      console.error('Failed to fetch managers');
+    }
+  };
+
   const fetchAssignedLeads = async () => {
     try {
       const response = await api.get('/leads/');

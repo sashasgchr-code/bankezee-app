@@ -168,3 +168,20 @@ export const getLoanTypeLabel = (value) => {
   const type = LOAN_TYPES.find(t => t.value === value);
   return type ? type.label : value || '-';
 };
+
+// Calculate total eligible amount (where login_done = yes) from leads
+export const calculateTotalEligible = (leads) => {
+  return leads.reduce((sum, lead) => {
+    if (lead.eligibilities) {
+      for (const elig of lead.eligibilities) {
+        // Check for login_done = 'yes' (lowercase string)
+        const loginDone = String(elig.login_done || '').toLowerCase();
+        if (loginDone === 'yes') {
+          const amount = parseFloat(elig.eligible_amount) || 0;
+          sum += amount;
+        }
+      }
+    }
+    return sum;
+  }, 0);
+};

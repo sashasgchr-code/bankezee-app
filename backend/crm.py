@@ -726,8 +726,9 @@ async def backfill_eligibility_timestamps(
     now = datetime.now(timezone.utc).isoformat()
     updated_count = 0
     
-    # Get all leads with eligibilities
-    cursor = leads_collection.find({"eligibilities": {"$exists": True, "$ne": []}})
+    # Get all leads with eligibilities from leads collection
+    leads_coll = db["leads"]
+    cursor = leads_coll.find({"eligibilities": {"$exists": True, "$ne": []}})
     leads = await cursor.to_list(length=1000)
     
     for lead in leads:

@@ -1041,6 +1041,12 @@ const AdminDashboard = () => {
   if (statusFilter !== 'all') {
     filteredLeads = filteredLeads.filter(l => l.status === statusFilter);
   }
+  // Apply manager filter - filter leads by source's manager_id
+  if (managerFilter !== 'all') {
+    // Get all users under this manager
+    const usersUnderManager = allUsers.filter(u => u.manager_id === managerFilter).map(u => u.id);
+    filteredLeads = filteredLeads.filter(l => usersUnderManager.includes(l.source_id));
+  }
   // Apply search filter
   if (searchQuery.trim()) {
     const query = searchQuery.toLowerCase().trim();

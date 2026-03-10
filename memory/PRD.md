@@ -153,6 +153,14 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
    - Added `/api/crm/backfill-timestamps` endpoint to migrate existing data
    - Files: `AdminDashboard.js`, `OperationsDashboard.js`, `/app/backend/crm.py`, `/app/frontend/src/utils/constants.js`
 
+7. **Two Separate Time Filters ✅**
+   - Added two independent time filter dropdowns:
+     - **"Lead Created"** - Filters Total Leads and New stats (based on lead creation date)
+     - **"Activity Date"** - Filters Approved, Total Approved, Disbursed, Total Disbursed, Rejected, Total Eligible stats (based on activity timestamps)
+   - Both filters support custom date range (From/To inputs)
+   - Stats cards show "Based on activity date" label where applicable
+   - Files: `DashboardFilters.jsx`, `AdminDashboard.js`, `OperationsDashboard.js`
+
 ### Session 10 Highlights (December 2025)
 1. **Total Eligible Stat Linked to All Filters ✅**
    - Total Eligible (Login=Yes) now calculates from filtered leads instead of a separate API call

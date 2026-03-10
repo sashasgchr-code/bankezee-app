@@ -764,7 +764,7 @@ async def backfill_eligibility_timestamps(
             updated_eligibilities.append(updated_elig)
         
         if needs_update:
-            await leads_collection.update_one(
+            await leads_coll.update_one(
                 {"_id": lead["_id"]},
                 {"$set": {"eligibilities": updated_eligibilities}}
             )

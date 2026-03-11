@@ -740,9 +740,12 @@ async def get_agent_performance_report(
                 "contacted": 0,
                 "in_progress": 0,
                 "query_hold": 0,
+                "login": 0,
+                "documents_collected": 0,
                 "approved": 0,
                 "disbursed": 0,
                 "rejected": 0,
+                "other": 0,
                 "total_approved_amount": 0,
                 "total_disbursed_amount": 0
             }

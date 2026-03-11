@@ -165,6 +165,15 @@ function App() {
               </ProtectedRoute>
             }
           />
+          
+          <Route
+            path="/reports/agent-performance"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'operations']}>
+                <AgentPerformanceReport />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </div>

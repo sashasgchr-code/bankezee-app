@@ -147,6 +147,38 @@ async def get_leads(
     }
     
     leads = await db.leads.find(query, list_projection).sort("created_at", -1).to_list(1000)
+    
+    # For admin/ops, add duplicate detection based on mobile number
+    if current_user.role in ["admin", "operations"]:
+        # Build a map of mobile numbers to lead info
+        mobile_to_leads = {}
+        for lead in leads:
+            mobile = lead.get("mobile", "").strip()
+            if mobile:
+                if mobile not in mobile_to_leads:
+                    mobile_to_leads[mobile] = []
+                mobile_to_leads[mobile].append({
+                    "id": lead.get("id"),
+                    "full_name": lead.get("full_name"),
+                    "created_at": lead.get("created_at"),
+                    "status": lead.get("status")
+                })
+        
+        # Add duplicate info to each lead
+        for lead in leads:
+            mobile = lead.get("mobile", "").strip()
+            if mobile and mobile in mobile_to_leads and len(mobile_to_leads[mobile]) > 1:
+                # Find other entries with the same mobile
+                duplicates = [
+                    d for d in mobile_to_leads[mobile] 
+                    if d["id"] != lead.get("id")
+                ]
+                lead["has_duplicates"] = True
+                lead["duplicate_entries"] = duplicates
+            else:
+                lead["has_duplicates"] = False
+                lead["duplicate_entries"] = []
+    
     return leads
 
 @router.get("/{lead_id}")

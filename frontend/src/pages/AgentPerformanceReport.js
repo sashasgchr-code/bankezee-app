@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { Users, Download, ArrowLeft, Calendar, Filter, BarChart3, TrendingUp } from 'lucide-react';
+import { Users, Download, ArrowLeft, Calendar, Filter, BarChart3, TrendingUp, FileText } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const AgentPerformanceReport = () => {
   const navigate = useNavigate();

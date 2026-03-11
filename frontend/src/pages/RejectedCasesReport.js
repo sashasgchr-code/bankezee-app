@@ -14,9 +14,11 @@ import jsPDF from 'jspdf';
 const RejectedCasesReport = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [reportData, setReportData] = useState(null);
   const [managers, setManagers] = useState([]);
   const [expandedLeads, setExpandedLeads] = useState({});
+  const reportRef = useRef(null);
   
   // Filters
   const [timeFilter, setTimeFilter] = useState('all');

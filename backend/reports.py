@@ -866,44 +866,60 @@ async def get_agent_performance_report(
                     except:
                         pass
     
-    # Filter out agents with no leads created in the date range
-    agents_with_leads = [p for p in agent_performance.values() if p["total_leads"] > 0]
+    # Filter out agents with no activity in the date range
+    # Include agents who have leads created OR status changes in the period
+    def has_any_activity(perf):
+        # Check if any leads were created
+        if perf["total_leads"] > 0:
+            return True
+        # Check if any status columns have counts (status changes in period)
+        status_keys = ["new", "contacted", "documents_collected", "documents_pending", 
+                       "sent_for_eligibility", "sent_for_login", "login", "sent_for_approval",
+                       "underwriting", "fi", "fi_negative", "fi_reinitiated", "query_hold",
+                       "customer_not_interested", "customer_not_supporting", "approved", 
+                       "disbursed", "not_eligible", "not_login", "declined", "not_disbursed", "rejected"]
+        for key in status_keys:
+            if perf.get(key, 0) > 0:
+                return True
+        return False
+    
+    agents_with_activity = [p for p in agent_performance.values() if has_any_activity(p)]
     
     # Sort by total leads descending
-    agents_with_leads.sort(key=lambda x: x["total_leads"], reverse=True)
+    agents_with_activity.sort(key=lambda x: x["total_leads"], reverse=True)
     
     # Calculate totals
     totals = {
-        "total_agents": len(agents_with_leads),
-        "total_leads": sum(a["total_leads"] for a in agents_with_leads),
-        "new": sum(a["new"] for a in agents_with_leads),
-        "contacted": sum(a["contacted"] for a in agents_with_leads),
-        "documents_collected": sum(a["documents_collected"] for a in agents_with_leads),
-        "documents_pending": sum(a["documents_pending"] for a in agents_with_leads),
-        "sent_for_eligibility": sum(a["sent_for_eligibility"] for a in agents_with_leads),
-        "sent_for_login": sum(a["sent_for_login"] for a in agents_with_leads),
-        "login": sum(a["login"] for a in agents_with_leads),
-        "sent_for_approval": sum(a["sent_for_approval"] for a in agents_with_leads),
-        "underwriting": sum(a["underwriting"] for a in agents_with_leads),
-        "fi": sum(a["fi"] for a in agents_with_leads),
-        "fi_negative": sum(a["fi_negative"] for a in agents_with_leads),
-        "fi_reinitiated": sum(a["fi_reinitiated"] for a in agents_with_leads),
-        "query_hold": sum(a["query_hold"] for a in agents_with_leads),
-        "customer_not_interested": sum(a["customer_not_interested"] for a in agents_with_leads),
-        "customer_not_supporting": sum(a["customer_not_supporting"] for a in agents_with_leads),
-        "approved": sum(a["approved"] for a in agents_with_leads),
-        "disbursed": sum(a["disbursed"] for a in agents_with_leads),
-        "not_eligible": sum(a["not_eligible"] for a in agents_with_leads),
-        "not_login": sum(a["not_login"] for a in agents_with_leads),
-        "declined": sum(a["declined"] for a in agents_with_leads),
-        "not_disbursed": sum(a["not_disbursed"] for a in agents_with_leads),
-        "rejected": sum(a["rejected"] for a in agents_with_leads),
-        "total_approved_amount": sum(a["total_approved_amount"] for a in agents_with_leads),
-        "total_disbursed_amount": sum(a["total_disbursed_amount"] for a in agents_with_leads)
+        "total_agents": len(agents_with_activity),
+        "total_leads": sum(a["total_leads"] for a in agents_with_activity),
+        "new": sum(a["new"] for a in agents_with_activity),
+        "contacted": sum(a["contacted"] for a in agents_with_activity),
+        "documents_collected": sum(a["documents_collected"] for a in agents_with_activity),
+        "documents_pending": sum(a["documents_pending"] for a in agents_with_activity),
+        "sent_for_eligibility": sum(a["sent_for_eligibility"] for a in agents_with_activity),
+        "sent_for_login": sum(a["sent_for_login"] for a in agents_with_activity),
+        "login": sum(a["login"] for a in agents_with_activity),
+        "sent_for_approval": sum(a["sent_for_approval"] for a in agents_with_activity),
+        "underwriting": sum(a["underwriting"] for a in agents_with_activity),
+        "fi": sum(a["fi"] for a in agents_with_activity),
+        "fi_negative": sum(a["fi_negative"] for a in agents_with_activity),
+        "fi_reinitiated": sum(a["fi_reinitiated"] for a in agents_with_activity),
+        "query_hold": sum(a["query_hold"] for a in agents_with_activity),
+        "customer_not_interested": sum(a["customer_not_interested"] for a in agents_with_activity),
+        "customer_not_supporting": sum(a["customer_not_supporting"] for a in agents_with_activity),
+        "approved": sum(a["approved"] for a in agents_with_activity),
+        "disbursed": sum(a["disbursed"] for a in agents_with_activity),
+        "not_eligible": sum(a["not_eligible"] for a in agents_with_activity),
+        "not_login": sum(a["not_login"] for a in agents_with_activity),
+        "declined": sum(a["declined"] for a in agents_with_activity),
+        "not_disbursed": sum(a["not_disbursed"] for a in agents_with_activity),
+        "rejected": sum(a["rejected"] for a in agents_with_activity),
+        "total_approved_amount": sum(a["total_approved_amount"] for a in agents_with_activity),
+        "total_disbursed_amount": sum(a["total_disbursed_amount"] for a in agents_with_activity)
     }
     
     return {
-        "agents": agents_with_leads,
+        "agents": agents_with_activity,
         "totals": totals,
         "date_range": {
             "from": from_date,

@@ -297,7 +297,7 @@ export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'al
 };
 
 // Calculate total eligible amount based on activity date
-// This matches the Daily Report logic: filter LEADS by activity date, then sum ALL their eligible amounts where login_done=yes
+// This matches the Daily Report logic: filter LEADS by activity date, then sum ALL their eligible amounts where is_eligible=yes AND login_done=yes
 export const calculateTotalEligibleWithActivityDate = (leads, timeFilter = 'all', fromDate = null, toDate = null) => {
   // First, filter leads that have ANY activity in the time period
   let leadsWithActivityInRange = leads;
@@ -312,15 +312,17 @@ export const calculateTotalEligibleWithActivityDate = (leads, timeFilter = 'all'
     });
   }
   
-  // Now sum ALL eligible amounts from leads with activity in range (where login_done = yes)
+  // Now sum ALL eligible amounts from leads with activity in range (where is_eligible = yes AND login_done = yes)
   let total = 0;
   
   leadsWithActivityInRange.forEach(lead => {
     if (!lead.eligibilities) return;
     
     lead.eligibilities.forEach(elig => {
+      const isEligible = String(elig.is_eligible || '').toLowerCase();
       const loginDone = String(elig.login_done || '').toLowerCase();
-      if (loginDone === 'yes' || loginDone === 'true') {
+      // Only count if BOTH is_eligible AND login_done are 'yes'
+      if ((isEligible === 'yes' || isEligible === 'true') && (loginDone === 'yes' || loginDone === 'true')) {
         total += parseFloat(elig.eligible_amount) || 0;
       }
     });
@@ -329,14 +331,15 @@ export const calculateTotalEligibleWithActivityDate = (leads, timeFilter = 'all'
   return total;
 };
 
-// Calculate total eligible amount (where login_done = yes) from leads
+// Calculate total eligible amount (where is_eligible = yes AND login_done = yes) from leads
 export const calculateTotalEligible = (leads) => {
   return leads.reduce((sum, lead) => {
     if (lead.eligibilities) {
       for (const elig of lead.eligibilities) {
-        // Check for login_done = 'yes' or true (boolean)
+        const isEligible = String(elig.is_eligible || '').toLowerCase();
         const loginDone = String(elig.login_done || '').toLowerCase();
-        if (loginDone === 'yes' || loginDone === 'true') {
+        // Only count if BOTH is_eligible AND login_done are 'yes'
+        if ((isEligible === 'yes' || isEligible === 'true') && (loginDone === 'yes' || loginDone === 'true')) {
           const amount = parseFloat(elig.eligible_amount) || 0;
           sum += amount;
         }

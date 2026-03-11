@@ -127,11 +127,10 @@ const AgentPerformanceReport = () => {
     }
 
     const headers = [
-      'Agent Name', 'Agent Code', 'Phone', 'Manager', 'Team Leader',
+      'Agent Name', 'Agent Code', 'Phone', 'Manager',
       'Total Leads', 'New', 'Contacted', 'In Progress', 'Query Hold',
-      'Eligible', 'Not Eligible', 'Login Done', 'Not Login',
-      'Approved', 'Declined', 'Disbursed', 'Not Disbursed', 'Rejected',
-      'Total Eligible Amount', 'Total Approved Amount', 'Total Disbursed Amount'
+      'Approved', 'Disbursed', 'Rejected',
+      'Total Approved Amount', 'Total Disbursed Amount'
     ];
 
     const rows = reportData.agents.map(agent => [
@@ -139,22 +138,14 @@ const AgentPerformanceReport = () => {
       agent.agent_code,
       agent.phone,
       agent.manager_name || '-',
-      agent.team_leader_name || '-',
       agent.total_leads,
-      agent.status_counts?.new || 0,
-      agent.status_counts?.contacted || 0,
-      agent.status_counts?.in_progress || 0,
-      agent.status_counts?.query_hold || 0,
-      agent.eligible_count,
-      agent.not_eligible_count,
-      agent.login_done_count,
-      agent.not_login_count,
-      agent.approved_count,
-      agent.declined_count,
-      agent.disbursed_count,
-      agent.not_disbursed_count,
-      agent.status_counts?.rejected || 0,
-      agent.total_eligible_amount,
+      agent.new || 0,
+      agent.contacted || 0,
+      agent.in_progress || 0,
+      agent.query_hold || 0,
+      agent.approved || 0,
+      agent.disbursed || 0,
+      agent.rejected || 0,
       agent.total_approved_amount,
       agent.total_disbursed_amount
     ]);
@@ -162,22 +153,15 @@ const AgentPerformanceReport = () => {
     // Add totals row
     const totals = reportData.totals || {};
     rows.push([
-      'TOTAL', '', '', '', '',
+      'TOTAL', '', '', '',
       totals.total_leads || 0,
-      totals.status_counts?.new || 0,
-      totals.status_counts?.contacted || 0,
-      totals.status_counts?.in_progress || 0,
-      totals.status_counts?.query_hold || 0,
-      totals.eligible_count || 0,
-      totals.not_eligible_count || 0,
-      totals.login_done_count || 0,
-      totals.not_login_count || 0,
-      totals.approved_count || 0,
-      totals.declined_count || 0,
-      totals.disbursed_count || 0,
-      totals.not_disbursed_count || 0,
-      totals.status_counts?.rejected || 0,
-      totals.total_eligible_amount || 0,
+      totals.new || 0,
+      totals.contacted || 0,
+      totals.in_progress || 0,
+      totals.query_hold || 0,
+      totals.approved || 0,
+      totals.disbursed || 0,
+      totals.rejected || 0,
       totals.total_approved_amount || 0,
       totals.total_disbursed_amount || 0
     ]);

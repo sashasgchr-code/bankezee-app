@@ -767,77 +767,71 @@ async def get_agent_performance_report(
         
         perf = agent_performance[source_id]
         
-        # Check if lead was created in date range
+        # Check if lead was created in date range - this is what matters for Total Leads
         created_at = lead.get("created_at", "")
         lead_created_in_range = is_date_in_range(created_at)
         
-        # Check if lead had any activity in date range
-        activities = lead.get("activities", [])
-        has_activity_in_range = False
-        for act in activities:
-            if is_date_in_range(act.get("timestamp")):
-                has_activity_in_range = True
-                break
+        # Only count leads that were CREATED in the date range
+        if not lead_created_in_range:
+            continue
         
-        # Count this lead if it was created OR had activity in the date range
-        if lead_created_in_range or has_activity_in_range:
-            perf["total_leads"] += 1
+        # Increment total leads (based on creation date only)
+        perf["total_leads"] += 1
         
         # Get lead's current status
         status = (lead.get("status") or "new").lower()
         
-        # Only count status if lead was created or had activity in date range
-        if lead_created_in_range or has_activity_in_range:
-            # Map status to the correct counter
-            status_map = {
-                "new": "new",
-                "fresh": "new",
-                "contacted": "contacted",
-                "documents_collected": "documents_collected",
-                "documents_pending": "documents_pending",
-                "sent_for_eligibility": "sent_for_eligibility",
-                "sent_for_login": "sent_for_login",
-                "login": "login",
-                "sent_for_approval": "sent_for_approval",
-                "underwriting": "underwriting",
-                "fi": "fi",
-                "fi_negative": "fi_negative",
-                "fi_reinitiated": "fi_reinitiated",
-                "query_hold": "query_hold",
-                "customer_not_interested": "customer_not_interested",
-                "customer_not_supporting": "customer_not_supporting",
-                "approved": "approved",
-                "disbursed": "disbursed",
-                "not_eligible": "not_eligible",
-                "not_login": "not_login",
-                "declined": "declined",
-                "not_disbursed": "not_disbursed",
-                "rejected": "rejected"
-            }
-            
-            if status in status_map:
-                perf[status_map[status]] += 1
-            else:
-                # Default to 'new' for any unknown status
-                perf["new"] += 1
-            
-            # Sum approved amounts
-            if status == "approved":
-                for elig in lead.get("eligibilities", []):
-                    if str(elig.get("approval_status", "")).lower() == "approved":
-                        try:
-                            perf["total_approved_amount"] += float(elig.get("approved_amount") or 0)
-                        except:
-                            pass
-            
-            # Sum disbursed amounts
-            if status == "disbursed":
-                for elig in lead.get("eligibilities", []):
-                    if str(elig.get("disbursed", "")).lower() == "yes":
-                        try:
-                            perf["total_disbursed_amount"] += float(elig.get("disbursed_amount") or 0)
-                        except:
-                            pass
+        # Count status for leads created in date range
+        # Map status to the correct counter
+        status_map = {
+            "new": "new",
+            "fresh": "new",
+            "contacted": "contacted",
+            "documents_collected": "documents_collected",
+            "documents_pending": "documents_pending",
+            "sent_for_eligibility": "sent_for_eligibility",
+            "sent_for_login": "sent_for_login",
+            "login": "login",
+            "sent_for_approval": "sent_for_approval",
+            "underwriting": "underwriting",
+            "fi": "fi",
+            "fi_negative": "fi_negative",
+            "fi_reinitiated": "fi_reinitiated",
+            "query_hold": "query_hold",
+            "customer_not_interested": "customer_not_interested",
+            "customer_not_supporting": "customer_not_supporting",
+            "approved": "approved",
+            "disbursed": "disbursed",
+            "not_eligible": "not_eligible",
+            "not_login": "not_login",
+            "declined": "declined",
+            "not_disbursed": "not_disbursed",
+            "rejected": "rejected"
+        }
+        
+        if status in status_map:
+            perf[status_map[status]] += 1
+        else:
+            # Default to 'new' for any unknown status
+            perf["new"] += 1
+        
+        # Sum approved amounts
+        if status == "approved":
+            for elig in lead.get("eligibilities", []):
+                if str(elig.get("approval_status", "")).lower() == "approved":
+                    try:
+                        perf["total_approved_amount"] += float(elig.get("approved_amount") or 0)
+                    except:
+                        pass
+        
+        # Sum disbursed amounts
+        if status == "disbursed":
+            for elig in lead.get("eligibilities", []):
+                if str(elig.get("disbursed", "")).lower() == "yes":
+                    try:
+                        perf["total_disbursed_amount"] += float(elig.get("disbursed_amount") or 0)
+                    except:
+                        pass
     
     # Filter out agents with no leads created in the date range
     agents_with_leads = [p for p in agent_performance.values() if p["total_leads"] > 0]

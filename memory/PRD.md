@@ -686,6 +686,18 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 
 ## Changelog
 
+### 2025-12-11 (Current Session)
+- **Agent Performance Report Refactored and Fixed:**
+  - ✅ Simplified report to count leads by their primary `status` field (not complex bank eligibility logic)
+  - ✅ Each lead is now counted exactly once in its current status category
+  - ✅ Added new status columns: "Login", "Documents Collected", and "Other" (for any uncategorized statuses)
+  - ✅ Fixed bug where `login` and `documents_collected` statuses were not being counted
+  - ✅ Status sum now equals total leads for every agent (100% accuracy verified)
+  - ✅ Time filters (Today, This Week, This Month, All Time) working correctly
+  - ✅ Manager filter working correctly
+  - ✅ Export CSV includes all status columns
+  - Files modified: `/app/backend/reports.py`, `/app/frontend/src/pages/AgentPerformanceReport.js`
+
 ### 2025-12-10 (Current Session)
 - **UI/UX Improvements for Charts:**
   - ✅ Dashboard pie charts now display absolute numbers instead of percentages (e.g., "New: 7" instead of "35%")

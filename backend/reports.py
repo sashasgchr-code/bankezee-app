@@ -386,7 +386,7 @@ async def get_daily_report(
             "manager_info": manager_info,
             "assigned_to": assigned_info,
             "eligibility_summary": eligibility_summary,
-            "total_eligible_amount": total_eligible_amount,  # Only where login=Yes
+            "total_eligible_amount": total_eligible_amount,  # Only where is_eligible=Yes AND login_done=Yes
             "total_approved_amount": total_approved_amount,
             "total_disbursed_amount": total_disbursed_amount,
             "status_details": status_details,

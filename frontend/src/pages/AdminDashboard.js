@@ -1155,8 +1155,10 @@ const AdminDashboard = () => {
   // Calculate activity-based stats using ACTIVITY TIME FILTER on leads filtered by CREATION DATE
   // This ensures stats only include leads created in the selected period
   const stats = calculateDashboardStatsWithActivityDates(filteredLeads, activityTimeFilter, activityFromDate, activityToDate);
-  // Calculate total eligible based on leads created in selected period AND activity date filter
-  const filteredTotalEligible = calculateTotalEligibleWithActivityDate(filteredLeads, activityTimeFilter, activityFromDate, activityToDate);
+  
+  // Calculate total eligible based on ONLY ACTIVITY DATE FILTER (not lead creation date)
+  // Use baseFilteredLeads (not filteredLeads) so it's not affected by Lead Created filter
+  const filteredTotalEligible = calculateTotalEligibleWithActivityDate(baseFilteredLeads, activityTimeFilter, activityFromDate, activityToDate);
   
   // Override total and newLeads in stats to use lead creation date filter
   const leadsStats = {

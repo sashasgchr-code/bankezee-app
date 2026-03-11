@@ -464,7 +464,6 @@ const AgentPerformanceReport = () => {
                     <tr>
                       <th className="px-2 py-2 text-left font-semibold border-b whitespace-nowrap">Agent</th>
                       <th className="px-2 py-2 text-left font-semibold border-b whitespace-nowrap">Code</th>
-                      <th className="px-2 py-2 text-left font-semibold border-b whitespace-nowrap">Manager</th>
                       <th className="px-2 py-2 text-center font-semibold border-b bg-slate-200 whitespace-nowrap">Total</th>
                       {visibleStatusColumns.map(col => (
                         <th key={col.key} className={`px-2 py-2 text-center font-semibold border-b whitespace-nowrap ${col.headerBg}`}>
@@ -480,7 +479,6 @@ const AgentPerformanceReport = () => {
                       <tr key={agent.agent_id || index} className="border-b hover:bg-slate-50">
                         <td className="px-2 py-1.5 font-medium whitespace-nowrap">{agent.agent_name}</td>
                         <td className="px-2 py-1.5 text-slate-600 whitespace-nowrap">{agent.agent_code || '-'}</td>
-                        <td className="px-2 py-1.5 text-slate-600 whitespace-nowrap">{agent.manager_name || '-'}</td>
                         <td className="px-2 py-1.5 text-center font-bold bg-slate-50">{agent.total_leads}</td>
                         {visibleStatusColumns.map(col => (
                           <td key={col.key} className={`px-2 py-1.5 text-center ${col.cellBg} ${col.textClass || ''}`}>
@@ -493,7 +491,7 @@ const AgentPerformanceReport = () => {
                     ))}
                     {/* Totals Row */}
                     <tr className="bg-slate-200 font-bold border-t-2 border-slate-400">
-                      <td className="px-2 py-2" colSpan={3}>TOTAL</td>
+                      <td className="px-2 py-2" colSpan={2}>TOTAL</td>
                       <td className="px-2 py-2 text-center">{reportData.totals?.total_leads || 0}</td>
                       {visibleStatusColumns.map(col => (
                         <td key={col.key} className={`px-2 py-2 text-center ${col.textClass || ''}`}>

@@ -42,49 +42,58 @@ const AgentPerformanceReport = () => {
     
     switch (timeFilter) {
       case 'today':
-        start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+        start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+        end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59));
         break;
       case 'yesterday':
-        start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-        end = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 23, 59, 59);
+        start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1));
+        end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1, 23, 59, 59));
         break;
       case 'this_week':
-        const dayOfWeek = now.getDay();
-        start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek);
-        end = now;
+        const dayOfWeek = now.getUTCDay();
+        start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - dayOfWeek));
+        end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59));
         break;
       case 'last_week':
-        const lastWeekDay = now.getDay();
-        start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - lastWeekDay - 7);
-        end = new Date(now.getFullYear(), now.getMonth(), now.getDate() - lastWeekDay - 1, 23, 59, 59);
+        const lastWeekDay = now.getUTCDay();
+        const lastWeekStart = now.getUTCDate() - lastWeekDay - 7;
+        const lastWeekEnd = now.getUTCDate() - lastWeekDay - 1;
+        start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), lastWeekStart));
+        end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), lastWeekEnd, 23, 59, 59));
         break;
       case 'this_month':
-        start = new Date(now.getFullYear(), now.getMonth(), 1);
-        end = now;
+        start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+        end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59));
         break;
       case 'last_month':
-        start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+        start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+        end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0, 23, 59, 59));
         break;
       case 'custom':
         if (fromDate && toDate) {
-          start = new Date(fromDate);
-          end = new Date(toDate);
-          end.setHours(23, 59, 59);
+          start = new Date(fromDate + 'T00:00:00Z');
+          end = new Date(toDate + 'T23:59:59Z');
         } else {
-          start = new Date('2020-01-01');
+          start = new Date('2020-01-01T00:00:00Z');
           end = now;
         }
         break;
       default: // 'all'
-        start = new Date('2020-01-01');
+        start = new Date('2020-01-01T00:00:00Z');
         end = now;
     }
     
+    // Format as YYYY-MM-DD
+    const formatDate = (d) => {
+      const year = d.getUTCFullYear();
+      const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(d.getUTCDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+    
     return {
-      from: start.toISOString().split('T')[0],
-      to: end.toISOString().split('T')[0]
+      from: formatDate(start),
+      to: formatDate(end)
     };
   };
 

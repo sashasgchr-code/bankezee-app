@@ -396,48 +396,50 @@ const RejectedCasesReport = () => {
           </CardContent>
         </Card>
 
-        {/* Summary Card */}
-        {reportData && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Summary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                <div className="bg-red-50 p-4 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-red-600">{reportData.summary?.total_cases || 0}</p>
-                  <p className="text-sm text-red-800">Total Cases</p>
+        {/* Summary and Results - wrapped for PDF export */}
+        <div ref={reportRef}>
+          {/* Summary Card */}
+          {reportData && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-lg">Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                  <div className="bg-red-50 p-4 rounded-lg text-center">
+                    <p className="text-2xl font-bold text-red-600">{reportData.summary?.total_cases || 0}</p>
+                    <p className="text-sm text-red-800">Total Cases</p>
+                  </div>
+                  <div className="bg-orange-50 p-4 rounded-lg text-center">
+                    <p className="text-2xl font-bold text-orange-600">{reportData.summary?.not_eligible || 0}</p>
+                    <p className="text-sm text-orange-800">Not Eligible</p>
+                  </div>
+                  <div className="bg-yellow-50 p-4 rounded-lg text-center">
+                    <p className="text-2xl font-bold text-yellow-600">{reportData.summary?.not_login || 0}</p>
+                    <p className="text-sm text-yellow-800">Not Login</p>
+                  </div>
+                  <div className="bg-purple-50 p-4 rounded-lg text-center">
+                    <p className="text-2xl font-bold text-purple-600">{reportData.summary?.fi_negative || 0}</p>
+                    <p className="text-sm text-purple-800">FI Negative</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg text-center">
+                    <p className="text-2xl font-bold text-gray-600">{reportData.summary?.declined || 0}</p>
+                    <p className="text-sm text-gray-800">Declined</p>
+                  </div>
+                  <div className="bg-rose-50 p-4 rounded-lg text-center">
+                    <p className="text-2xl font-bold text-rose-600">{reportData.summary?.not_disbursed || 0}</p>
+                    <p className="text-sm text-rose-800">Not Disbursed</p>
+                  </div>
                 </div>
-                <div className="bg-orange-50 p-4 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-orange-600">{reportData.summary?.not_eligible || 0}</p>
-                  <p className="text-sm text-orange-800">Not Eligible</p>
-                </div>
-                <div className="bg-yellow-50 p-4 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-yellow-600">{reportData.summary?.not_login || 0}</p>
-                  <p className="text-sm text-yellow-800">Not Login</p>
-                </div>
-                <div className="bg-purple-50 p-4 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-purple-600">{reportData.summary?.fi_negative || 0}</p>
-                  <p className="text-sm text-purple-800">FI Negative</p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-gray-600">{reportData.summary?.declined || 0}</p>
-                  <p className="text-sm text-gray-800">Declined</p>
-                </div>
-                <div className="bg-rose-50 p-4 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-rose-600">{reportData.summary?.not_disbursed || 0}</p>
-                  <p className="text-sm text-rose-800">Not Disbursed</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Results */}
-        {reportData?.leads?.length > 0 ? (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-slate-700">
-              Rejected/Declined Cases ({reportData.leads.length})
+          {/* Results */}
+          {reportData?.leads?.length > 0 ? (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-slate-700">
+                Rejected/Declined Cases ({reportData.leads.length})
             </h2>
             
             {reportData.leads.map((lead, index) => (

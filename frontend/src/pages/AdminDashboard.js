@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';

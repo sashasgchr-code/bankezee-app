@@ -458,7 +458,7 @@ const OperationsDashboard = () => {
             Daily Report
           </Button>
           <Button
-            onClick={() => navigate('/reports/rejected')}
+            onClick={() => navigate('/reports/rejected-cases')}
             variant="outline"
             size="sm"
             className="text-red-600 border-red-300 hover:bg-red-50"

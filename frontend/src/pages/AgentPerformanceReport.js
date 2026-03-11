@@ -410,13 +410,6 @@ const AgentPerformanceReport = () => {
                 </table>
               </div>
             </CardContent>
-                      <td className="px-3 py-3 text-right text-emerald-800">{formatCurrency(reportData.totals?.total_approved_amount)}</td>
-                      <td className="px-3 py-3 text-right text-teal-800">{formatCurrency(reportData.totals?.total_disbursed_amount)}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
           </Card>
         ) : reportData && (
           <Card>

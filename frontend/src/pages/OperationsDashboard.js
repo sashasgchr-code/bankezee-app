@@ -458,6 +458,16 @@ const OperationsDashboard = () => {
             Daily Report
           </Button>
           <Button
+            onClick={() => navigate('/reports/rejected')}
+            variant="outline"
+            size="sm"
+            className="text-red-600 border-red-300 hover:bg-red-50"
+            data-testid="rejected-report-btn"
+          >
+            <FileText className="w-4 h-4 mr-1" />
+            Rejected Cases
+          </Button>
+          <Button
             onClick={() => setShowExportModal(true)}
             variant="outline"
             size="sm"

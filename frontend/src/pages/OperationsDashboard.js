@@ -53,6 +53,20 @@ const OperationsDashboard = () => {
     fetchManagers();
   }, []);
 
+  // Re-fetch leads when navigating back to this page
+  useEffect(() => {
+    fetchAssignedLeads();
+  }, [location.key]);
+
+  // Re-fetch data when window gains focus
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchAssignedLeads();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
+
   const fetchAllUsers = async () => {
     try {
       const response = await api.get('/auth/admin/all-users');

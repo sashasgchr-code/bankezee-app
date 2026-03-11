@@ -421,8 +421,6 @@ const RejectedCasesReport = () => {
                             <th className="px-3 py-2 text-left font-semibold">Eligible?</th>
                             <th className="px-3 py-2 text-left font-semibold">Elig. Amount</th>
                             <th className="px-3 py-2 text-left font-semibold">Login?</th>
-                            <th className="px-3 py-2 text-left font-semibold">SM Name</th>
-                            <th className="px-3 py-2 text-left font-semibold">SM Number</th>
                             <th className="px-3 py-2 text-left font-semibold">Approval</th>
                             <th className="px-3 py-2 text-left font-semibold">Appr. Amount</th>
                             <th className="px-3 py-2 text-left font-semibold">Disbursed?</th>

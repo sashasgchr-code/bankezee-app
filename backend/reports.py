@@ -782,6 +782,10 @@ async def get_agent_performance_report(
                 perf["in_progress"] += 1
             elif status == "query_hold":
                 perf["query_hold"] += 1
+            elif status == "login":
+                perf["login"] += 1
+            elif status == "documents_collected":
+                perf["documents_collected"] += 1
             elif status == "approved":
                 perf["approved"] += 1
                 # Sum approved amounts from eligibilities
@@ -802,6 +806,9 @@ async def get_agent_performance_report(
                             pass
             elif status == "rejected":
                 perf["rejected"] += 1
+            else:
+                # Capture any other/uncategorized statuses
+                perf["other"] += 1
     
     # Filter out agents with no leads created in the date range
     agents_with_leads = [p for p in agent_performance.values() if p["total_leads"] > 0]

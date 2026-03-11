@@ -126,12 +126,10 @@ const AgentPerformanceReport = () => {
       return;
     }
 
+    // Build headers dynamically based on visible columns
     const headers = [
       'Agent Name', 'Agent Code', 'Phone', 'Manager', 'Total Leads',
-      'New', 'Contacted', 'Docs Collected', 'Docs Pending', 'Sent Elig', 'Sent Login',
-      'Login', 'Sent Appr', 'UW', 'FI', 'FI -ve', 'FI Reinit', 'Q.Hold',
-      'Cust Not Int', 'Cust Not Supp', 'Approved', 'Disbursed',
-      'Not Elig', 'Not Login', 'Declined', 'Not Disb', 'Rejected',
+      ...visibleStatusColumns.map(col => col.label),
       'Total Approved Amount', 'Total Disbursed Amount'
     ];
 
@@ -141,28 +139,7 @@ const AgentPerformanceReport = () => {
       agent.phone,
       agent.manager_name || '-',
       agent.total_leads,
-      agent.new || 0,
-      agent.contacted || 0,
-      agent.documents_collected || 0,
-      agent.documents_pending || 0,
-      agent.sent_for_eligibility || 0,
-      agent.sent_for_login || 0,
-      agent.login || 0,
-      agent.sent_for_approval || 0,
-      agent.underwriting || 0,
-      agent.fi || 0,
-      agent.fi_negative || 0,
-      agent.fi_reinitiated || 0,
-      agent.query_hold || 0,
-      agent.customer_not_interested || 0,
-      agent.customer_not_supporting || 0,
-      agent.approved || 0,
-      agent.disbursed || 0,
-      agent.not_eligible || 0,
-      agent.not_login || 0,
-      agent.declined || 0,
-      agent.not_disbursed || 0,
-      agent.rejected || 0,
+      ...visibleStatusColumns.map(col => agent[col.key] || 0),
       agent.total_approved_amount,
       agent.total_disbursed_amount
     ]);
@@ -172,28 +149,7 @@ const AgentPerformanceReport = () => {
     rows.push([
       'TOTAL', '', '', '',
       totals.total_leads || 0,
-      totals.new || 0,
-      totals.contacted || 0,
-      totals.documents_collected || 0,
-      totals.documents_pending || 0,
-      totals.sent_for_eligibility || 0,
-      totals.sent_for_login || 0,
-      totals.login || 0,
-      totals.sent_for_approval || 0,
-      totals.underwriting || 0,
-      totals.fi || 0,
-      totals.fi_negative || 0,
-      totals.fi_reinitiated || 0,
-      totals.query_hold || 0,
-      totals.customer_not_interested || 0,
-      totals.customer_not_supporting || 0,
-      totals.approved || 0,
-      totals.disbursed || 0,
-      totals.not_eligible || 0,
-      totals.not_login || 0,
-      totals.declined || 0,
-      totals.not_disbursed || 0,
-      totals.rejected || 0,
+      ...visibleStatusColumns.map(col => totals[col.key] || 0),
       totals.total_approved_amount || 0,
       totals.total_disbursed_amount || 0
     ]);

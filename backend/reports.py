@@ -592,25 +592,17 @@ async def get_rejected_cases_report(
             if is_eligible == "no":
                 is_rejected = True
                 lead_rejection_types.add('not_eligible')
-                reason = (elig.get("not_eligible_reason") or "").lower()
-                if 'fi' in reason or 'field investigation' in reason:
-                    lead_rejection_types.add('fi_negative')
             
             # Login rejected
             if login_done == "no" and elig.get("login_rejection_reason"):
                 is_rejected = True
                 lead_rejection_types.add('not_login')
-                reason = (elig.get("login_rejection_reason") or "").lower()
-                if 'fi' in reason or 'field investigation' in reason or 'negative' in reason:
-                    lead_rejection_types.add('fi_negative')
             
             # Declined
             if approval_status == "declined":
                 is_rejected = True
                 lead_rejection_types.add('declined')
                 reason = (elig.get("declined_reason") or "").lower()
-                if 'fi' in reason or 'field investigation' in reason or 'negative' in reason:
-                    lead_rejection_types.add('fi_negative')
                 if 'not interested' in reason or 'customer' in reason:
                     lead_rejection_types.add('customer_not_interested')
             

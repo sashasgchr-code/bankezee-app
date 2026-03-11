@@ -671,3 +671,229 @@ async def get_rejected_cases_report(
             "to": to_date
         }
     }
+
+
+
+@router.get("/agent-performance")
+async def get_agent_performance_report(
+    from_date: str = Query(..., description="Start date (YYYY-MM-DD)"),
+    to_date: str = Query(..., description="End date (YYYY-MM-DD)"),
+    manager_id: Optional[str] = Query(None, description="Filter by manager ID"),
+    current_user: User = Depends(get_current_user)
+):
+    """Get agent-wise performance summary with lead counts and amounts"""
+    if current_user.role not in ["admin", "operations"]:
+        raise HTTPException(status_code=403, detail="Only admin or operations can access reports")
+    
+    try:
+        start_date = datetime.strptime(from_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        end_date = datetime.strptime(to_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59, tzinfo=timezone.utc)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+    
+    # Get all data
+    all_leads = await db.leads.find({}, {"_id": 0}).to_list(10000)
+    agents = await db.agents.find({}, {"_id": 0}).to_list(1000)
+    partners = await db.partners.find({}, {"_id": 0}).to_list(1000)
+    users = await db.users.find({}, {"_id": 0}).to_list(1000)
+    
+    # Build lookup maps
+    agents_map = {a["id"]: a for a in agents}
+    partners_map = {p["id"]: p for p in partners}
+    users_map = {u["id"]: u for u in users}
+    managers_map = {u["id"]: u for u in users if u.get("role") == "manager"}
+    team_leaders_map = {u["id"]: u for u in users if u.get("role") == "team_leader"}
+    
+    # Filter agents by manager if specified
+    filtered_agents = agents
+    filtered_partners = partners
+    if manager_id:
+        filtered_agents = [a for a in agents if a.get("manager_id") == manager_id]
+        filtered_partners = [p for p in partners if p.get("manager_id") == manager_id]
+    
+    # Combine agents and partners for processing
+    all_sources = []
+    for agent in filtered_agents:
+        all_sources.append({
+            "id": agent["id"],
+            "type": "agent",
+            "name": agent.get("full_name", "Unknown Agent"),
+            "code": agent.get("agent_code", ""),
+            "phone": agent.get("phone", ""),
+            "manager_id": agent.get("manager_id"),
+            "team_leader_id": agent.get("team_leader_id")
+        })
+    for partner in filtered_partners:
+        all_sources.append({
+            "id": partner["id"],
+            "type": "partner",
+            "name": partner.get("name", "Unknown Partner"),
+            "code": partner.get("referral_code", ""),
+            "phone": partner.get("mobile", ""),
+            "manager_id": partner.get("manager_id"),
+            "team_leader_id": partner.get("team_leader_id")
+        })
+    
+    # Filter leads by date range (created or activity)
+    leads_in_range = []
+    for lead in all_leads:
+        created = lead.get("created_at", "")
+        in_range = False
+        
+        if created:
+            try:
+                created_date = datetime.fromisoformat(created.replace("Z", "+00:00"))
+                if start_date <= created_date <= end_date:
+                    in_range = True
+            except:
+                pass
+        
+        if not in_range:
+            activities = lead.get("activities", [])
+            for activity in activities:
+                ts = activity.get("timestamp", "")
+                if ts:
+                    try:
+                        activity_date = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                        if start_date <= activity_date <= end_date:
+                            in_range = True
+                            break
+                    except:
+                        pass
+        
+        if in_range:
+            leads_in_range.append(lead)
+    
+    # Build agent performance data
+    agent_performance = {}
+    
+    for source in all_sources:
+        source_id = source["id"]
+        agent_performance[source_id] = {
+            "agent_id": source_id,
+            "agent_name": source["name"],
+            "agent_type": source["type"],
+            "agent_code": source["code"],
+            "phone": source["phone"],
+            "manager_id": source["manager_id"],
+            "manager_name": managers_map.get(source["manager_id"], {}).get("full_name", ""),
+            "team_leader_id": source["team_leader_id"],
+            "team_leader_name": team_leaders_map.get(source["team_leader_id"], {}).get("full_name", ""),
+            "total_leads": 0,
+            "status_counts": {
+                "new": 0, "fresh": 0, "contacted": 0, "in_progress": 0,
+                "approved": 0, "disbursed": 0, "rejected": 0, "query_hold": 0
+            },
+            "eligible_count": 0,
+            "not_eligible_count": 0,
+            "login_done_count": 0,
+            "not_login_count": 0,
+            "approved_count": 0,
+            "declined_count": 0,
+            "disbursed_count": 0,
+            "not_disbursed_count": 0,
+            "total_eligible_amount": 0,
+            "total_approved_amount": 0,
+            "total_disbursed_amount": 0
+        }
+    
+    # Process leads
+    for lead in leads_in_range:
+        source_id = lead.get("source_id")
+        if not source_id or source_id not in agent_performance:
+            continue
+        
+        perf = agent_performance[source_id]
+        perf["total_leads"] += 1
+        
+        # Count status
+        status = (lead.get("status") or "new").lower()
+        if status in perf["status_counts"]:
+            perf["status_counts"][status] += 1
+        
+        # Process eligibilities
+        eligibilities = lead.get("eligibilities", [])
+        for elig in eligibilities:
+            is_eligible = str(elig.get("is_eligible", "")).lower()
+            login_done = str(elig.get("login_done", "")).lower()
+            approval_status = str(elig.get("approval_status", "")).lower()
+            disbursed = str(elig.get("disbursed", "")).lower()
+            
+            # Eligible counts
+            if is_eligible == "yes":
+                perf["eligible_count"] += 1
+            elif is_eligible == "no":
+                perf["not_eligible_count"] += 1
+            
+            # Login counts
+            if login_done == "yes":
+                perf["login_done_count"] += 1
+                # Add to eligible amount only if is_eligible=yes AND login_done=yes
+                if is_eligible == "yes":
+                    try:
+                        perf["total_eligible_amount"] += float(elig.get("eligible_amount") or 0)
+                    except:
+                        pass
+            elif login_done == "no":
+                perf["not_login_count"] += 1
+            
+            # Approval counts
+            if approval_status == "approved":
+                perf["approved_count"] += 1
+                try:
+                    perf["total_approved_amount"] += float(elig.get("approved_amount") or 0)
+                except:
+                    pass
+            elif approval_status == "declined":
+                perf["declined_count"] += 1
+            
+            # Disbursement counts
+            if disbursed == "yes":
+                perf["disbursed_count"] += 1
+                try:
+                    perf["total_disbursed_amount"] += float(elig.get("disbursed_amount") or 0)
+                except:
+                    pass
+            elif disbursed == "no":
+                perf["not_disbursed_count"] += 1
+    
+    # Filter out agents with no leads and convert to list
+    agents_with_leads = [p for p in agent_performance.values() if p["total_leads"] > 0]
+    
+    # Sort by total leads descending
+    agents_with_leads.sort(key=lambda x: x["total_leads"], reverse=True)
+    
+    # Calculate totals
+    totals = {
+        "total_agents": len(agents_with_leads),
+        "total_leads": sum(a["total_leads"] for a in agents_with_leads),
+        "status_counts": {
+            "new": sum(a["status_counts"]["new"] for a in agents_with_leads),
+            "contacted": sum(a["status_counts"]["contacted"] for a in agents_with_leads),
+            "in_progress": sum(a["status_counts"]["in_progress"] for a in agents_with_leads),
+            "approved": sum(a["status_counts"]["approved"] for a in agents_with_leads),
+            "disbursed": sum(a["status_counts"]["disbursed"] for a in agents_with_leads),
+            "rejected": sum(a["status_counts"]["rejected"] for a in agents_with_leads),
+            "query_hold": sum(a["status_counts"]["query_hold"] for a in agents_with_leads)
+        },
+        "eligible_count": sum(a["eligible_count"] for a in agents_with_leads),
+        "not_eligible_count": sum(a["not_eligible_count"] for a in agents_with_leads),
+        "login_done_count": sum(a["login_done_count"] for a in agents_with_leads),
+        "not_login_count": sum(a["not_login_count"] for a in agents_with_leads),
+        "approved_count": sum(a["approved_count"] for a in agents_with_leads),
+        "declined_count": sum(a["declined_count"] for a in agents_with_leads),
+        "disbursed_count": sum(a["disbursed_count"] for a in agents_with_leads),
+        "not_disbursed_count": sum(a["not_disbursed_count"] for a in agents_with_leads),
+        "total_eligible_amount": sum(a["total_eligible_amount"] for a in agents_with_leads),
+        "total_approved_amount": sum(a["total_approved_amount"] for a in agents_with_leads),
+        "total_disbursed_amount": sum(a["total_disbursed_amount"] for a in agents_with_leads)
+    }
+    
+    return {
+        "agents": agents_with_leads,
+        "totals": totals,
+        "date_range": {
+            "from": from_date,
+            "to": to_date
+        }
+    }

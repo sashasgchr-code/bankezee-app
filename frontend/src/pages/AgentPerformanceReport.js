@@ -132,7 +132,7 @@ const AgentPerformanceReport = () => {
 
     // Build headers dynamically based on visible columns
     const headers = [
-      'Agent Name', 'Agent Code', 'Phone', 'Manager', 'Total Leads',
+      'Agent Name', 'Agent Code', 'Phone', 'Total Leads',
       ...visibleStatusColumns.map(col => col.label),
       'Total Approved Amount', 'Total Disbursed Amount'
     ];
@@ -141,7 +141,6 @@ const AgentPerformanceReport = () => {
       agent.agent_name,
       agent.agent_code,
       agent.phone,
-      agent.manager_name || '-',
       agent.total_leads,
       ...visibleStatusColumns.map(col => agent[col.key] || 0),
       agent.total_approved_amount,
@@ -151,7 +150,7 @@ const AgentPerformanceReport = () => {
     // Add totals row
     const totals = reportData.totals || {};
     rows.push([
-      'TOTAL', '', '', '',
+      'TOTAL', '', '',
       totals.total_leads || 0,
       ...visibleStatusColumns.map(col => totals[col.key] || 0),
       totals.total_approved_amount || 0,

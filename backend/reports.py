@@ -785,16 +785,11 @@ async def get_agent_performance_report(
             activity_ts = activity.get("timestamp", "")
             if is_date_in_range(activity_ts):
                 # Check if this activity represents a status change
-                action = activity.get("action", "")
-                new_status = activity.get("new_status", "")
+                # Activity can have 'to_status' or 'new_status' field
+                new_status = activity.get("to_status") or activity.get("new_status", "")
                 
-                # If new_status is present, it's a status change
                 if new_status:
                     status_changed_in_range[new_status.lower()] = True
-                # Also check for specific action patterns that indicate status
-                elif "status" in action.lower():
-                    # Try to extract status from action like "Status changed to Approved"
-                    pass
         
         # Also check if the lead's current status was set during the date range
         # by looking at the most recent activity for each status
@@ -803,8 +798,8 @@ async def get_agent_performance_report(
         # Find the timestamp when the current status was set
         current_status_timestamp = None
         for activity in reversed(activities):
-            new_status = activity.get("new_status", "")
-            if new_status and new_status.lower() == current_status:
+            to_status = activity.get("to_status") or activity.get("new_status", "")
+            if to_status and to_status.lower() == current_status:
                 current_status_timestamp = activity.get("timestamp")
                 break
         

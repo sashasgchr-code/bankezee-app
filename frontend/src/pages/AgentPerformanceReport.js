@@ -129,7 +129,7 @@ const AgentPerformanceReport = () => {
     const headers = [
       'Agent Name', 'Agent Code', 'Phone', 'Manager',
       'Total Leads', 'New', 'Contacted', 'In Progress', 'Query Hold',
-      'Approved', 'Disbursed', 'Rejected',
+      'Login', 'Docs Collected', 'Approved', 'Disbursed', 'Rejected', 'Other',
       'Total Approved Amount', 'Total Disbursed Amount'
     ];
 
@@ -143,9 +143,12 @@ const AgentPerformanceReport = () => {
       agent.contacted || 0,
       agent.in_progress || 0,
       agent.query_hold || 0,
+      agent.login || 0,
+      agent.documents_collected || 0,
       agent.approved || 0,
       agent.disbursed || 0,
       agent.rejected || 0,
+      agent.other || 0,
       agent.total_approved_amount,
       agent.total_disbursed_amount
     ]);
@@ -159,9 +162,12 @@ const AgentPerformanceReport = () => {
       totals.contacted || 0,
       totals.in_progress || 0,
       totals.query_hold || 0,
+      totals.login || 0,
+      totals.documents_collected || 0,
       totals.approved || 0,
       totals.disbursed || 0,
       totals.rejected || 0,
+      totals.other || 0,
       totals.total_approved_amount || 0,
       totals.total_disbursed_amount || 0
     ]);

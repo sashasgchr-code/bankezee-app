@@ -767,22 +767,56 @@ async def get_agent_performance_report(
         
         perf = agent_performance[source_id]
         
-        # Check if lead was created in date range - this is what matters for Total Leads
+        # Check if lead was created in date range - for Total Leads count
         created_at = lead.get("created_at", "")
         lead_created_in_range = is_date_in_range(created_at)
         
-        # Only count leads that were CREATED in the date range
-        if not lead_created_in_range:
-            continue
+        # Count total_leads based on CREATION DATE only
+        if lead_created_in_range:
+            perf["total_leads"] += 1
         
-        # Increment total leads (based on creation date only)
-        perf["total_leads"] += 1
+        # For STATUS COLUMNS: Check if lead had a status change activity in the date range
+        # This counts leads that were MOVED to a status in the time period, regardless of creation date
+        activities = lead.get("activities", [])
         
-        # Get lead's current status
-        status = (lead.get("status") or "new").lower()
+        # Find status changes that happened in the date range
+        status_changed_in_range = {}
+        for activity in activities:
+            activity_ts = activity.get("timestamp", "")
+            if is_date_in_range(activity_ts):
+                # Check if this activity represents a status change
+                action = activity.get("action", "")
+                new_status = activity.get("new_status", "")
+                
+                # If new_status is present, it's a status change
+                if new_status:
+                    status_changed_in_range[new_status.lower()] = True
+                # Also check for specific action patterns that indicate status
+                elif "status" in action.lower():
+                    # Try to extract status from action like "Status changed to Approved"
+                    pass
         
-        # Count status for leads created in date range
-        # Map status to the correct counter
+        # Also check if the lead's current status was set during the date range
+        # by looking at the most recent activity for each status
+        current_status = (lead.get("status") or "new").lower()
+        
+        # Find the timestamp when the current status was set
+        current_status_timestamp = None
+        for activity in reversed(activities):
+            new_status = activity.get("new_status", "")
+            if new_status and new_status.lower() == current_status:
+                current_status_timestamp = activity.get("timestamp")
+                break
+        
+        # If no activity found for current status, use created_at for "new" status
+        if current_status_timestamp is None and current_status in ["new", "fresh"]:
+            current_status_timestamp = created_at
+        
+        # Check if the current status was set in the date range
+        if current_status_timestamp and is_date_in_range(current_status_timestamp):
+            status_changed_in_range[current_status] = True
+        
+        # Map status to the correct counter and count if changed in range
         status_map = {
             "new": "new",
             "fresh": "new",
@@ -809,14 +843,13 @@ async def get_agent_performance_report(
             "rejected": "rejected"
         }
         
-        if status in status_map:
-            perf[status_map[status]] += 1
-        else:
-            # Default to 'new' for any unknown status
-            perf["new"] += 1
+        # Count each status that was changed to in the date range
+        for status_key in status_changed_in_range.keys():
+            if status_key in status_map:
+                perf[status_map[status_key]] += 1
         
-        # Sum approved amounts
-        if status == "approved":
+        # Sum approved amounts if approved status was set in date range
+        if "approved" in status_changed_in_range:
             for elig in lead.get("eligibilities", []):
                 if str(elig.get("approval_status", "")).lower() == "approved":
                     try:
@@ -824,8 +857,8 @@ async def get_agent_performance_report(
                     except:
                         pass
         
-        # Sum disbursed amounts
-        if status == "disbursed":
+        # Sum disbursed amounts if disbursed status was set in date range
+        if "disbursed" in status_changed_in_range:
             for elig in lead.get("eligibilities", []):
                 if str(elig.get("disbursed", "")).lower() == "yes":
                     try:

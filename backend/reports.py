@@ -178,7 +178,7 @@ async def get_daily_report(
         eligibilities = lead.get("eligibilities", []) or lead.get("additional_data", {}).get("bank_eligibilities", [])
         eligibility_summary = []
         
-        total_eligible_amount = 0  # Only sum where login_done = Yes
+        total_eligible_amount = 0  # Only sum where is_eligible=Yes AND login_done=Yes
         total_approved_amount = 0
         total_disbursed_amount = 0
         

@@ -1924,7 +1924,9 @@ const AdminDashboard = () => {
                 filteredLeads.slice(0, 50).map((lead) => (
                   <div
                     key={lead.id}
-                    className="flex items-center gap-3 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
+                    className={`flex items-center gap-3 p-4 rounded-lg hover:bg-slate-100 transition-colors ${
+                      lead.has_duplicates ? 'bg-amber-50 border-l-4 border-amber-500' : 'bg-slate-50'
+                    }`}
                     data-testid={`lead-item-${lead.id}`}
                   >
                     <Checkbox 
@@ -1943,8 +1945,33 @@ const AdminDashboard = () => {
                           {new Date(lead.created_at).toLocaleDateString()}
                           {lead.assigned_to && <span className="ml-2 text-primary">• Assigned</span>}
                         </p>
+                        {/* Duplicate Warning */}
+                        {lead.has_duplicates && lead.duplicate_entries?.length > 0 && (
+                          <div className="mt-2 p-2 bg-amber-100 rounded text-xs">
+                            <p className="font-semibold text-amber-800 flex items-center gap-1">
+                              <AlertTriangle className="w-3 h-3" />
+                              Duplicate Entry Detected
+                            </p>
+                            {lead.duplicate_entries.map((dup, idx) => (
+                              <p key={idx} className="text-amber-700 mt-1">
+                                → {dup.full_name} ({dup.status}) - {new Date(dup.created_at).toLocaleDateString()}
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); navigate(`/crm/lead/${dup.id}`); }}
+                                  className="ml-2 text-amber-900 underline hover:no-underline"
+                                >
+                                  View
+                                </button>
+                              </p>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center gap-3">
+                        {lead.has_duplicates && (
+                          <span className="text-xs px-2 py-1 rounded-full bg-amber-200 text-amber-800">
+                            Duplicate
+                          </span>
+                        )}
                         <span className={`text-xs px-2 py-1 rounded-full capitalize ${
                           lead.status === 'disbursed' ? 'bg-green-100 text-green-800' :
                           lead.status === 'rejected' ? 'bg-red-100 text-red-800' :

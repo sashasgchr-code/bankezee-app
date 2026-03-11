@@ -20,6 +20,7 @@ import CRMPage from './pages/CRMPage';
 import LeadDetailPage from './pages/LeadDetailPage';
 import DailyReportPage from './pages/DailyReportPage';
 import RejectedCasesReport from './pages/RejectedCasesReport';
+import AgentPerformanceReport from './pages/AgentPerformanceReport';
 
 function ProtectedRoute({ children, allowedRoles }) {
   const token = localStorage.getItem('token');

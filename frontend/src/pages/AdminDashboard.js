@@ -338,11 +338,27 @@ const AdminDashboard = () => {
     setExpandedUser(expandedUser === userId ? null : userId);
   };
 
+  const location = useLocation();
+  
   useEffect(() => {
     fetchLeads();
     fetchOpsTeam();
     fetchPendingApprovals();
     fetchAllUsers();
+  }, []);
+
+  // Re-fetch leads when navigating back to this page (e.g., from lead detail page)
+  useEffect(() => {
+    fetchLeads();
+  }, [location.key]);
+
+  // Re-fetch data when window gains focus (user returns to tab)
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchLeads();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   useEffect(() => {

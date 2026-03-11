@@ -456,3 +456,218 @@ async def get_managers_list(current_user: User = Depends(get_current_user)):
     
     users = await db.users.find({"role": "manager"}, {"_id": 0}).to_list(1000)
     return [{"id": u["id"], "name": u.get("full_name", "Unknown")} for u in users]
+
+
+
+@router.get("/rejected-cases")
+async def get_rejected_cases_report(
+    from_date: str = Query(..., description="Start date (YYYY-MM-DD)"),
+    to_date: str = Query(..., description="End date (YYYY-MM-DD)"),
+    manager_id: Optional[str] = Query(None, description="Filter by manager ID"),
+    current_user: User = Depends(get_current_user)
+):
+    """Get report of all rejected/declined cases with detailed eligibility info"""
+    if current_user.role not in ["admin", "operations"]:
+        raise HTTPException(status_code=403, detail="Only admin or operations can access reports")
+    
+    try:
+        start_date = datetime.strptime(from_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        end_date = datetime.strptime(to_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59, tzinfo=timezone.utc)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+    
+    # Get all leads in date range (by creation date or activity)
+    all_leads = await db.leads.find({}, {"_id": 0}).to_list(10000)
+    
+    # Filter by date range (leads created or with activity in range)
+    leads_in_range = []
+    for lead in all_leads:
+        created = lead.get("created_at", "")
+        in_range = False
+        
+        # Check if created in date range
+        if created:
+            try:
+                created_date = datetime.fromisoformat(created.replace("Z", "+00:00"))
+                if start_date <= created_date <= end_date:
+                    in_range = True
+            except:
+                pass
+        
+        # Also check if any activity in date range
+        if not in_range:
+            activities = lead.get("activities", [])
+            for activity in activities:
+                ts = activity.get("timestamp", "")
+                if ts:
+                    try:
+                        activity_date = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                        if start_date <= activity_date <= end_date:
+                            in_range = True
+                            break
+                    except:
+                        pass
+        
+        if in_range:
+            leads_in_range.append(lead)
+    
+    # Get agents, partners, users for manager filtering
+    agents = await db.agents.find({}, {"_id": 0}).to_list(1000)
+    partners = await db.partners.find({}, {"_id": 0}).to_list(1000)
+    users = await db.users.find({}, {"_id": 0}).to_list(1000)
+    
+    agents_map = {a["id"]: a for a in agents}
+    partners_map = {p["id"]: p for p in partners}
+    
+    # Apply manager filter if specified
+    if manager_id:
+        # Get agent IDs directly from agents collection where manager_id matches
+        team_agent_ids = set()
+        for agent in agents:
+            if agent.get("manager_id") == manager_id:
+                team_agent_ids.add(agent["id"])
+        
+        # Get partner IDs directly from partners collection where manager_id matches
+        team_partner_ids = set()
+        for partner in partners:
+            if partner.get("manager_id") == manager_id:
+                team_partner_ids.add(partner["id"])
+        
+        # Also check users collection for any users under this manager
+        team_user_ids = set()
+        for u in users:
+            if u.get("manager_id") == manager_id:
+                team_user_ids.add(u["id"])
+        
+        # Combine all valid source IDs
+        valid_source_ids = team_agent_ids | team_partner_ids | team_user_ids
+        
+        # Filter leads by source_id
+        leads_in_range = [l for l in leads_in_range if l.get("source_id") in valid_source_ids]
+    
+    # Filter for rejected/declined cases
+    # A case is considered rejected if ANY of the following:
+    # 1. Lead status is rejected/declined/not_interested/not_supporting
+    # 2. Any eligibility has is_eligible = 'no'
+    # 3. Any eligibility has login_done = 'no' with a rejection reason
+    # 4. Any eligibility has approval_status = 'declined'
+    # 5. Any eligibility has disbursed = 'no' with a rejection reason
+    
+    rejected_leads = []
+    
+    # Summary counters
+    summary = {
+        "total_cases": 0,
+        "not_eligible": 0,
+        "not_login": 0,
+        "fi_negative": 0,
+        "declined": 0,
+        "not_disbursed": 0,
+        "customer_not_interested": 0
+    }
+    
+    rejected_statuses = ['rejected', 'declined', 'not_interested', 'not_supporting', 'fi_negative', 'query_hold']
+    
+    for lead in leads_in_range:
+        lead_status = (lead.get("status") or "").lower()
+        eligibilities = lead.get("eligibilities", [])
+        
+        is_rejected = False
+        lead_rejection_types = set()
+        
+        # Check lead status
+        if lead_status in rejected_statuses:
+            is_rejected = True
+            if lead_status == 'not_interested':
+                lead_rejection_types.add('customer_not_interested')
+            elif lead_status == 'fi_negative':
+                lead_rejection_types.add('fi_negative')
+        
+        # Check each eligibility for rejection
+        for elig in eligibilities:
+            is_eligible = str(elig.get("is_eligible", "")).lower()
+            login_done = str(elig.get("login_done", "")).lower()
+            approval_status = str(elig.get("approval_status", "")).lower()
+            disbursed = str(elig.get("disbursed", "")).lower()
+            
+            # Not eligible
+            if is_eligible == "no":
+                is_rejected = True
+                lead_rejection_types.add('not_eligible')
+                reason = (elig.get("not_eligible_reason") or "").lower()
+                if 'fi' in reason or 'field investigation' in reason:
+                    lead_rejection_types.add('fi_negative')
+            
+            # Login rejected
+            if login_done == "no" and elig.get("login_rejection_reason"):
+                is_rejected = True
+                lead_rejection_types.add('not_login')
+                reason = (elig.get("login_rejection_reason") or "").lower()
+                if 'fi' in reason or 'field investigation' in reason or 'negative' in reason:
+                    lead_rejection_types.add('fi_negative')
+            
+            # Declined
+            if approval_status == "declined":
+                is_rejected = True
+                lead_rejection_types.add('declined')
+                reason = (elig.get("declined_reason") or "").lower()
+                if 'fi' in reason or 'field investigation' in reason or 'negative' in reason:
+                    lead_rejection_types.add('fi_negative')
+                if 'not interested' in reason or 'customer' in reason:
+                    lead_rejection_types.add('customer_not_interested')
+            
+            # Not disbursed
+            if disbursed == "no" and elig.get("disbursement_rejection_reason"):
+                is_rejected = True
+                lead_rejection_types.add('not_disbursed')
+        
+        if is_rejected:
+            # Get source info
+            source_id = lead.get("source_id")
+            source_name = None
+            if source_id:
+                if source_id in agents_map:
+                    source_name = agents_map[source_id].get("full_name")
+                elif source_id in partners_map:
+                    source_name = partners_map[source_id].get("name")
+            
+            rejected_leads.append({
+                "id": lead.get("id"),
+                "full_name": lead.get("full_name"),
+                "mobile": lead.get("mobile"),
+                "email": lead.get("email"),
+                "city": lead.get("city"),
+                "employment_type": lead.get("employment_type"),
+                "requirement": lead.get("requirement"),
+                "status": lead.get("status"),
+                "source": lead.get("source"),
+                "source_id": source_id,
+                "source_name": source_name,
+                "created_at": lead.get("created_at"),
+                "eligibilities": eligibilities,
+                "rejection_types": list(lead_rejection_types)
+            })
+            
+            # Update summary
+            summary["total_cases"] += 1
+            if 'not_eligible' in lead_rejection_types:
+                summary["not_eligible"] += 1
+            if 'not_login' in lead_rejection_types:
+                summary["not_login"] += 1
+            if 'fi_negative' in lead_rejection_types:
+                summary["fi_negative"] += 1
+            if 'declined' in lead_rejection_types:
+                summary["declined"] += 1
+            if 'not_disbursed' in lead_rejection_types:
+                summary["not_disbursed"] += 1
+            if 'customer_not_interested' in lead_rejection_types:
+                summary["customer_not_interested"] += 1
+    
+    return {
+        "summary": summary,
+        "leads": rejected_leads,
+        "date_range": {
+            "from": from_date,
+            "to": to_date
+        }
+    }

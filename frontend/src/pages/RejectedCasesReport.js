@@ -619,6 +619,7 @@ const RejectedCasesReport = () => {
             </CardContent>
           </Card>
         )}
+        </div> {/* End of reportRef wrapper */}
 
         {/* Initial State */}
         {!reportData && (

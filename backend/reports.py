@@ -764,13 +764,9 @@ async def get_agent_performance_report(
         
         perf = agent_performance[source_id]
         
-        # COUNT LEADS - based on CREATED DATE
+        # Check if lead was created in date range
         created_at = lead.get("created_at", "")
-        if is_date_in_range(created_at):
-            perf["total_leads"] += 1
-        
-        # Get lead's current status
-        status = (lead.get("status") or "new").lower()
+        lead_created_in_range = is_date_in_range(created_at)
         
         # Check if lead had any activity in date range
         activities = lead.get("activities", [])
@@ -780,12 +776,15 @@ async def get_agent_performance_report(
                 has_activity_in_range = True
                 break
         
-        # Also count if lead was created in range
-        if is_date_in_range(created_at):
-            has_activity_in_range = True
+        # Count this lead if it was created OR had activity in the date range
+        if lead_created_in_range or has_activity_in_range:
+            perf["total_leads"] += 1
         
-        # Only count status if lead had activity in date range
-        if has_activity_in_range:
+        # Get lead's current status
+        status = (lead.get("status") or "new").lower()
+        
+        # Only count status if lead was created or had activity in date range
+        if lead_created_in_range or has_activity_in_range:
             # Map status to the correct counter
             status_map = {
                 "new": "new",

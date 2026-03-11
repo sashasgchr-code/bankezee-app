@@ -155,6 +155,15 @@ function App() {
               </ProtectedRoute>
             }
           />
+          
+          <Route
+            path="/reports/rejected"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'operations']}>
+                <RejectedCasesReport />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </div>

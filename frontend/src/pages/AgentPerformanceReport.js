@@ -366,15 +366,10 @@ const AgentPerformanceReport = () => {
                       <th className="px-3 py-3 text-center font-semibold border-b bg-blue-50">New</th>
                       <th className="px-3 py-3 text-center font-semibold border-b bg-yellow-50">Contacted</th>
                       <th className="px-3 py-3 text-center font-semibold border-b bg-orange-50">In Progress</th>
-                      <th className="px-3 py-3 text-center font-semibold border-b bg-green-50">Eligible</th>
-                      <th className="px-3 py-3 text-center font-semibold border-b bg-red-50">Not Elig.</th>
-                      <th className="px-3 py-3 text-center font-semibold border-b bg-green-50">Login</th>
-                      <th className="px-3 py-3 text-center font-semibold border-b bg-red-50">No Login</th>
+                      <th className="px-3 py-3 text-center font-semibold border-b bg-purple-50">Query Hold</th>
                       <th className="px-3 py-3 text-center font-semibold border-b bg-emerald-50">Approved</th>
-                      <th className="px-3 py-3 text-center font-semibold border-b bg-red-50">Declined</th>
                       <th className="px-3 py-3 text-center font-semibold border-b bg-teal-50">Disbursed</th>
-                      <th className="px-3 py-3 text-center font-semibold border-b bg-rose-50">No Disb.</th>
-                      <th className="px-3 py-3 text-right font-semibold border-b bg-green-100">Elig. Amt</th>
+                      <th className="px-3 py-3 text-center font-semibold border-b bg-red-50">Rejected</th>
                       <th className="px-3 py-3 text-right font-semibold border-b bg-emerald-100">Appr. Amt</th>
                       <th className="px-3 py-3 text-right font-semibold border-b bg-teal-100">Disb. Amt</th>
                     </tr>
@@ -386,18 +381,13 @@ const AgentPerformanceReport = () => {
                         <td className="px-3 py-2 text-slate-600 text-xs">{agent.agent_code || '-'}</td>
                         <td className="px-3 py-2 text-slate-600">{agent.manager_name || '-'}</td>
                         <td className="px-3 py-2 text-center font-bold bg-slate-50">{agent.total_leads}</td>
-                        <td className="px-3 py-2 text-center bg-blue-50/50">{agent.status_counts?.new || 0}</td>
-                        <td className="px-3 py-2 text-center bg-yellow-50/50">{agent.status_counts?.contacted || 0}</td>
-                        <td className="px-3 py-2 text-center bg-orange-50/50">{agent.status_counts?.in_progress || 0}</td>
-                        <td className="px-3 py-2 text-center bg-green-50/50 text-green-700 font-medium">{agent.eligible_count}</td>
-                        <td className="px-3 py-2 text-center bg-red-50/50 text-red-700">{agent.not_eligible_count}</td>
-                        <td className="px-3 py-2 text-center bg-green-50/50 text-green-700 font-medium">{agent.login_done_count}</td>
-                        <td className="px-3 py-2 text-center bg-red-50/50 text-red-700">{agent.not_login_count}</td>
-                        <td className="px-3 py-2 text-center bg-emerald-50/50 text-emerald-700 font-medium">{agent.approved_count}</td>
-                        <td className="px-3 py-2 text-center bg-red-50/50 text-red-700">{agent.declined_count}</td>
-                        <td className="px-3 py-2 text-center bg-teal-50/50 text-teal-700 font-bold">{agent.disbursed_count}</td>
-                        <td className="px-3 py-2 text-center bg-rose-50/50 text-rose-700">{agent.not_disbursed_count}</td>
-                        <td className="px-3 py-2 text-right bg-green-50/50 text-green-800">{formatCurrency(agent.total_eligible_amount)}</td>
+                        <td className="px-3 py-2 text-center bg-blue-50/50">{agent.new || 0}</td>
+                        <td className="px-3 py-2 text-center bg-yellow-50/50">{agent.contacted || 0}</td>
+                        <td className="px-3 py-2 text-center bg-orange-50/50">{agent.in_progress || 0}</td>
+                        <td className="px-3 py-2 text-center bg-purple-50/50">{agent.query_hold || 0}</td>
+                        <td className="px-3 py-2 text-center bg-emerald-50/50 text-emerald-700 font-medium">{agent.approved || 0}</td>
+                        <td className="px-3 py-2 text-center bg-teal-50/50 text-teal-700 font-bold">{agent.disbursed || 0}</td>
+                        <td className="px-3 py-2 text-center bg-red-50/50 text-red-700">{agent.rejected || 0}</td>
                         <td className="px-3 py-2 text-right bg-emerald-50/50 text-emerald-800">{formatCurrency(agent.total_approved_amount)}</td>
                         <td className="px-3 py-2 text-right bg-teal-50/50 text-teal-800 font-bold">{formatCurrency(agent.total_disbursed_amount)}</td>
                       </tr>
@@ -406,18 +396,20 @@ const AgentPerformanceReport = () => {
                     <tr className="bg-slate-200 font-bold border-t-2 border-slate-400">
                       <td className="px-3 py-3" colSpan={3}>TOTAL</td>
                       <td className="px-3 py-3 text-center">{reportData.totals?.total_leads || 0}</td>
-                      <td className="px-3 py-3 text-center">{reportData.totals?.status_counts?.new || 0}</td>
-                      <td className="px-3 py-3 text-center">{reportData.totals?.status_counts?.contacted || 0}</td>
-                      <td className="px-3 py-3 text-center">{reportData.totals?.status_counts?.in_progress || 0}</td>
-                      <td className="px-3 py-3 text-center text-green-700">{reportData.totals?.eligible_count || 0}</td>
-                      <td className="px-3 py-3 text-center text-red-700">{reportData.totals?.not_eligible_count || 0}</td>
-                      <td className="px-3 py-3 text-center text-green-700">{reportData.totals?.login_done_count || 0}</td>
-                      <td className="px-3 py-3 text-center text-red-700">{reportData.totals?.not_login_count || 0}</td>
-                      <td className="px-3 py-3 text-center text-emerald-700">{reportData.totals?.approved_count || 0}</td>
-                      <td className="px-3 py-3 text-center text-red-700">{reportData.totals?.declined_count || 0}</td>
-                      <td className="px-3 py-3 text-center text-teal-700">{reportData.totals?.disbursed_count || 0}</td>
-                      <td className="px-3 py-3 text-center text-rose-700">{reportData.totals?.not_disbursed_count || 0}</td>
-                      <td className="px-3 py-3 text-right text-green-800">{formatCurrency(reportData.totals?.total_eligible_amount)}</td>
+                      <td className="px-3 py-3 text-center">{reportData.totals?.new || 0}</td>
+                      <td className="px-3 py-3 text-center">{reportData.totals?.contacted || 0}</td>
+                      <td className="px-3 py-3 text-center">{reportData.totals?.in_progress || 0}</td>
+                      <td className="px-3 py-3 text-center">{reportData.totals?.query_hold || 0}</td>
+                      <td className="px-3 py-3 text-center text-emerald-700">{reportData.totals?.approved || 0}</td>
+                      <td className="px-3 py-3 text-center text-teal-700">{reportData.totals?.disbursed || 0}</td>
+                      <td className="px-3 py-3 text-center text-red-700">{reportData.totals?.rejected || 0}</td>
+                      <td className="px-3 py-3 text-right text-emerald-800">{formatCurrency(reportData.totals?.total_approved_amount)}</td>
+                      <td className="px-3 py-3 text-right text-teal-800">{formatCurrency(reportData.totals?.total_disbursed_amount)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
                       <td className="px-3 py-3 text-right text-emerald-800">{formatCurrency(reportData.totals?.total_approved_amount)}</td>
                       <td className="px-3 py-3 text-right text-teal-800">{formatCurrency(reportData.totals?.total_disbursed_amount)}</td>
                     </tr>

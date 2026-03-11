@@ -214,13 +214,14 @@ async def get_daily_report(
                 }
                 eligibility_summary.append(elig_data)
                 
-                # Sum eligible amount ONLY where login_done = yes (lowercase)
+                # Sum eligible amount ONLY where is_eligible = yes AND login_done = yes
                 login_done_val = str(elig.get("login_done", "")).lower()
                 is_eligible_val = str(elig.get("is_eligible", "")).lower()
                 approval_status_val = str(elig.get("approval_status", "")).lower()
                 disbursed_val = str(elig.get("disbursed", "")).lower()
                 
-                if login_done_val == "yes":
+                # Only count if BOTH is_eligible AND login_done are 'yes'
+                if is_eligible_val == "yes" and login_done_val == "yes":
                     try:
                         if elig.get("eligible_amount"):
                             total_eligible_amount += float(elig.get("eligible_amount", 0))

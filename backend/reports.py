@@ -432,7 +432,7 @@ async def get_daily_report(
         "total_leads": len(enriched_leads),
         "status_distribution": status_counts,
         "loan_type_distribution": loan_type_counts,
-        "total_eligible_amount": total_eligible,  # Only where login=Yes
+        "total_eligible_amount": total_eligible,  # Only where is_eligible=Yes AND login_done=Yes
         "total_approved_amount": total_approved,
         "total_disbursed_amount": total_disbursed,
         "date_range": {

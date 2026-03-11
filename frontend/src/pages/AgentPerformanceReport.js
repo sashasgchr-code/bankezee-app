@@ -296,10 +296,16 @@ const AgentPerformanceReport = () => {
             </div>
             <div className="flex items-center gap-2">
               {reportData?.agents?.length > 0 && (
-                <Button onClick={exportToCSV} variant="outline" className="gap-2">
-                  <Download className="h-4 w-4" />
-                  Export CSV
-                </Button>
+                <>
+                  <Button onClick={exportToPDF} variant="outline" className="gap-2" disabled={exporting}>
+                    <FileText className="h-4 w-4" />
+                    {exporting ? 'Exporting...' : 'Export PDF'}
+                  </Button>
+                  <Button onClick={exportToCSV} variant="outline" className="gap-2">
+                    <Download className="h-4 w-4" />
+                    Export CSV
+                  </Button>
+                </>
               )}
             </div>
           </div>

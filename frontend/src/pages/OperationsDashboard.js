@@ -468,6 +468,16 @@ const OperationsDashboard = () => {
             Rejected Cases
           </Button>
           <Button
+            onClick={() => navigate('/reports/agent-performance')}
+            variant="outline"
+            size="sm"
+            className="text-blue-600 border-blue-300 hover:bg-blue-50"
+            data-testid="agent-performance-btn"
+          >
+            <BarChart3 className="w-4 h-4 mr-1" />
+            Agent Performance
+          </Button>
+          <Button
             onClick={() => setShowExportModal(true)}
             variant="outline"
             size="sm"

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import api from '@/utils/api';
 import { toast } from 'sonner';
 import { FileText, Download, ArrowLeft, Calendar, Users, Filter, XCircle, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const RejectedCasesReport = () => {
   const navigate = useNavigate();

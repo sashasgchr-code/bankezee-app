@@ -318,22 +318,22 @@ const AgentPerformanceReport = () => {
                 <p className="text-sm text-slate-800">Total Leads</p>
               </CardContent>
             </Card>
-            <Card className="bg-green-50">
-              <CardContent className="pt-4 text-center">
-                <p className="text-2xl font-bold text-green-600">{reportData.totals?.eligible_count || 0}</p>
-                <p className="text-sm text-green-800">Eligible</p>
-              </CardContent>
-            </Card>
             <Card className="bg-emerald-50">
               <CardContent className="pt-4 text-center">
-                <p className="text-2xl font-bold text-emerald-600">{reportData.totals?.approved_count || 0}</p>
+                <p className="text-2xl font-bold text-emerald-600">{reportData.totals?.approved || 0}</p>
                 <p className="text-sm text-emerald-800">Approved</p>
               </CardContent>
             </Card>
             <Card className="bg-teal-50">
               <CardContent className="pt-4 text-center">
-                <p className="text-2xl font-bold text-teal-600">{reportData.totals?.disbursed_count || 0}</p>
+                <p className="text-2xl font-bold text-teal-600">{reportData.totals?.disbursed || 0}</p>
                 <p className="text-sm text-teal-800">Disbursed</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-red-50">
+              <CardContent className="pt-4 text-center">
+                <p className="text-2xl font-bold text-red-600">{reportData.totals?.rejected || 0}</p>
+                <p className="text-sm text-red-800">Rejected</p>
               </CardContent>
             </Card>
             <Card className="bg-amber-50">

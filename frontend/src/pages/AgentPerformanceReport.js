@@ -404,50 +404,52 @@ const AgentPerformanceReport = () => {
           </CardContent>
         </Card>
 
-        {/* Summary Cards */}
-        {reportData && (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            <Card className="bg-blue-50">
-              <CardContent className="pt-4 text-center">
-                <p className="text-2xl font-bold text-blue-600">{reportData.totals?.total_agents || 0}</p>
-                <p className="text-sm text-blue-800">Total Agents</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-slate-50">
-              <CardContent className="pt-4 text-center">
-                <p className="text-2xl font-bold text-slate-600">{reportData.totals?.total_leads || 0}</p>
-                <p className="text-sm text-slate-800">Total Leads</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-emerald-50">
-              <CardContent className="pt-4 text-center">
-                <p className="text-2xl font-bold text-emerald-600">{reportData.totals?.approved || 0}</p>
-                <p className="text-sm text-emerald-800">Approved</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-teal-50">
-              <CardContent className="pt-4 text-center">
-                <p className="text-2xl font-bold text-teal-600">{reportData.totals?.disbursed || 0}</p>
-                <p className="text-sm text-teal-800">Disbursed</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-red-50">
-              <CardContent className="pt-4 text-center">
-                <p className="text-2xl font-bold text-red-600">{reportData.totals?.rejected || 0}</p>
-                <p className="text-sm text-red-800">Rejected</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-amber-50">
-              <CardContent className="pt-4 text-center">
-                <p className="text-2xl font-bold text-amber-600">{formatCurrency(reportData.totals?.total_disbursed_amount)}</p>
-                <p className="text-sm text-amber-800">Total Disbursed</p>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        {/* Summary Cards and Table - wrapped for PDF export */}
+        <div ref={reportRef}>
+          {/* Summary Cards */}
+          {reportData && (
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
+              <Card className="bg-blue-50">
+                <CardContent className="pt-4 text-center">
+                  <p className="text-2xl font-bold text-blue-600">{reportData.totals?.total_agents || 0}</p>
+                  <p className="text-sm text-blue-800">Total Agents</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-slate-50">
+                <CardContent className="pt-4 text-center">
+                  <p className="text-2xl font-bold text-slate-600">{reportData.totals?.total_leads || 0}</p>
+                  <p className="text-sm text-slate-800">Total Leads</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-emerald-50">
+                <CardContent className="pt-4 text-center">
+                  <p className="text-2xl font-bold text-emerald-600">{reportData.totals?.approved || 0}</p>
+                  <p className="text-sm text-emerald-800">Approved</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-teal-50">
+                <CardContent className="pt-4 text-center">
+                  <p className="text-2xl font-bold text-teal-600">{reportData.totals?.disbursed || 0}</p>
+                  <p className="text-sm text-teal-800">Disbursed</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-red-50">
+                <CardContent className="pt-4 text-center">
+                  <p className="text-2xl font-bold text-red-600">{reportData.totals?.rejected || 0}</p>
+                  <p className="text-sm text-red-800">Rejected</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-amber-50">
+                <CardContent className="pt-4 text-center">
+                  <p className="text-2xl font-bold text-amber-600">{formatCurrency(reportData.totals?.total_disbursed_amount)}</p>
+                  <p className="text-sm text-amber-800">Total Disbursed</p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
-        {/* Agent Performance Table */}
-        {reportData?.agents?.length > 0 ? (
+          {/* Agent Performance Table */}
+          {reportData?.agents?.length > 0 ? (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

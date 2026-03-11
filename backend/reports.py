@@ -824,9 +824,12 @@ async def get_agent_performance_report(
         "contacted": sum(a["contacted"] for a in agents_with_leads),
         "in_progress": sum(a["in_progress"] for a in agents_with_leads),
         "query_hold": sum(a["query_hold"] for a in agents_with_leads),
+        "login": sum(a["login"] for a in agents_with_leads),
+        "documents_collected": sum(a["documents_collected"] for a in agents_with_leads),
         "approved": sum(a["approved"] for a in agents_with_leads),
         "disbursed": sum(a["disbursed"] for a in agents_with_leads),
         "rejected": sum(a["rejected"] for a in agents_with_leads),
+        "other": sum(a["other"] for a in agents_with_leads),
         "total_approved_amount": sum(a["total_approved_amount"] for a in agents_with_leads),
         "total_disbursed_amount": sum(a["total_disbursed_amount"] for a in agents_with_leads)
     }

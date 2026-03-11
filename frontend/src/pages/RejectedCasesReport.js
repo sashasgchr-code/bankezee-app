@@ -483,8 +483,6 @@ const RejectedCasesReport = () => {
                                     {elig.login_done || '-'}
                                   </span>
                                 </td>
-                                <td className="px-3 py-3">{elig.sm_name || '-'}</td>
-                                <td className="px-3 py-3">{elig.sm_number || '-'}</td>
                                 <td className="px-3 py-3">
                                   <span className={`px-2 py-1 rounded text-xs font-medium ${
                                     elig.approval_status?.toLowerCase() === 'approved' 

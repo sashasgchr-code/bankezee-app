@@ -216,6 +216,42 @@ const AgentPerformanceReport = () => {
     return `₹${parseFloat(amount).toLocaleString('en-IN')}`;
   };
 
+  // Define all status columns with their properties
+  const allStatusColumns = [
+    { key: 'new', label: 'New', headerBg: 'bg-blue-50', cellBg: 'bg-blue-50/50' },
+    { key: 'contacted', label: 'Contacted', headerBg: 'bg-yellow-50', cellBg: 'bg-yellow-50/50' },
+    { key: 'documents_collected', label: 'Docs Coll', headerBg: 'bg-indigo-50', cellBg: 'bg-indigo-50/50' },
+    { key: 'documents_pending', label: 'Docs Pend', headerBg: 'bg-orange-50', cellBg: 'bg-orange-50/50' },
+    { key: 'sent_for_eligibility', label: 'Snt Elig', headerBg: 'bg-cyan-50', cellBg: 'bg-cyan-50/50' },
+    { key: 'sent_for_login', label: 'Snt Login', headerBg: 'bg-cyan-100', cellBg: 'bg-cyan-50/50' },
+    { key: 'login', label: 'Login', headerBg: 'bg-green-50', cellBg: 'bg-green-50/50' },
+    { key: 'sent_for_approval', label: 'Snt Appr', headerBg: 'bg-green-100', cellBg: 'bg-green-50/50' },
+    { key: 'underwriting', label: 'UW', headerBg: 'bg-purple-50', cellBg: 'bg-purple-50/50' },
+    { key: 'fi', label: 'FI', headerBg: 'bg-purple-100', cellBg: 'bg-purple-50/50' },
+    { key: 'fi_negative', label: 'FI -ve', headerBg: 'bg-red-100', cellBg: 'bg-red-50/50' },
+    { key: 'fi_reinitiated', label: 'FI Reinit', headerBg: 'bg-amber-50', cellBg: 'bg-amber-50/50' },
+    { key: 'query_hold', label: 'Q.Hold', headerBg: 'bg-amber-100', cellBg: 'bg-amber-50/50' },
+    { key: 'customer_not_interested', label: 'Cust Not Int', headerBg: 'bg-pink-50', cellBg: 'bg-pink-50/50' },
+    { key: 'customer_not_supporting', label: 'Cust Not Supp', headerBg: 'bg-pink-100', cellBg: 'bg-pink-50/50' },
+    { key: 'approved', label: 'Approved', headerBg: 'bg-emerald-100', cellBg: 'bg-emerald-50/50', textClass: 'text-emerald-700 font-medium' },
+    { key: 'disbursed', label: 'Disbursed', headerBg: 'bg-teal-100', cellBg: 'bg-teal-50/50', textClass: 'text-teal-700 font-bold' },
+    { key: 'not_eligible', label: 'Not Elig', headerBg: 'bg-red-50', cellBg: 'bg-red-50/50', textClass: 'text-red-600' },
+    { key: 'not_login', label: 'Not Login', headerBg: 'bg-red-100', cellBg: 'bg-red-50/50', textClass: 'text-red-600' },
+    { key: 'declined', label: 'Declined', headerBg: 'bg-red-200', cellBg: 'bg-red-50/50', textClass: 'text-red-600' },
+    { key: 'not_disbursed', label: 'Not Disb', headerBg: 'bg-red-300', cellBg: 'bg-red-50/50', textClass: 'text-red-600' },
+    { key: 'rejected', label: 'Rejected', headerBg: 'bg-red-400 text-white', cellBg: 'bg-red-100/50', textClass: 'text-red-700 font-medium' },
+  ];
+
+  // Get visible status columns (only those with at least one non-zero value)
+  const getVisibleStatusColumns = () => {
+    if (!reportData?.agents?.length) return [];
+    return allStatusColumns.filter(col => {
+      return reportData.agents.some(agent => (agent[col.key] || 0) > 0);
+    });
+  };
+
+  const visibleStatusColumns = reportData ? getVisibleStatusColumns() : [];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}

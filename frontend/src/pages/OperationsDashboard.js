@@ -13,6 +13,7 @@ import html2canvas from 'html2canvas';
 
 const OperationsDashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [leads, setLeads] = useState([]);
   const [timeFilter, setTimeFilter] = useState('all');

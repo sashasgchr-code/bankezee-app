@@ -1152,15 +1152,16 @@ const AdminDashboard = () => {
   // For the leads list & "Total Leads"/"New" stats, apply LEAD TIME FILTER (based on lead creation date)
   let filteredLeads = filterByTimePeriod(baseFilteredLeads, timeFilter, filterFromDate, filterToDate);
   
-  // Calculate activity-based stats using ACTIVITY TIME FILTER on leads filtered by CREATION DATE
-  // This ensures stats only include leads created in the selected period
-  const stats = calculateDashboardStatsWithActivityDates(filteredLeads, activityTimeFilter, activityFromDate, activityToDate);
+  // Calculate activity-based stats using ACTIVITY TIME FILTER on ALL leads (independent of Lead Created filter)
+  // This ensures In Progress, Approved, Disbursed, Rejected stats are based ONLY on activity date
+  const stats = calculateDashboardStatsWithActivityDates(baseFilteredLeads, activityTimeFilter, activityFromDate, activityToDate);
   
   // Calculate total eligible based on ONLY ACTIVITY DATE FILTER (not lead creation date)
   // Use baseFilteredLeads (not filteredLeads) so it's not affected by Lead Created filter
   const filteredTotalEligible = calculateTotalEligibleWithActivityDate(baseFilteredLeads, activityTimeFilter, activityFromDate, activityToDate);
   
-  // Override total and newLeads in stats to use lead creation date filter
+  // Only Total Leads and New stats use the Lead Created date filter
+  // All other stats (In Progress, Approved, Disbursed, Rejected, Total Eligible) use Activity Date filter
   const leadsStats = {
     ...stats,
     total: filteredLeads.length,

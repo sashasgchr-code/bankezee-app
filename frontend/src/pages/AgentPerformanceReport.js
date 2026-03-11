@@ -519,6 +519,7 @@ const AgentPerformanceReport = () => {
             </CardContent>
           </Card>
         )}
+        </div> {/* End of reportRef wrapper */}
 
         {/* Initial State */}
         {!reportData && (

@@ -786,41 +786,56 @@ async def get_agent_performance_report(
         
         # Only count status if lead had activity in date range
         if has_activity_in_range:
-            if status == "new" or status == "fresh":
+            # Map status to the correct counter
+            status_map = {
+                "new": "new",
+                "fresh": "new",
+                "contacted": "contacted",
+                "documents_collected": "documents_collected",
+                "documents_pending": "documents_pending",
+                "sent_for_eligibility": "sent_for_eligibility",
+                "sent_for_login": "sent_for_login",
+                "login": "login",
+                "sent_for_approval": "sent_for_approval",
+                "underwriting": "underwriting",
+                "fi": "fi",
+                "fi_negative": "fi_negative",
+                "fi_reinitiated": "fi_reinitiated",
+                "query_hold": "query_hold",
+                "customer_not_interested": "customer_not_interested",
+                "customer_not_supporting": "customer_not_supporting",
+                "approved": "approved",
+                "disbursed": "disbursed",
+                "not_eligible": "not_eligible",
+                "not_login": "not_login",
+                "declined": "declined",
+                "not_disbursed": "not_disbursed",
+                "rejected": "rejected"
+            }
+            
+            if status in status_map:
+                perf[status_map[status]] += 1
+            else:
+                # Default to 'new' for any unknown status
                 perf["new"] += 1
-            elif status == "contacted":
-                perf["contacted"] += 1
-            elif status == "in_progress":
-                perf["in_progress"] += 1
-            elif status == "query_hold":
-                perf["query_hold"] += 1
-            elif status == "login":
-                perf["login"] += 1
-            elif status == "documents_collected":
-                perf["documents_collected"] += 1
-            elif status == "approved":
-                perf["approved"] += 1
-                # Sum approved amounts from eligibilities
+            
+            # Sum approved amounts
+            if status == "approved":
                 for elig in lead.get("eligibilities", []):
                     if str(elig.get("approval_status", "")).lower() == "approved":
                         try:
                             perf["total_approved_amount"] += float(elig.get("approved_amount") or 0)
                         except:
                             pass
-            elif status == "disbursed":
-                perf["disbursed"] += 1
-                # Sum disbursed amounts from eligibilities
+            
+            # Sum disbursed amounts
+            if status == "disbursed":
                 for elig in lead.get("eligibilities", []):
                     if str(elig.get("disbursed", "")).lower() == "yes":
                         try:
                             perf["total_disbursed_amount"] += float(elig.get("disbursed_amount") or 0)
                         except:
                             pass
-            elif status == "rejected":
-                perf["rejected"] += 1
-            else:
-                # Capture any other/uncategorized statuses
-                perf["other"] += 1
     
     # Filter out agents with no leads created in the date range
     agents_with_leads = [p for p in agent_performance.values() if p["total_leads"] > 0]

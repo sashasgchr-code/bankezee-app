@@ -78,7 +78,7 @@ const DashboardStats = ({ stats, earnings = {}, showEarnings = true, totalEligib
       color: 'text-cyan-600',
       bgColor: 'bg-cyan-50',
       isAmount: true,
-      subtitle: 'Login = Yes'
+      subtitle: 'Eligible & Login = Yes'
     });
   }
 

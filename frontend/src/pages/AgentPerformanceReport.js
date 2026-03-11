@@ -371,11 +371,14 @@ const AgentPerformanceReport = () => {
                       <th className="px-3 py-3 text-center font-semibold border-b bg-slate-200">Leads</th>
                       <th className="px-3 py-3 text-center font-semibold border-b bg-blue-50">New</th>
                       <th className="px-3 py-3 text-center font-semibold border-b bg-yellow-50">Contacted</th>
-                      <th className="px-3 py-3 text-center font-semibold border-b bg-orange-50">In Progress</th>
-                      <th className="px-3 py-3 text-center font-semibold border-b bg-purple-50">Query Hold</th>
-                      <th className="px-3 py-3 text-center font-semibold border-b bg-emerald-50">Approved</th>
-                      <th className="px-3 py-3 text-center font-semibold border-b bg-teal-50">Disbursed</th>
-                      <th className="px-3 py-3 text-center font-semibold border-b bg-red-50">Rejected</th>
+                      <th className="px-3 py-3 text-center font-semibold border-b bg-orange-50">In Prog</th>
+                      <th className="px-3 py-3 text-center font-semibold border-b bg-purple-50">Q.Hold</th>
+                      <th className="px-3 py-3 text-center font-semibold border-b bg-cyan-50">Login</th>
+                      <th className="px-3 py-3 text-center font-semibold border-b bg-indigo-50">Docs</th>
+                      <th className="px-3 py-3 text-center font-semibold border-b bg-emerald-50">Appr</th>
+                      <th className="px-3 py-3 text-center font-semibold border-b bg-teal-50">Disb</th>
+                      <th className="px-3 py-3 text-center font-semibold border-b bg-red-50">Rej</th>
+                      <th className="px-3 py-3 text-center font-semibold border-b bg-gray-50">Other</th>
                       <th className="px-3 py-3 text-right font-semibold border-b bg-emerald-100">Appr. Amt</th>
                       <th className="px-3 py-3 text-right font-semibold border-b bg-teal-100">Disb. Amt</th>
                     </tr>
@@ -391,9 +394,12 @@ const AgentPerformanceReport = () => {
                         <td className="px-3 py-2 text-center bg-yellow-50/50">{agent.contacted || 0}</td>
                         <td className="px-3 py-2 text-center bg-orange-50/50">{agent.in_progress || 0}</td>
                         <td className="px-3 py-2 text-center bg-purple-50/50">{agent.query_hold || 0}</td>
+                        <td className="px-3 py-2 text-center bg-cyan-50/50">{agent.login || 0}</td>
+                        <td className="px-3 py-2 text-center bg-indigo-50/50">{agent.documents_collected || 0}</td>
                         <td className="px-3 py-2 text-center bg-emerald-50/50 text-emerald-700 font-medium">{agent.approved || 0}</td>
                         <td className="px-3 py-2 text-center bg-teal-50/50 text-teal-700 font-bold">{agent.disbursed || 0}</td>
                         <td className="px-3 py-2 text-center bg-red-50/50 text-red-700">{agent.rejected || 0}</td>
+                        <td className="px-3 py-2 text-center bg-gray-50/50">{agent.other || 0}</td>
                         <td className="px-3 py-2 text-right bg-emerald-50/50 text-emerald-800">{formatCurrency(agent.total_approved_amount)}</td>
                         <td className="px-3 py-2 text-right bg-teal-50/50 text-teal-800 font-bold">{formatCurrency(agent.total_disbursed_amount)}</td>
                       </tr>
@@ -406,9 +412,12 @@ const AgentPerformanceReport = () => {
                       <td className="px-3 py-3 text-center">{reportData.totals?.contacted || 0}</td>
                       <td className="px-3 py-3 text-center">{reportData.totals?.in_progress || 0}</td>
                       <td className="px-3 py-3 text-center">{reportData.totals?.query_hold || 0}</td>
+                      <td className="px-3 py-3 text-center">{reportData.totals?.login || 0}</td>
+                      <td className="px-3 py-3 text-center">{reportData.totals?.documents_collected || 0}</td>
                       <td className="px-3 py-3 text-center text-emerald-700">{reportData.totals?.approved || 0}</td>
                       <td className="px-3 py-3 text-center text-teal-700">{reportData.totals?.disbursed || 0}</td>
                       <td className="px-3 py-3 text-center text-red-700">{reportData.totals?.rejected || 0}</td>
+                      <td className="px-3 py-3 text-center">{reportData.totals?.other || 0}</td>
                       <td className="px-3 py-3 text-right text-emerald-800">{formatCurrency(reportData.totals?.total_approved_amount)}</td>
                       <td className="px-3 py-3 text-right text-teal-800">{formatCurrency(reportData.totals?.total_disbursed_amount)}</td>
                     </tr>

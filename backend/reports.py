@@ -479,34 +479,37 @@ async def get_rejected_cases_report(
     # Get all leads
     all_leads = await db.leads.find({}, {"_id": 0}).to_list(10000)
     
-    # Filter by date range based on LATEST activity date
+    # Filter by date range - include leads that have ANY activity in range OR were created in range
     leads_in_range = []
     for lead in all_leads:
         activities = lead.get("activities", [])
         
-        # Find the latest activity timestamp
-        latest_activity_date = None
+        # Check if any activity is in date range
+        has_activity_in_range = False
         for activity in activities:
             ts = activity.get("timestamp", "")
             if ts:
                 try:
                     activity_date = datetime.fromisoformat(ts.replace("Z", "+00:00"))
-                    if latest_activity_date is None or activity_date > latest_activity_date:
-                        latest_activity_date = activity_date
+                    if start_date <= activity_date <= end_date:
+                        has_activity_in_range = True
+                        break
                 except:
                     pass
         
-        # If no activities, use created_at as fallback
-        if latest_activity_date is None:
-            created = lead.get("created_at", "")
-            if created:
-                try:
-                    latest_activity_date = datetime.fromisoformat(created.replace("Z", "+00:00"))
-                except:
-                    pass
+        # Check if lead was created in date range
+        created_in_range = False
+        created = lead.get("created_at", "")
+        if created:
+            try:
+                created_date = datetime.fromisoformat(created.replace("Z", "+00:00"))
+                if start_date <= created_date <= end_date:
+                    created_in_range = True
+            except:
+                pass
         
-        # Check if latest activity is in date range
-        if latest_activity_date and start_date <= latest_activity_date <= end_date:
+        # Include lead if it has activity OR was created in the date range
+        if has_activity_in_range or created_in_range:
             leads_in_range.append(lead)
     
     # Get agents, partners, users for manager filtering

@@ -137,7 +137,7 @@ const RejectedCasesReport = () => {
     const headers = [
       'Lead Name', 'Mobile', 'City', 'Employment Type', 'Source', 'Status',
       'Bank', 'Eligible?', 'Eligible Amount', 'Eligible ROI', 'Not Eligible Reason',
-      'Login Done?', 'Login Rejection Reason', 'SM Name', 'SM Number',
+      'Login Done?', 'Login Rejection Reason',
       'Approval Status', 'Approved Amount', 'Approved ROI', 'Declined Reason',
       'Disbursed?', 'Disbursed Amount', 'Disbursement Rejection Reason'
     ];
@@ -148,7 +148,7 @@ const RejectedCasesReport = () => {
       if (eligibilities.length === 0) {
         rows.push([
           lead.full_name, lead.mobile, lead.city, lead.employment_type, lead.source, lead.status,
-          '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''
+          '', '', '', '', '', '', '', '', '', '', '', '', '', ''
         ]);
       } else {
         eligibilities.forEach((elig, idx) => {
@@ -166,8 +166,6 @@ const RejectedCasesReport = () => {
             elig.not_eligible_reason || '',
             elig.login_done || '',
             elig.login_rejection_reason || '',
-            elig.sm_name || '',
-            elig.sm_number || '',
             elig.approval_status || '',
             elig.approved_amount || '',
             elig.approved_roi || '',

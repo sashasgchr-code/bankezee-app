@@ -476,39 +476,37 @@ async def get_rejected_cases_report(
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
     
-    # Get all leads in date range (by creation date or activity)
+    # Get all leads
     all_leads = await db.leads.find({}, {"_id": 0}).to_list(10000)
     
-    # Filter by date range (leads created or with activity in range)
+    # Filter by date range based on LATEST activity date
     leads_in_range = []
     for lead in all_leads:
-        created = lead.get("created_at", "")
-        in_range = False
+        activities = lead.get("activities", [])
         
-        # Check if created in date range
-        if created:
-            try:
-                created_date = datetime.fromisoformat(created.replace("Z", "+00:00"))
-                if start_date <= created_date <= end_date:
-                    in_range = True
-            except:
-                pass
+        # Find the latest activity timestamp
+        latest_activity_date = None
+        for activity in activities:
+            ts = activity.get("timestamp", "")
+            if ts:
+                try:
+                    activity_date = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                    if latest_activity_date is None or activity_date > latest_activity_date:
+                        latest_activity_date = activity_date
+                except:
+                    pass
         
-        # Also check if any activity in date range
-        if not in_range:
-            activities = lead.get("activities", [])
-            for activity in activities:
-                ts = activity.get("timestamp", "")
-                if ts:
-                    try:
-                        activity_date = datetime.fromisoformat(ts.replace("Z", "+00:00"))
-                        if start_date <= activity_date <= end_date:
-                            in_range = True
-                            break
-                    except:
-                        pass
+        # If no activities, use created_at as fallback
+        if latest_activity_date is None:
+            created = lead.get("created_at", "")
+            if created:
+                try:
+                    latest_activity_date = datetime.fromisoformat(created.replace("Z", "+00:00"))
+                except:
+                    pass
         
-        if in_range:
+        # Check if latest activity is in date range
+        if latest_activity_date and start_date <= latest_activity_date <= end_date:
             leads_in_range.append(lead)
     
     # Get agents, partners, users for manager filtering

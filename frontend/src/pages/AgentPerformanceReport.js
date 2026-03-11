@@ -171,6 +171,73 @@ const AgentPerformanceReport = () => {
     toast.success('Report exported successfully');
   };
 
+  const exportToPDF = async () => {
+    if (!reportData?.agents?.length || !reportRef.current) {
+      toast.error('No data to export');
+      return;
+    }
+
+    setExporting(true);
+    toast.info('Generating PDF...');
+
+    try {
+      // Capture the report section
+      const element = reportRef.current;
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+
+      // Calculate PDF dimensions (landscape for wide tables)
+      const pdfWidth = imgWidth > imgHeight ? 297 : 210; // A4 landscape or portrait
+      const pdfHeight = imgWidth > imgHeight ? 210 : 297;
+      
+      const pdf = new jsPDF({
+        orientation: imgWidth > imgHeight ? 'landscape' : 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      // Add title
+      pdf.setFontSize(16);
+      pdf.setTextColor(30, 41, 59);
+      pdf.text('Agent Performance Report', 14, 15);
+      
+      // Add date range
+      pdf.setFontSize(10);
+      pdf.setTextColor(100, 116, 139);
+      const dateRange = getDateRange();
+      pdf.text(`Period: ${dateRange.from} to ${dateRange.to}`, 14, 22);
+      pdf.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 27);
+
+      // Calculate image dimensions to fit on page
+      const pageWidth = pdfWidth - 28; // margins
+      const pageHeight = pdfHeight - 40; // margins + header
+      const ratio = Math.min(pageWidth / (imgWidth * 0.264583), pageHeight / (imgHeight * 0.264583));
+      
+      const scaledWidth = imgWidth * 0.264583 * ratio;
+      const scaledHeight = imgHeight * 0.264583 * ratio;
+
+      // Add the captured image
+      pdf.addImage(imgData, 'PNG', 14, 32, scaledWidth, scaledHeight);
+
+      // Save the PDF
+      pdf.save(`Agent_Performance_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+      toast.success('PDF exported successfully');
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast.error('Failed to export PDF');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const formatCurrency = (amount) => {
     if (!amount) return '₹0';
     return `₹${parseFloat(amount).toLocaleString('en-IN')}`;

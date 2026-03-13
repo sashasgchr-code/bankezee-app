@@ -148,8 +148,15 @@ async def get_leads(
     
     leads = await db.leads.find(query, list_projection).sort("created_at", -1).to_list(1000)
     
-    # For admin/ops, add duplicate detection based on mobile number
+    # For admin/ops, add duplicate detection and agent/partner names
     if current_user.role in ["admin", "operations"]:
+        # Get all agents and partners for name lookup
+        agents = await db.agents.find({}, {"_id": 0, "id": 1, "full_name": 1, "name": 1}).to_list(1000)
+        partners = await db.partners.find({}, {"_id": 0, "id": 1, "full_name": 1, "name": 1}).to_list(1000)
+        
+        agents_map = {a["id"]: a.get("full_name") or a.get("name", "") for a in agents}
+        partners_map = {p["id"]: p.get("full_name") or p.get("name", "") for p in partners}
+        
         # Build a map of mobile numbers to lead info
         mobile_to_leads = {}
         for lead in leads:
@@ -164,8 +171,19 @@ async def get_leads(
                     "status": lead.get("status")
                 })
         
-        # Add duplicate info to each lead
+        # Add duplicate info and agent/partner names to each lead
         for lead in leads:
+            # Add agent/partner name
+            source = lead.get("source", "")
+            source_id = lead.get("source_id")
+            if source == "agent" and source_id:
+                lead["agent_name"] = agents_map.get(source_id, "")
+            elif source == "partner" and source_id:
+                lead["agent_name"] = partners_map.get(source_id, "")
+            else:
+                lead["agent_name"] = ""
+            
+            # Add duplicate detection
             mobile = lead.get("mobile", "").strip()
             if mobile and mobile in mobile_to_leads and len(mobile_to_leads[mobile]) > 1:
                 # Find other entries with the same mobile

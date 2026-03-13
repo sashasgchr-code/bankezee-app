@@ -2782,6 +2782,16 @@ const AdminDashboard = () => {
                             <Button 
                               variant="outline" 
                               size="sm" 
+                              className="text-primary border-primary/30 hover:bg-primary/10"
+                              onClick={() => openEditUserModal(agent, 'agent')}
+                              data-testid={`edit-agent-${agent.id}`}
+                            >
+                              <Pencil className="w-4 h-4 mr-1" />
+                              Edit
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
                               className="text-blue-600 border-blue-200 hover:bg-blue-50"
                               onClick={() => openMappingModal(agent, 'agent')}
                               data-testid={`map-agent-${agent.id}`}

@@ -2,13 +2,17 @@
 export const LOAN_TYPES = [
   { value: 'reduce_home_loan_emi', label: 'Reduce Home Loan EMI' },
   { value: 'merge_multiple_loans', label: 'Merge Multiple Loans' },
-  { value: 'top_up_loan', label: 'Top-Up Loan' },
+  { value: 'top_up_pl', label: 'Top Up PL' },
+  { value: 'top_up_hl', label: 'Top Up HL' },
   { value: 'new_personal_loan', label: 'New Personal Loan' },
   { value: 'new_home_loan', label: 'New Home Loan' },
   { value: 'business_loan', label: 'Business Loan' },
-  { value: 'vehicle_loan', label: 'Vehicle Loan' },
-  { value: 'balance_transfer', label: 'Balance Transfer' },
-  { value: 'balance_transfer_topup', label: 'Balance Transfer+Top-Up' }
+  { value: 'new_vehicle_loan', label: 'New Vehicle Loan' },
+  { value: 'used_vehicle_loan', label: 'Used Vehicle Loan' },
+  { value: 'balance_transfer_pl', label: 'Balance Transfer-PL' },
+  { value: 'balance_transfer_hl', label: 'Balance Transfer-HL' },
+  { value: 'balance_transfer_topup_pl', label: 'Balance Transfer+Top Up PL' },
+  { value: 'balance_transfer_topup_hl', label: 'Balance Transfer+Top Up HL' }
 ];
 
 // Time period filters

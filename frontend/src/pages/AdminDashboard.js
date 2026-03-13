@@ -333,6 +333,27 @@ const AdminDashboard = () => {
   const [exportingPDF, setExportingPDF] = useState(false);
   const dashboardRef = useRef(null);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+  // Edit User Modal
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [editUserType, setEditUserType] = useState('');
+  const [editUserData, setEditUserData] = useState({
+    full_name: '',
+    email: '',
+    phone: '',
+    city: '',
+    pan_number: '',
+    occupation: '',
+    bank_details: {
+      bank_name: '',
+      account_holder_name: '',
+      account_number: '',
+      ifsc_code: ''
+    },
+    manager_id: '',
+    team_leader_id: ''
+  });
+  const [savingUserEdit, setSavingUserEdit] = useState(false);
 
   const toggleUserDetails = (userId) => {
     setExpandedUser(expandedUser === userId ? null : userId);

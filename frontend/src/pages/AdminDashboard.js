@@ -2501,16 +2501,28 @@ const AdminDashboard = () => {
                             <p className="text-sm text-slate-600">{ops.email}</p>
                             {ops.phone && <p className="text-sm text-slate-500">{ops.phone}</p>}
                           </div>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="text-red-500 border-red-200 hover:bg-red-50"
-                            onClick={() => handleDeleteUser(ops.id, 'operations')}
-                            disabled={deletingUser === ops.id}
-                          >
-                            <Trash2 className="w-4 h-4 mr-1" />
-                            {deletingUser === ops.id ? 'Deleting...' : 'Delete'}
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-primary border-primary/30 hover:bg-primary/10"
+                              onClick={() => openEditUserModal(ops, 'operations')}
+                              data-testid={`edit-ops-${ops.id}`}
+                            >
+                              <Pencil className="w-4 h-4 mr-1" />
+                              Edit
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-red-500 border-red-200 hover:bg-red-50"
+                              onClick={() => handleDeleteUser(ops.id, 'operations')}
+                              disabled={deletingUser === ops.id}
+                            >
+                              <Trash2 className="w-4 h-4 mr-1" />
+                              {deletingUser === ops.id ? 'Deleting...' : 'Delete'}
+                            </Button>
+                          </div>
                         </div>
                         <div className="grid grid-cols-3 md:grid-cols-6 gap-3 text-center">
                           <div className="bg-slate-50 p-2 rounded">

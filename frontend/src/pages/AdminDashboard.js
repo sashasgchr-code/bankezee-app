@@ -2604,6 +2604,16 @@ const AdminDashboard = () => {
                                 variant="outline" 
                                 size="sm" 
                                 className="text-blue-600 border-blue-200 hover:bg-blue-100"
+                                onClick={() => openEditUserModal(manager, 'manager')}
+                                data-testid={`edit-manager-${manager.id}`}
+                              >
+                                <Pencil className="w-4 h-4 mr-1" />
+                                Edit
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="text-blue-600 border-blue-200 hover:bg-blue-100"
                                 onClick={() => {
                                   setSelectedUserForPassword(manager);
                                   setNewPasswordForUser('');

@@ -582,3 +582,176 @@ async def create_team_leader(
         "team_leader_id": user_id,
         "email": request.email
     }
+
+
+
+class UpdateUserRequest(BaseModel):
+    full_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    city: Optional[str] = None
+    pan_number: Optional[str] = None
+    occupation: Optional[str] = None  # For partners
+    bank_details: Optional[dict] = None
+    manager_id: Optional[str] = None
+    team_leader_id: Optional[str] = None
+
+
+@router.put("/admin/users/{user_id}")
+async def update_user(
+    user_id: str,
+    user_type: str,  # 'operations', 'manager', 'team_leader', 'agent', 'partner'
+    request: UpdateUserRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Update user data - Admin only"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Build update dict with only provided fields
+    update_data = {}
+    if request.full_name is not None:
+        update_data["full_name"] = request.full_name
+    if request.email is not None:
+        update_data["email"] = request.email
+    if request.phone is not None:
+        update_data["phone"] = request.phone
+    if request.city is not None:
+        update_data["city"] = request.city
+    if request.pan_number is not None:
+        update_data["pan_number"] = request.pan_number
+    if request.bank_details is not None:
+        update_data["bank_details"] = request.bank_details
+    if request.manager_id is not None:
+        update_data["manager_id"] = request.manager_id
+    if request.team_leader_id is not None:
+        update_data["team_leader_id"] = request.team_leader_id
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    if user_type == "operations":
+        # Update in users collection only
+        result = await db.users.update_one(
+            {"id": user_id, "role": "operations"},
+            {"$set": update_data}
+        )
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Operations user not found")
+            
+    elif user_type == "manager":
+        # Update in users collection only
+        result = await db.users.update_one(
+            {"id": user_id, "role": "manager"},
+            {"$set": update_data}
+        )
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Manager not found")
+            
+    elif user_type == "team_leader":
+        # Update in users collection only
+        result = await db.users.update_one(
+            {"id": user_id, "role": "team_leader"},
+            {"$set": update_data}
+        )
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Team Leader not found")
+            
+    elif user_type == "agent":
+        # For agents, update both agents collection and users collection
+        # Map some field names for agents collection
+        agent_update = {}
+        if request.full_name is not None:
+            agent_update["full_name"] = request.full_name
+        if request.email is not None:
+            agent_update["email"] = request.email
+        if request.phone is not None:
+            agent_update["phone"] = request.phone
+        if request.city is not None:
+            agent_update["city"] = request.city
+        if request.pan_number is not None:
+            agent_update["pan_number"] = request.pan_number
+        if request.bank_details is not None:
+            agent_update["bank_details"] = request.bank_details
+        if request.manager_id is not None:
+            agent_update["manager_id"] = request.manager_id
+        if request.team_leader_id is not None:
+            agent_update["team_leader_id"] = request.team_leader_id
+        agent_update["updated_at"] = datetime.now(timezone.utc).isoformat()
+        
+        result = await db.agents.update_one(
+            {"id": user_id},
+            {"$set": agent_update}
+        )
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        # Also update users collection
+        user_update = {}
+        if request.full_name is not None:
+            user_update["full_name"] = request.full_name
+        if request.email is not None:
+            user_update["email"] = request.email
+        if request.phone is not None:
+            user_update["phone"] = request.phone
+        if request.city is not None:
+            user_update["city"] = request.city
+        user_update["updated_at"] = datetime.now(timezone.utc).isoformat()
+        
+        await db.users.update_one(
+            {"id": user_id, "role": "sales_agent"},
+            {"$set": user_update}
+        )
+            
+    elif user_type == "partner":
+        # For partners, update both partners collection and users collection
+        partner_update = {}
+        if request.full_name is not None:
+            partner_update["name"] = request.full_name  # Partners use 'name' field
+        if request.email is not None:
+            partner_update["email"] = request.email
+        if request.phone is not None:
+            partner_update["mobile"] = request.phone  # Partners use 'mobile' field
+        if request.city is not None:
+            partner_update["city"] = request.city
+        if request.pan_number is not None:
+            partner_update["pan_number"] = request.pan_number
+        if request.occupation is not None:
+            partner_update["occupation"] = request.occupation
+        if request.bank_details is not None:
+            partner_update["bank_details"] = request.bank_details
+        if request.manager_id is not None:
+            partner_update["manager_id"] = request.manager_id
+        if request.team_leader_id is not None:
+            partner_update["team_leader_id"] = request.team_leader_id
+        partner_update["updated_at"] = datetime.now(timezone.utc).isoformat()
+        
+        result = await db.partners.update_one(
+            {"id": user_id},
+            {"$set": partner_update}
+        )
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Partner not found")
+        
+        # Also update users collection
+        user_update = {}
+        if request.full_name is not None:
+            user_update["full_name"] = request.full_name
+        if request.email is not None:
+            user_update["email"] = request.email
+        if request.phone is not None:
+            user_update["phone"] = request.phone
+        if request.city is not None:
+            user_update["city"] = request.city
+        user_update["updated_at"] = datetime.now(timezone.utc).isoformat()
+        
+        await db.users.update_one(
+            {"id": user_id, "role": "partner"},
+            {"$set": user_update}
+        )
+    else:
+        raise HTTPException(status_code=400, detail="Invalid user_type. Must be 'operations', 'manager', 'team_leader', 'agent', or 'partner'")
+    
+    return {"message": f"{user_type.capitalize()} updated successfully", "user_id": user_id}

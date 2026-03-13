@@ -144,13 +144,17 @@ const PartnerLeadCreate = () => {
                   <SelectContent>
                     <SelectItem value="reduce_home_loan_emi">Reduce Home Loan EMI</SelectItem>
                     <SelectItem value="merge_multiple_loans">Merge Multiple Loans</SelectItem>
-                    <SelectItem value="top_up_loan">Top-Up Loan</SelectItem>
+                    <SelectItem value="top_up_pl">Top Up PL</SelectItem>
+                    <SelectItem value="top_up_hl">Top Up HL</SelectItem>
                     <SelectItem value="new_personal_loan">New Personal Loan</SelectItem>
                     <SelectItem value="new_home_loan">New Home Loan</SelectItem>
                     <SelectItem value="business_loan">Business Loan</SelectItem>
-                    <SelectItem value="vehicle_loan">Vehicle Loan</SelectItem>
-                    <SelectItem value="balance_transfer">Balance Transfer</SelectItem>
-                    <SelectItem value="balance_transfer_topup">Balance Transfer+Top-Up</SelectItem>
+                    <SelectItem value="new_vehicle_loan">New Vehicle Loan</SelectItem>
+                    <SelectItem value="used_vehicle_loan">Used Vehicle Loan</SelectItem>
+                    <SelectItem value="balance_transfer_pl">Balance Transfer-PL</SelectItem>
+                    <SelectItem value="balance_transfer_hl">Balance Transfer-HL</SelectItem>
+                    <SelectItem value="balance_transfer_topup_pl">Balance Transfer+Top Up PL</SelectItem>
+                    <SelectItem value="balance_transfer_topup_hl">Balance Transfer+Top Up HL</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

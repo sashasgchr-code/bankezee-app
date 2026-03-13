@@ -458,7 +458,7 @@ const RejectedCasesReport = () => {
                       <div className="flex items-center gap-2">
                         <AlertTriangle className="h-5 w-5 text-red-500" />
                         <span className="font-bold text-red-700 text-lg">{lead.full_name}</span>
-                        <span className="text-slate-500">- {lead.mobile}</span>
+                        <span className="text-slate-500">- <MaskedField value={lead.mobile} type="mobile" /></span>
                       </div>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(lead.status)}`}>
                         {lead.status?.replace(/_/g, ' ').toUpperCase()}

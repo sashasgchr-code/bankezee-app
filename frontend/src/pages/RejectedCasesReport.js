@@ -149,18 +149,20 @@ const RejectedCasesReport = () => {
     ];
 
     const rows = [];
+    const shouldMask = !canUnmask();
     reportData.leads.forEach(lead => {
       const eligibilities = lead.eligibilities || [];
+      const mobileDisplay = shouldMask ? maskMobile(lead.mobile) : lead.mobile;
       if (eligibilities.length === 0) {
         rows.push([
-          lead.full_name, lead.mobile, lead.city, lead.employment_type, lead.source, lead.status,
+          lead.full_name, mobileDisplay, lead.city, lead.employment_type, lead.source, lead.status,
           '', '', '', '', '', '', '', '', '', '', '', '', '', ''
         ]);
       } else {
         eligibilities.forEach((elig, idx) => {
           rows.push([
             idx === 0 ? lead.full_name : '',
-            idx === 0 ? lead.mobile : '',
+            idx === 0 ? mobileDisplay : '',
             idx === 0 ? lead.city : '',
             idx === 0 ? lead.employment_type : '',
             idx === 0 ? lead.source : '',

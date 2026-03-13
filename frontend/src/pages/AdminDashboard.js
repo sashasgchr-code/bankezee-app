@@ -2869,6 +2869,16 @@ const AdminDashboard = () => {
                             <Button 
                               variant="outline" 
                               size="sm" 
+                              className="text-primary border-primary/30 hover:bg-primary/10"
+                              onClick={() => openEditUserModal(partner, 'partner')}
+                              data-testid={`edit-partner-${partner.id}`}
+                            >
+                              <Pencil className="w-4 h-4 mr-1" />
+                              Edit
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
                               className="text-blue-600 border-blue-200 hover:bg-blue-50"
                               onClick={() => openMappingModal(partner, 'partner')}
                               data-testid={`map-partner-${partner.id}`}

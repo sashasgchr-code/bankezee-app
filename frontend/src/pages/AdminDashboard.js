@@ -2694,6 +2694,16 @@ const AdminDashboard = () => {
                                 variant="outline" 
                                 size="sm" 
                                 className="text-purple-600 border-purple-200 hover:bg-purple-100"
+                                onClick={() => openEditUserModal(tl, 'team_leader')}
+                                data-testid={`edit-tl-${tl.id}`}
+                              >
+                                <Pencil className="w-4 h-4 mr-1" />
+                                Edit
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="text-purple-600 border-purple-200 hover:bg-purple-100"
                                 onClick={() => openTLMappingModal(tl)}
                                 data-testid={`map-tl-${tl.id}`}
                               >

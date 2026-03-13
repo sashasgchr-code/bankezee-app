@@ -699,6 +699,15 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
   - Files modified: `/app/backend/reports.py`, `/app/frontend/src/pages/AgentPerformanceReport.js`
 
 ### 2025-12-10 (Current Session)
+- **Edit User Feature (Admin Only):**
+  - ✅ Added Edit button for all user types (Operations, Managers, Team Leaders, Agents, Partners) in Admin Users tab
+  - ✅ Edit modal with sections: Basic Information (Name, Email, Phone, City)
+  - ✅ KYC Details (PAN Number, Occupation for partners) - only for agents/partners
+  - ✅ Bank Details (Bank Name, Account Holder, Account Number, IFSC) - only for agents/partners
+  - ✅ Role Mapping (Manager, Team Leader dropdowns) - for team leaders/agents/partners
+  - ✅ Backend endpoint: PUT /api/auth/admin/users/{user_id}?user_type={type}
+  - ✅ Verified: Only Admin role has edit access, Operations role does NOT have this feature
+
 - **UI/UX Improvements for Charts:**
   - ✅ Dashboard pie charts now display absolute numbers instead of percentages (e.g., "New: 7" instead of "35%")
   - ✅ "Loans by Type" bar charts now show value labels directly on bars

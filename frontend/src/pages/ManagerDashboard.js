@@ -298,7 +298,7 @@ const ManagerDashboard = () => {
                         <div className="flex items-center gap-4 mt-1 text-sm text-slate-600">
                           <span className="flex items-center gap-1">
                             <Phone className="w-3 h-3" />
-                            {lead.mobile}
+                            <MaskedText value={lead.mobile} type="mobile" />
                           </span>
                           <span className="flex items-center gap-1">
                             <MapPin className="w-3 h-3" />

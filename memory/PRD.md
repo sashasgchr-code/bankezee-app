@@ -31,6 +31,10 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 - [x] Partner registration with KYC and bank details
 - [x] Admin approval workflow for agents/partners
 - [x] Operations Team user creation
+- [x] **NEW: Edit User Data (Admin Only)**
+  - Admin can edit all user types (Operations, Managers, Team Leaders, Agents, Partners)
+  - Editable fields: Basic info, Bank details, KYC, Role mappings
+  - Operations role does NOT have edit access
 - [x] **NEW: Hierarchical User Mapping**
   - Admin can assign Team Leaders to Managers
   - Admin can map Agents/Partners to Manager (mandatory) and Team Leader (optional)

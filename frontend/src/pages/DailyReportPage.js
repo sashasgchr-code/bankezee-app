@@ -226,11 +226,10 @@ const DailyReportPage = () => {
       pdf.setTextColor(0, 0, 0);
       pdf.text('Detailed Lead Report', margin, 20);
       
-      // Leads table - simplified columns (mask data for non-admin/ops)
-      const shouldMask = !canUnmask();
+      // Leads table - simplified columns (no contact details)
       const leadsTableData = reportData.leads.map(lead => [
         lead.full_name || '-',
-        shouldMask ? maskMobile(lead.mobile) : (lead.mobile || '-'),
+        lead.city || '-',
         lead.loan_type || '-',
         (lead.current_status || 'new').replace(/_/g, ' '),
         lead.source_info?.name || '-',
@@ -240,7 +239,7 @@ const DailyReportPage = () => {
       
       autoTable(pdf, {
         startY: 25,
-        head: [['Name', 'Mobile', 'Loan Type', 'Status', 'Agent/Partner', 'Approved', 'Disbursed']],
+        head: [['Name', 'City', 'Loan Type', 'Status', 'Agent/Partner', 'Approved', 'Disbursed']],
         body: leadsTableData,
         theme: 'grid',
         headStyles: { fillColor: [34, 175, 71], fontSize: 8 },

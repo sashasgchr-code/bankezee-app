@@ -194,6 +194,10 @@ const PartnerDashboard = () => {
                     >
                       <div>
                         <p className="font-medium">{lead.full_name}</p>
+                        <p className="text-sm text-slate-600 flex items-center gap-1">
+                          <Phone className="w-3 h-3" />
+                          <MaskedField value={lead.mobile} type="mobile" allowUnmask={true} />
+                        </p>
                         <p className="text-xs text-slate-500">{new Date(lead.created_at).toLocaleDateString()}</p>
                       </div>
                       <div className="flex items-center gap-2">

@@ -5,11 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { MaskedField } from '@/components/ui/masked-field';
 import api from '@/utils/api';
 import { toast } from 'sonner';
 import { FileText, Download, ArrowLeft, Calendar, Users, Filter, XCircle, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { maskMobile, canUnmask } from '@/utils/masking';
 
 const RejectedCasesReport = () => {
   const navigate = useNavigate();

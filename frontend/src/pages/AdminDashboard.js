@@ -1885,6 +1885,230 @@ const AdminDashboard = () => {
         </div>
       )}
 
+      {/* Edit User Modal */}
+      {showEditUserModal && editingUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto py-4">
+          <Card className="w-full max-w-2xl mx-4 my-auto">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Pencil className="w-5 h-5 text-primary" />
+                Edit {editUserType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+              </CardTitle>
+              <CardDescription>
+                Update details for {editingUser.full_name || editingUser.name} ({editingUser.email})
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 max-h-[70vh] overflow-y-auto">
+              {/* Basic Information */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-slate-700 flex items-center gap-2">
+                  <User className="w-4 h-4" /> Basic Information
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 block mb-1">Full Name <span className="text-red-500">*</span></label>
+                    <Input
+                      placeholder="Enter full name"
+                      value={editUserData.full_name}
+                      onChange={(e) => setEditUserData({ ...editUserData, full_name: e.target.value })}
+                      data-testid="edit-user-name"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 block mb-1">Email <span className="text-red-500">*</span></label>
+                    <Input
+                      type="email"
+                      placeholder="user@example.com"
+                      value={editUserData.email}
+                      onChange={(e) => setEditUserData({ ...editUserData, email: e.target.value })}
+                      data-testid="edit-user-email"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 block mb-1">Phone <span className="text-red-500">*</span></label>
+                    <Input
+                      placeholder="Phone number"
+                      value={editUserData.phone}
+                      onChange={(e) => setEditUserData({ ...editUserData, phone: e.target.value })}
+                      data-testid="edit-user-phone"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 block mb-1">City</label>
+                    <Input
+                      placeholder="City"
+                      value={editUserData.city}
+                      onChange={(e) => setEditUserData({ ...editUserData, city: e.target.value })}
+                      data-testid="edit-user-city"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* KYC Details - Only for agents/partners */}
+              {(editUserType === 'agent' || editUserType === 'partner') && (
+                <div className="space-y-3">
+                  <h4 className="font-medium text-slate-700 flex items-center gap-2">
+                    <CreditCard className="w-4 h-4" /> KYC Details
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 block mb-1">PAN Number</label>
+                      <Input
+                        placeholder="ABCDE1234F"
+                        value={editUserData.pan_number}
+                        onChange={(e) => setEditUserData({ ...editUserData, pan_number: e.target.value.toUpperCase() })}
+                        data-testid="edit-user-pan"
+                      />
+                    </div>
+                    {editUserType === 'partner' && (
+                      <div>
+                        <label className="text-sm font-medium text-slate-700 block mb-1">Occupation</label>
+                        <Input
+                          placeholder="Occupation"
+                          value={editUserData.occupation}
+                          onChange={(e) => setEditUserData({ ...editUserData, occupation: e.target.value })}
+                          data-testid="edit-user-occupation"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Bank Details - Only for agents/partners */}
+              {(editUserType === 'agent' || editUserType === 'partner') && (
+                <div className="space-y-3">
+                  <h4 className="font-medium text-slate-700 flex items-center gap-2">
+                    <Building2 className="w-4 h-4" /> Bank Details
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 block mb-1">Bank Name</label>
+                      <Input
+                        placeholder="Bank name"
+                        value={editUserData.bank_details.bank_name}
+                        onChange={(e) => setEditUserData({ 
+                          ...editUserData, 
+                          bank_details: { ...editUserData.bank_details, bank_name: e.target.value }
+                        })}
+                        data-testid="edit-user-bank-name"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 block mb-1">Account Holder Name</label>
+                      <Input
+                        placeholder="Account holder name"
+                        value={editUserData.bank_details.account_holder_name}
+                        onChange={(e) => setEditUserData({ 
+                          ...editUserData, 
+                          bank_details: { ...editUserData.bank_details, account_holder_name: e.target.value }
+                        })}
+                        data-testid="edit-user-account-holder"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 block mb-1">Account Number</label>
+                      <Input
+                        placeholder="Account number"
+                        value={editUserData.bank_details.account_number}
+                        onChange={(e) => setEditUserData({ 
+                          ...editUserData, 
+                          bank_details: { ...editUserData.bank_details, account_number: e.target.value }
+                        })}
+                        data-testid="edit-user-account-number"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 block mb-1">IFSC Code</label>
+                      <Input
+                        placeholder="IFSC code"
+                        value={editUserData.bank_details.ifsc_code}
+                        onChange={(e) => setEditUserData({ 
+                          ...editUserData, 
+                          bank_details: { ...editUserData.bank_details, ifsc_code: e.target.value.toUpperCase() }
+                        })}
+                        data-testid="edit-user-ifsc"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Role Mapping - For team leaders, agents, partners */}
+              {(editUserType === 'team_leader' || editUserType === 'agent' || editUserType === 'partner') && (
+                <div className="space-y-3">
+                  <h4 className="font-medium text-slate-700 flex items-center gap-2">
+                    <UserCog className="w-4 h-4" /> Role Mapping
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 block mb-1">Manager</label>
+                      <Select 
+                        value={editUserData.manager_id || 'none'} 
+                        onValueChange={(v) => setEditUserData({ ...editUserData, manager_id: v === 'none' ? '' : v })}
+                      >
+                        <SelectTrigger data-testid="edit-user-manager">
+                          <SelectValue placeholder="Select Manager" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          {allManagers.map(m => (
+                            <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {(editUserType === 'agent' || editUserType === 'partner') && (
+                      <div>
+                        <label className="text-sm font-medium text-slate-700 block mb-1">Team Leader</label>
+                        <Select 
+                          value={editUserData.team_leader_id || 'none'} 
+                          onValueChange={(v) => setEditUserData({ ...editUserData, team_leader_id: v === 'none' ? '' : v })}
+                        >
+                          <SelectTrigger data-testid="edit-user-teamleader">
+                            <SelectValue placeholder="Select Team Leader" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
+                            {allTeamLeaders
+                              .filter(tl => !editUserData.manager_id || tl.manager_id === editUserData.manager_id)
+                              .map(tl => (
+                                <SelectItem key={tl.id} value={tl.id}>{tl.full_name}</SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                        {editUserData.manager_id && allTeamLeaders.filter(tl => tl.manager_id === editUserData.manager_id).length === 0 && (
+                          <p className="text-xs text-amber-600 mt-1">No team leaders under selected manager</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-4 border-t">
+                <Button 
+                  onClick={() => { setShowEditUserModal(false); setEditingUser(null); }} 
+                  variant="outline" 
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleEditUserSubmit} 
+                  className="flex-1 bg-primary"
+                  disabled={savingUserEdit || !editUserData.full_name || !editUserData.email || !editUserData.phone}
+                  data-testid="save-edit-user-btn"
+                >
+                  {savingUserEdit ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <div className="px-6 md:px-12 lg:px-24 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full max-w-lg grid-cols-3 mb-6">

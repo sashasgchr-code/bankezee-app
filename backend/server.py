@@ -38,6 +38,11 @@ db = client[os.environ.get('DB_NAME', 'test_database')]
 app = FastAPI(title="Bankezee CRM API")
 api_router = APIRouter(prefix="/api")
 
+# Health check endpoint for Kubernetes probes - MUST be at root level
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "service": "bankezee-crm-api"}
+
 @api_router.get("/")
 async def root():
     return {"message": "Bankezee CRM API v1.0", "status": "running"}

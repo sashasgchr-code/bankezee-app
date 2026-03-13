@@ -9,18 +9,21 @@ import { maskMobile, maskEmail, canUnmask } from '@/utils/masking';
  * @param {string} type - Type of data: 'mobile' or 'email'
  * @param {string} className - Additional CSS classes
  * @param {boolean} showToggle - Whether to show the toggle button (respects role permissions)
+ * @param {boolean} allowUnmask - Override: force allow unmask (e.g., for own leads)
  */
-export const MaskedField = ({ value, type = 'mobile', className = '', showToggle = true }) => {
+export const MaskedField = ({ value, type = 'mobile', className = '', showToggle = true, allowUnmask = null }) => {
   const [isUnmasked, setIsUnmasked] = useState(false);
-  const allowUnmask = canUnmask();
+  
+  // If allowUnmask is explicitly set, use it; otherwise fall back to role-based check
+  const canUserUnmask = allowUnmask !== null ? allowUnmask : canUnmask();
 
   if (!value) return <span className={className}>-</span>;
 
   const maskedValue = type === 'email' ? maskEmail(value) : maskMobile(value);
-  const displayValue = (isUnmasked && allowUnmask) ? value : maskedValue;
+  const displayValue = (isUnmasked && canUserUnmask) ? value : maskedValue;
 
   // If user can't unmask, just show masked value without toggle
-  if (!allowUnmask || !showToggle) {
+  if (!canUserUnmask || !showToggle) {
     return <span className={className}>{maskedValue}</span>;
   }
 

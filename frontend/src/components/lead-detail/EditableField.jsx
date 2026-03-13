@@ -1,5 +1,6 @@
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MaskedField } from '@/components/ui/masked-field';
 
 export const EditableField = ({ 
   label, 
@@ -9,7 +10,9 @@ export const EditableField = ({
   type = 'text',
   placeholder = '',
   className = '',
-  colSpan = 1
+  colSpan = 1,
+  masked = false,  // New prop to enable masking
+  maskType = 'mobile'  // 'mobile' or 'email'
 }) => {
   const colSpanClass = colSpan === 2 ? 'col-span-2' : colSpan === 3 ? 'col-span-3' : '';
   
@@ -24,6 +27,8 @@ export const EditableField = ({
           className={`h-9 bg-white ${className}`}
           placeholder={placeholder}
         />
+      ) : masked ? (
+        <MaskedField value={value} type={maskType} className="font-medium" />
       ) : (
         <p className="font-medium">{value || '-'}</p>
       )}

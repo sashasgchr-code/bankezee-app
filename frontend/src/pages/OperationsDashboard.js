@@ -706,6 +706,10 @@ const OperationsDashboard = () => {
                       <p className="text-sm text-slate-600">{lead.mobile} | {lead.city}</p>
                       <p className="text-xs text-slate-500 mt-1">
                         {new Date(lead.created_at).toLocaleDateString()}
+                        {lead.agent_name && <span className="ml-2 text-blue-600">• {lead.agent_name}</span>}
+                        {lead.additional_data?.loan_amount_required && (
+                          <span className="ml-2 text-green-600">• ₹{parseInt(lead.additional_data.loan_amount_required).toLocaleString('en-IN')}</span>
+                        )}
                       </p>
                       {/* Duplicate Warning */}
                       {lead.has_duplicates && lead.duplicate_entries?.length > 0 && (

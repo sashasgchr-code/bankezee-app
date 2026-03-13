@@ -226,10 +226,11 @@ const DailyReportPage = () => {
       pdf.setTextColor(0, 0, 0);
       pdf.text('Detailed Lead Report', margin, 20);
       
-      // Leads table - simplified columns
+      // Leads table - simplified columns (mask data for non-admin/ops)
+      const shouldMask = !canUnmask();
       const leadsTableData = reportData.leads.map(lead => [
         lead.full_name || '-',
-        lead.mobile || '-',
+        shouldMask ? maskMobile(lead.mobile) : (lead.mobile || '-'),
         lead.loan_type || '-',
         (lead.current_status || 'new').replace(/_/g, ' '),
         lead.source_info?.name || '-',

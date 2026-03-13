@@ -484,6 +484,76 @@ const AdminDashboard = () => {
     }
   };
 
+  // Open Edit User Modal
+  const openEditUserModal = (user, userType) => {
+    setEditingUser(user);
+    setEditUserType(userType);
+    
+    // Map user data to form fields based on user type
+    const bankDetails = user.bank_details || {};
+    setEditUserData({
+      full_name: user.full_name || user.name || '',
+      email: user.email || '',
+      phone: user.phone || user.mobile || '',
+      city: user.city || '',
+      pan_number: user.pan_number || '',
+      occupation: user.occupation || '',
+      bank_details: {
+        bank_name: bankDetails.bank_name || '',
+        account_holder_name: bankDetails.account_holder_name || '',
+        account_number: bankDetails.account_number || '',
+        ifsc_code: bankDetails.ifsc_code || ''
+      },
+      manager_id: user.manager_id || '',
+      team_leader_id: user.team_leader_id || ''
+    });
+    
+    setShowEditUserModal(true);
+  };
+
+  // Handle Edit User Submit
+  const handleEditUserSubmit = async () => {
+    setSavingUserEdit(true);
+    try {
+      // Prepare the payload - only include fields that should be updated
+      const payload = {
+        full_name: editUserData.full_name,
+        email: editUserData.email,
+        phone: editUserData.phone,
+        city: editUserData.city || null,
+        pan_number: editUserData.pan_number || null,
+        bank_details: editUserData.bank_details.bank_name ? editUserData.bank_details : null
+      };
+
+      // Include occupation only for partners
+      if (editUserType === 'partner') {
+        payload.occupation = editUserData.occupation || null;
+      }
+
+      // Include manager/team leader mapping for agents and partners
+      if (editUserType === 'agent' || editUserType === 'partner') {
+        payload.manager_id = editUserData.manager_id || null;
+        payload.team_leader_id = editUserData.team_leader_id || null;
+      }
+
+      // Include manager mapping for team leaders
+      if (editUserType === 'team_leader') {
+        payload.manager_id = editUserData.manager_id || null;
+      }
+
+      await api.put(`/auth/admin/users/${editingUser.id}?user_type=${editUserType}`, payload);
+      toast.success(`${editUserType.charAt(0).toUpperCase() + editUserType.slice(1)} updated successfully`);
+      setShowEditUserModal(false);
+      setEditingUser(null);
+      fetchAllUsers();
+      fetchOpsUsersWithReports();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update user');
+    } finally {
+      setSavingUserEdit(false);
+    }
+  };
+
   const handleDeleteLead = async (leadId) => {
     if (!window.confirm('Are you sure you want to delete this lead? This will also delete all associated documents. This action cannot be undone.')) {
       return;

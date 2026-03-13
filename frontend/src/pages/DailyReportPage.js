@@ -561,8 +561,8 @@ const DailyReportPage = () => {
                             <div className="text-xs text-slate-500">{lead.city}</div>
                           </td>
                           <td className="px-3 py-3">
-                            <div>{lead.mobile}</div>
-                            <div className="text-xs text-slate-500">{lead.email}</div>
+                            <div><MaskedField value={lead.mobile} type="mobile" /></div>
+                            <div className="text-xs text-slate-500"><MaskedField value={lead.email} type="email" /></div>
                           </td>
                           <td className="px-3 py-3">{lead.loan_type || '-'}</td>
                           <td className="px-3 py-3">

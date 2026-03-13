@@ -615,7 +615,9 @@ const DailyReportPage = () => {
                   <div className="space-y-6">
                     {reportData.leads.filter(l => l.eligibility_summary?.length > 0).map((lead) => (
                       <div key={lead.id} className="border rounded-lg p-4">
-                        <h4 className="font-semibold text-primary mb-3">{lead.full_name} - {lead.mobile}</h4>
+                        <h4 className="font-semibold text-primary mb-3">
+                          {lead.full_name} - <MaskedField value={lead.mobile} type="mobile" />
+                        </h4>
                         <div className="overflow-x-auto">
                           <table className="w-full text-xs">
                             <thead className="bg-blue-50">

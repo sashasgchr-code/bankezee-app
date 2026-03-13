@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { MaskedText } from '@/components/ui/masked-field';
+import { MaskedField } from '@/components/ui/masked-field';
 import api from '@/utils/api';
 import { toast } from 'sonner';
 import { Users, LogOut, LayoutDashboard, Eye, Key, TrendingUp, UserCheck, Briefcase, Search, Phone, MapPin } from 'lucide-react';

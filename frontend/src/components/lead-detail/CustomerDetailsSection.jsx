@@ -20,6 +20,8 @@ const CustomerDetailsSection = ({
           value={details.mobile}
           onChange={(v) => onDetailChange('mobile', v)}
           isEditing={isEditing}
+          masked={true}
+          maskType="mobile"
         />
         <EditableField
           label="Email"
@@ -27,6 +29,8 @@ const CustomerDetailsSection = ({
           onChange={(v) => onDetailChange('email', v)}
           isEditing={isEditing}
           type="email"
+          masked={true}
+          maskType="email"
         />
         <EditableField
           label="Mother Name"

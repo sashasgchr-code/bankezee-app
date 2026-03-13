@@ -703,6 +703,15 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
   - Files modified: `/app/backend/reports.py`, `/app/frontend/src/pages/AgentPerformanceReport.js`
 
 ### 2025-12-10 (Current Session)
+- **Data Masking for Customer Mobile & Email:**
+  - ✅ Mobile numbers masked (shows last 4 digits, e.g., `******3210`)
+  - ✅ Email addresses masked (shows first 2 chars + domain, e.g., `du****@test.com`)
+  - ✅ Admin and Operations: Masked data with eye icon toggle to unmask
+  - ✅ Manager, Team Leader, Agent, Partner: Permanently masked (no unmask option)
+  - ✅ Applied to: Dashboards, Lead Detail Page, Daily Report, Rejected Cases Report
+  - ✅ PDF exports use masked data for non-Admin/Ops roles
+  - Files: `masking.js` utility, `MaskedField` component, `MaskedText` component
+
 - **Edit User Feature (Admin Only):**
   - ✅ Added Edit button for all user types (Operations, Managers, Team Leaders, Agents, Partners) in Admin Users tab
   - ✅ Edit modal with sections: Basic Information (Name, Email, Phone, City)

@@ -450,55 +450,55 @@ const AgentPerformanceReport = () => {
           {/* Agent Performance Table */}
           {reportData?.agents?.length > 0 ? (
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
+            <CardHeader className="py-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <TrendingUp className="h-4 w-4" />
                 Agent-wise Performance ({reportData.agents.length} agents)
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
+              <div className="w-full">
+                <table className="w-full" style={{ fontSize: '10px' }}>
                   <thead className="bg-slate-100 text-slate-700 sticky top-0">
                     <tr>
-                      <th className="px-2 py-2 text-left font-semibold border-b whitespace-nowrap">Agent</th>
-                      <th className="px-2 py-2 text-left font-semibold border-b whitespace-nowrap">Code</th>
-                      <th className="px-2 py-2 text-center font-semibold border-b bg-slate-200 whitespace-nowrap">Total</th>
+                      <th className="px-1.5 py-1.5 text-left font-semibold border-b" style={{ minWidth: '100px' }}>Agent</th>
+                      <th className="px-1 py-1.5 text-left font-semibold border-b" style={{ fontSize: '9px', maxWidth: '60px' }}>Code</th>
+                      <th className="px-1 py-1.5 text-center font-semibold border-b bg-slate-200">Total</th>
                       {visibleStatusColumns.map(col => (
-                        <th key={col.key} className={`px-2 py-2 text-center font-semibold border-b whitespace-nowrap ${col.headerBg}`}>
+                        <th key={col.key} className={`px-1 py-1.5 text-center font-semibold border-b ${col.headerBg}`} style={{ fontSize: '9px' }}>
                           {col.label}
                         </th>
                       ))}
-                      <th className="px-2 py-2 text-right font-semibold border-b bg-emerald-200 whitespace-nowrap">Appr.₹</th>
-                      <th className="px-2 py-2 text-right font-semibold border-b bg-teal-200 whitespace-nowrap">Disb.₹</th>
+                      <th className="px-1 py-1.5 text-right font-semibold border-b bg-emerald-200" style={{ fontSize: '9px' }}>Appr.₹</th>
+                      <th className="px-1 py-1.5 text-right font-semibold border-b bg-teal-200" style={{ fontSize: '9px' }}>Disb.₹</th>
                     </tr>
                   </thead>
                   <tbody>
                     {reportData.agents.map((agent, index) => (
                       <tr key={agent.agent_id || index} className="border-b hover:bg-slate-50">
-                        <td className="px-2 py-1.5 font-medium whitespace-nowrap">{agent.agent_name}</td>
-                        <td className="px-2 py-1.5 text-slate-600 whitespace-nowrap">{agent.agent_code || '-'}</td>
-                        <td className="px-2 py-1.5 text-center font-bold bg-slate-50">{agent.total_leads}</td>
+                        <td className="px-1.5 py-1 font-medium truncate" style={{ maxWidth: '120px' }} title={agent.agent_name}>{agent.agent_name}</td>
+                        <td className="px-1 py-1 text-slate-600" style={{ fontSize: '8px', maxWidth: '60px' }} title={agent.agent_code}>{agent.agent_code || '-'}</td>
+                        <td className="px-1 py-1 text-center font-bold bg-slate-50">{agent.total_leads}</td>
                         {visibleStatusColumns.map(col => (
-                          <td key={col.key} className={`px-2 py-1.5 text-center ${col.cellBg} ${col.textClass || ''}`}>
+                          <td key={col.key} className={`px-1 py-1 text-center ${col.cellBg} ${col.textClass || ''}`}>
                             {agent[col.key] || 0}
                           </td>
                         ))}
-                        <td className="px-2 py-1.5 text-right bg-emerald-50/50 text-emerald-800 whitespace-nowrap">{formatCurrency(agent.total_approved_amount)}</td>
-                        <td className="px-2 py-1.5 text-right bg-teal-50/50 text-teal-800 font-bold whitespace-nowrap">{formatCurrency(agent.total_disbursed_amount)}</td>
+                        <td className="px-1 py-1 text-right bg-emerald-50/50 text-emerald-800" style={{ fontSize: '9px' }}>{formatCurrency(agent.total_approved_amount)}</td>
+                        <td className="px-1 py-1 text-right bg-teal-50/50 text-teal-800 font-bold" style={{ fontSize: '9px' }}>{formatCurrency(agent.total_disbursed_amount)}</td>
                       </tr>
                     ))}
                     {/* Totals Row */}
                     <tr className="bg-slate-200 font-bold border-t-2 border-slate-400">
-                      <td className="px-2 py-2" colSpan={2}>TOTAL</td>
-                      <td className="px-2 py-2 text-center">{reportData.totals?.total_leads || 0}</td>
+                      <td className="px-1.5 py-1.5" colSpan={2}>TOTAL</td>
+                      <td className="px-1 py-1.5 text-center">{reportData.totals?.total_leads || 0}</td>
                       {visibleStatusColumns.map(col => (
-                        <td key={col.key} className={`px-2 py-2 text-center ${col.textClass || ''}`}>
+                        <td key={col.key} className={`px-1 py-1.5 text-center ${col.textClass || ''}`}>
                           {reportData.totals?.[col.key] || 0}
                         </td>
                       ))}
-                      <td className="px-2 py-2 text-right text-emerald-800">{formatCurrency(reportData.totals?.total_approved_amount)}</td>
-                      <td className="px-2 py-2 text-right text-teal-800">{formatCurrency(reportData.totals?.total_disbursed_amount)}</td>
+                      <td className="px-1 py-1.5 text-right text-emerald-800" style={{ fontSize: '9px' }}>{formatCurrency(reportData.totals?.total_approved_amount)}</td>
+                      <td className="px-1 py-1.5 text-right text-teal-800" style={{ fontSize: '9px' }}>{formatCurrency(reportData.totals?.total_disbursed_amount)}</td>
                     </tr>
                   </tbody>
                 </table>

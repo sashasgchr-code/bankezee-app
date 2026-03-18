@@ -220,8 +220,109 @@ const BankEligibilityCard = ({
         </div>
       )}
 
+      {/* Vehicle Loan Workflow: RC → NOC → Hypothecation (only for vehicle loans when approved) */}
+      {isVehicleLoan && elig.approval_status === 'approved' && (
+        <div className="mt-4 pt-4 border-t border-dashed">
+          <p className="text-xs font-semibold text-orange-700 mb-2">🚗 Vehicle Loan - Document Verification</p>
+          
+          {/* RC Submitted */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+            <div>
+              <p className="text-xs text-slate-500 mb-1">RC Submitted?</p>
+              {canEdit ? (
+                <Select value={elig.rc_submitted || undefined} onValueChange={(v) => updateField('rc_submitted', v)}>
+                  <SelectTrigger className="h-9 bg-white"><SelectValue placeholder="Select" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="yes">Yes</SelectItem>
+                    <SelectItem value="no">No</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className={`font-medium ${elig.rc_submitted === 'yes' ? 'text-green-600' : 'text-amber-600'}`}>
+                  {elig.rc_submitted === 'yes' ? 'Yes' : elig.rc_submitted === 'no' ? 'No' : '-'}
+                </p>
+              )}
+            </div>
+            {elig.rc_submitted === 'no' && (
+              <div className="col-span-3">
+                <p className="text-xs text-slate-500 mb-1">RC Not Submitted Reason</p>
+                {canEdit ? (
+                  <Input value={elig.rc_not_submitted_reason || ''} onChange={(e) => updateField('rc_not_submitted_reason', e.target.value)} className="h-9 bg-white" placeholder="Reason why RC not submitted" />
+                ) : (
+                  <p className="font-medium">{elig.rc_not_submitted_reason || '-'}</p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* NOC Submitted - Only show if RC is Yes */}
+          {elig.rc_submitted === 'yes' && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+              <div>
+                <p className="text-xs text-slate-500 mb-1">NOC Submitted?</p>
+                {canEdit ? (
+                  <Select value={elig.noc_submitted || undefined} onValueChange={(v) => updateField('noc_submitted', v)}>
+                    <SelectTrigger className="h-9 bg-white"><SelectValue placeholder="Select" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="yes">Yes</SelectItem>
+                      <SelectItem value="no">No</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className={`font-medium ${elig.noc_submitted === 'yes' ? 'text-green-600' : 'text-amber-600'}`}>
+                    {elig.noc_submitted === 'yes' ? 'Yes' : elig.noc_submitted === 'no' ? 'No' : '-'}
+                  </p>
+                )}
+              </div>
+              {elig.noc_submitted === 'no' && (
+                <div className="col-span-3">
+                  <p className="text-xs text-slate-500 mb-1">NOC Not Submitted Reason</p>
+                  {canEdit ? (
+                    <Input value={elig.noc_not_submitted_reason || ''} onChange={(e) => updateField('noc_not_submitted_reason', e.target.value)} className="h-9 bg-white" placeholder="Reason why NOC not submitted" />
+                  ) : (
+                    <p className="font-medium">{elig.noc_not_submitted_reason || '-'}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Hypothecation - Only show if NOC is Yes */}
+          {elig.rc_submitted === 'yes' && elig.noc_submitted === 'yes' && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div>
+                <p className="text-xs text-slate-500 mb-1">Hypothecation Done?</p>
+                {canEdit ? (
+                  <Select value={elig.hypothecation || undefined} onValueChange={(v) => updateField('hypothecation', v)}>
+                    <SelectTrigger className="h-9 bg-white"><SelectValue placeholder="Select" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="yes">Yes</SelectItem>
+                      <SelectItem value="no">No</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className={`font-medium ${elig.hypothecation === 'yes' ? 'text-green-600' : 'text-amber-600'}`}>
+                    {elig.hypothecation === 'yes' ? 'Yes' : elig.hypothecation === 'no' ? 'No' : '-'}
+                  </p>
+                )}
+              </div>
+              {elig.hypothecation === 'no' && (
+                <div className="col-span-3">
+                  <p className="text-xs text-slate-500 mb-1">Hypothecation Not Done Reason</p>
+                  {canEdit ? (
+                    <Input value={elig.hypothecation_not_done_reason || ''} onChange={(e) => updateField('hypothecation_not_done_reason', e.target.value)} className="h-9 bg-white" placeholder="Reason why hypothecation not done" />
+                  ) : (
+                    <p className="font-medium">{elig.hypothecation_not_done_reason || '-'}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Disbursement Section */}
-      {elig.approval_status === 'approved' && (
+      {showDisbursalSection && (
         <div className="mt-4 pt-4 border-t border-dashed">
           <p className="text-xs font-semibold text-slate-700 mb-2">Disbursement</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

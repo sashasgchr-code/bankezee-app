@@ -975,6 +975,8 @@ const AdminDashboard = () => {
   };
 
   const handleLogout = () => {
+    // Clear user-specific filters before logout
+    clearAllUserFilters();
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/login');

@@ -11,8 +11,17 @@ const EligibilityTracker = ({
   onRemove, 
   onSave,
   isSaving,
-  showSmFields = false  // Only for Admin/Ops
+  showSmFields = false,  // Only for Admin/Ops
+  loanType = ''  // Type of loan (e.g., "New Vehicle Loan", "Used Vehicle Loan")
 }) => {
+  // Check if this is a vehicle loan
+  const isVehicleLoan = loanType && (
+    loanType.toLowerCase().includes('vehicle') || 
+    loanType.toLowerCase().includes('car') ||
+    loanType.toLowerCase().includes('two wheeler') ||
+    loanType.toLowerCase().includes('bike')
+  );
+
   return (
     <Card data-testid="eligibility-card">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -40,6 +49,7 @@ const EligibilityTracker = ({
                 onUpdate={onUpdate}
                 onRemove={onRemove}
                 showSmFields={showSmFields}
+                isVehicleLoan={isVehicleLoan}
               />
             ))}
           </div>

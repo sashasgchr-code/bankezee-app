@@ -263,9 +263,13 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [leads, setLeads] = useState([]);
-  const [timeFilter, setTimeFilter] = useState('all');
-  const [loanTypeFilter, setLoanTypeFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
+  
+  // Load saved filters on component mount
+  const savedFilters = loadFilters('admin', ADMIN_DEFAULT_FILTERS);
+  
+  const [timeFilter, setTimeFilter] = useState(savedFilters.timeFilter);
+  const [loanTypeFilter, setLoanTypeFilter] = useState(savedFilters.loanTypeFilter);
+  const [statusFilter, setStatusFilter] = useState(savedFilters.statusFilter);
   const [selectedLeads, setSelectedLeads] = useState([]);
   const [opsTeam, setOpsTeam] = useState([]);
   const [bulkAssignee, setBulkAssignee] = useState('');
@@ -286,16 +290,16 @@ const AdminDashboard = () => {
   const [pendingPartners, setPendingPartners] = useState([]);
   const [approvingUser, setApprovingUser] = useState(null);
   const [expandedUser, setExpandedUser] = useState(null);
-  // New filter states
-  const [filterFromDate, setFilterFromDate] = useState('');
-  const [filterToDate, setFilterToDate] = useState('');
-  const [sourceFilter, setSourceFilter] = useState('all');
-  const [sourceIdFilter, setSourceIdFilter] = useState('all');
-  const [managerFilter, setManagerFilter] = useState('all');
+  // New filter states - loaded from persistence
+  const [filterFromDate, setFilterFromDate] = useState(savedFilters.filterFromDate);
+  const [filterToDate, setFilterToDate] = useState(savedFilters.filterToDate);
+  const [sourceFilter, setSourceFilter] = useState(savedFilters.sourceFilter);
+  const [sourceIdFilter, setSourceIdFilter] = useState(savedFilters.sourceIdFilter);
+  const [managerFilter, setManagerFilter] = useState(savedFilters.managerFilter);
   // Activity Time Filter (for Approved, Disbursed, Eligible stats)
-  const [activityTimeFilter, setActivityTimeFilter] = useState('all');
-  const [activityFromDate, setActivityFromDate] = useState('');
-  const [activityToDate, setActivityToDate] = useState('');
+  const [activityTimeFilter, setActivityTimeFilter] = useState(savedFilters.activityTimeFilter);
+  const [activityFromDate, setActivityFromDate] = useState(savedFilters.activityFromDate);
+  const [activityToDate, setActivityToDate] = useState(savedFilters.activityToDate);
   // Stats export modal
   const [showStatsExportModal, setShowStatsExportModal] = useState(false);
   const [statsExportFromDate, setStatsExportFromDate] = useState('');

@@ -15,6 +15,7 @@ import { Users, LogOut, LayoutDashboard, Eye, UserPlus, CheckSquare, X, Trash2, 
 import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
 import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats, calculateTotalEligible, calculateDashboardStatsWithActivityDates, calculateTotalEligibleWithActivityDate, LOAN_TYPES, TIME_FILTERS } from '@/utils/constants';
 import { maskMobile, maskEmail } from '@/utils/masking';
+import { saveFilters, loadFilters, ADMIN_DEFAULT_FILTERS } from '@/utils/filterPersistence';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 

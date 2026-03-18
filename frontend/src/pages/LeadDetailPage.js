@@ -416,6 +416,7 @@ const LeadDetailPage = () => {
               onSave={saveEligibilities}
               isSaving={savingEligibilities}
               showSmFields={['admin', 'operations'].includes(user.role)}
+              loanType={lead.requirement || additionalData.type_of_loan || ''}
             />
 
             {/* Status Update - Only for Admin/Ops */}

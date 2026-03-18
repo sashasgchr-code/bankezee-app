@@ -10,6 +10,7 @@ import { FileText, LogOut, LayoutDashboard, Eye, Download, BarChart3, Search, Fi
 import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
 import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats, calculateTotalEligible, calculateDashboardStatsWithActivityDates, calculateTotalEligibleWithActivityDate } from '@/utils/constants';
 import { maskMobile, maskEmail } from '@/utils/masking';
+import { saveFilters, loadFilters, OPS_DEFAULT_FILTERS } from '@/utils/filterPersistence';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -18,26 +19,30 @@ const OperationsDashboard = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [leads, setLeads] = useState([]);
-  const [timeFilter, setTimeFilter] = useState('all');
-  const [loanTypeFilter, setLoanTypeFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
+  
+  // Load saved filters on component mount
+  const savedFilters = loadFilters('operations', OPS_DEFAULT_FILTERS);
+  
+  const [timeFilter, setTimeFilter] = useState(savedFilters.timeFilter);
+  const [loanTypeFilter, setLoanTypeFilter] = useState(savedFilters.loanTypeFilter);
+  const [statusFilter, setStatusFilter] = useState(savedFilters.statusFilter);
   const [exporting, setExporting] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportFromDate, setExportFromDate] = useState('');
   const [exportToDate, setExportToDate] = useState('');
-  // New filter states
-  const [filterFromDate, setFilterFromDate] = useState('');
-  const [filterToDate, setFilterToDate] = useState('');
-  const [sourceFilter, setSourceFilter] = useState('all');
+  // New filter states - loaded from persistence
+  const [filterFromDate, setFilterFromDate] = useState(savedFilters.filterFromDate);
+  const [filterToDate, setFilterToDate] = useState(savedFilters.filterToDate);
+  const [sourceFilter, setSourceFilter] = useState(savedFilters.sourceFilter);
   const [sourceIdFilter, setSourceIdFilter] = useState('all');
   const [allAgents, setAllAgents] = useState([]);
   const [allPartners, setAllPartners] = useState([]);
   const [allManagers, setAllManagers] = useState([]);
   const [managerFilter, setManagerFilter] = useState('all');
   // Activity Time Filter (for Approved, Disbursed, Eligible stats)
-  const [activityTimeFilter, setActivityTimeFilter] = useState('all');
-  const [activityFromDate, setActivityFromDate] = useState('');
-  const [activityToDate, setActivityToDate] = useState('');
+  const [activityTimeFilter, setActivityTimeFilter] = useState(savedFilters.activityTimeFilter);
+  const [activityFromDate, setActivityFromDate] = useState(savedFilters.activityFromDate);
+  const [activityToDate, setActivityToDate] = useState(savedFilters.activityToDate);
   const [showStatsExportModal, setShowStatsExportModal] = useState(false);
   const [statsExportFromDate, setStatsExportFromDate] = useState('');
   const [statsExportToDate, setStatsExportToDate] = useState('');

@@ -74,6 +74,21 @@ const OperationsDashboard = () => {
     return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
+  // Save filters to localStorage whenever they change
+  useEffect(() => {
+    saveFilters('operations', {
+      timeFilter,
+      loanTypeFilter,
+      statusFilter,
+      sourceFilter,
+      activityTimeFilter,
+      filterFromDate,
+      filterToDate,
+      activityFromDate,
+      activityToDate
+    });
+  }, [timeFilter, loanTypeFilter, statusFilter, sourceFilter, activityTimeFilter, filterFromDate, filterToDate, activityFromDate, activityToDate]);
+
   const fetchAllUsers = async () => {
     try {
       const response = await api.get('/auth/admin/all-users');

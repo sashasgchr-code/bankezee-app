@@ -9,13 +9,24 @@ const BankEligibilityCard = ({
   canEdit, 
   onUpdate, 
   onRemove,
-  showSmFields = false  // Only for Admin/Ops
+  showSmFields = false,  // Only for Admin/Ops
+  isVehicleLoan = false  // Vehicle loan flag for RC/NOC/Hypothecation workflow
 }) => {
   const elig = eligibility;
   
   const updateField = (field, value) => {
     onUpdate(index, field, value);
   };
+
+  // Check if all vehicle loan prerequisites are complete for disbursal
+  const canShowDisbursalForVehicle = isVehicleLoan && 
+    elig.rc_submitted === 'yes' && 
+    elig.noc_submitted === 'yes' && 
+    elig.hypothecation === 'yes';
+
+  // For non-vehicle loans, show disbursal section directly after approval
+  const showDisbursalSection = elig.approval_status === 'approved' && 
+    (!isVehicleLoan || canShowDisbursalForVehicle);
 
   return (
     <div className="border rounded-lg p-4 bg-slate-50 relative">

@@ -2261,7 +2261,7 @@ const AdminDashboard = () => {
                       <div>
                         <p className="font-medium">{lead.full_name}</p>
                         <p className="text-sm text-slate-600">
-                          <MaskedField value={lead.mobile} type="mobile" /> | {lead.city}
+                          <MaskedField value={lead.mobile} type="mobile" /> | {lead.additional_data?.loan_type || lead.loan_type || 'N/A'}
                         </p>
                         <p className="text-xs text-slate-500 mt-1">
                           {new Date(lead.created_at).toLocaleDateString()}

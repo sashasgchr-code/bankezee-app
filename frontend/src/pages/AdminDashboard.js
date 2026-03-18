@@ -399,6 +399,23 @@ const AdminDashboard = () => {
     }
   }, [activeTab]);
 
+  // Save filters to localStorage whenever they change
+  useEffect(() => {
+    saveFilters('admin', {
+      timeFilter,
+      loanTypeFilter,
+      statusFilter,
+      sourceFilter,
+      sourceIdFilter,
+      managerFilter,
+      activityTimeFilter,
+      filterFromDate,
+      filterToDate,
+      activityFromDate,
+      activityToDate
+    });
+  }, [timeFilter, loanTypeFilter, statusFilter, sourceFilter, sourceIdFilter, managerFilter, activityTimeFilter, filterFromDate, filterToDate, activityFromDate, activityToDate]);
+
   const fetchLeads = async () => {
     try {
       const response = await api.get('/leads/');

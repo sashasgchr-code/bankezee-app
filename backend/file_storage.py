@@ -222,7 +222,7 @@ async def download_file(
     token: str = None,
     current_user: User = None
 ):
-    """Download a file by path - supports both header auth and token query param"""
+    """Download a file by path - retrieves from MongoDB storage"""
     # Try to get user from token query param if no current_user
     if not current_user and token:
         try:
@@ -239,6 +239,25 @@ async def download_file(
     if not current_user:
         raise HTTPException(status_code=401, detail="Authentication required")
     
+    # Try to find file in MongoDB first
+    file_doc = await db.files.find_one({"file_path": file_path}, {"_id": 0})
+    
+    if file_doc and file_doc.get("content"):
+        # File found in MongoDB - decode and return
+        try:
+            content = base64.b64decode(file_doc["content"])
+            return Response(
+                content=content,
+                media_type=file_doc.get("mime_type", "application/octet-stream"),
+                headers={
+                    "Content-Disposition": f'attachment; filename="{file_doc.get("original_name", file_doc.get("file_name", "download"))}"'
+                }
+            )
+        except Exception as e:
+            logger.error(f"Error decoding file from MongoDB: {e}")
+            raise HTTPException(status_code=500, detail="Error retrieving file")
+    
+    # Fallback to local filesystem (for backwards compatibility)
     full_path = STORAGE_DIR / file_path
     
     if not full_path.exists():

@@ -1,11 +1,12 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends, Form
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 import os
 import uuid
 import shutil
 import logging
+import base64
 from datetime import datetime, timezone
 from pathlib import Path
 from jose import jwt
@@ -28,7 +29,7 @@ ALGORITHM = "HS256"
 
 router = APIRouter(prefix="/storage", tags=["File Storage"])
 
-# Storage directory
+# Storage directory (fallback for local storage)
 STORAGE_DIR = Path("/app/uploads")
 STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -56,7 +57,7 @@ async def upload_file(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Upload a document to local storage and save metadata to MongoDB
+    Upload a document - stores file content in MongoDB for persistence across deployments
     - file: The file to upload
     - lead_id: Optional lead ID to associate the document with
     - document_type: Type of document (e.g., 'id_proof', 'income_proof', 'bank_statement')
@@ -85,27 +86,30 @@ async def upload_file(
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         uploaded_at = datetime.now(timezone.utc).isoformat()
         
-        # Create lead-specific directory if lead_id provided
-        if lead_id:
-            file_dir = STORAGE_DIR / lead_id
-            file_dir.mkdir(parents=True, exist_ok=True)
-        else:
-            file_dir = STORAGE_DIR
-        
         # Safe filename
         safe_name = f"{document_type}_{timestamp}_{file_id}{file_ext}"
-        file_path = file_dir / safe_name
+        relative_path = f"{lead_id}/{safe_name}" if lead_id else safe_name
         
-        # Save file
-        with open(file_path, "wb") as f:
-            f.write(content)
+        # Store file content in MongoDB (base64 encoded for JSON compatibility)
+        file_doc = {
+            "file_id": file_id,
+            "file_name": safe_name,
+            "original_name": file.filename,
+            "file_path": relative_path,
+            "content": base64.b64encode(content).decode('utf-8'),  # Store as base64 string
+            "size": len(content),
+            "mime_type": file.content_type,
+            "uploaded_at": uploaded_at,
+            "uploaded_by": current_user.id,
+            "lead_id": lead_id,
+            "document_type": document_type
+        }
         
-        logger.info(f"File uploaded: {safe_name} by {current_user.id}")
+        # Save to files collection in MongoDB
+        await db.files.insert_one(file_doc)
+        logger.info(f"File stored in MongoDB: {safe_name} by {current_user.id}")
         
-        # Generate URLs
-        relative_path = str(file_path.relative_to(STORAGE_DIR))
-        
-        # Document metadata to return and store
+        # Document metadata to return and store (without content for response)
         doc_metadata = {
             "file_id": file_id,
             "file_name": safe_name,
@@ -119,12 +123,10 @@ async def upload_file(
             "document_type": document_type
         }
         
-        # Save document metadata to MongoDB if lead_id provided
+        # Save document metadata to lead's documents array if lead_id provided
         if lead_id:
-            # Check if lead exists
             lead = await db.leads.find_one({"id": lead_id})
             if lead:
-                # Add document to lead's documents array
                 await db.leads.update_one(
                     {"id": lead_id},
                     {"$push": {"documents": doc_metadata}}

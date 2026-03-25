@@ -318,6 +318,14 @@ async def delete_file(
     if current_user.role not in ["admin", "operations"]:
         raise HTTPException(status_code=403, detail="Only admin or operations can delete files")
     
+    # Try to delete from MongoDB first
+    result = await db.files.delete_one({"file_path": file_path})
+    
+    if result.deleted_count > 0:
+        logger.info(f"File deleted from MongoDB: {file_path} by {current_user.id}")
+        return {"success": True, "message": "File deleted successfully"}
+    
+    # Fallback to local filesystem
     full_path = STORAGE_DIR / file_path
     
     if not full_path.exists():
@@ -331,7 +339,7 @@ async def delete_file(
     
     try:
         full_path.unlink()
-        logger.info(f"File deleted: {file_path} by {current_user.id}")
+        logger.info(f"File deleted from local storage: {file_path} by {current_user.id}")
         return {"success": True, "message": "File deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete file: {str(e)}")

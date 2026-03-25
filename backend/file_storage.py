@@ -222,7 +222,7 @@ async def download_file(
     token: str = None,
     current_user: User = None
 ):
-    """Download a file by path - retrieves from MongoDB storage"""
+    """Download a file by path or file_id - retrieves from MongoDB storage"""
     # Try to get user from token query param if no current_user
     if not current_user and token:
         try:
@@ -239,8 +239,27 @@ async def download_file(
     if not current_user:
         raise HTTPException(status_code=401, detail="Authentication required")
     
-    # Try to find file in MongoDB first
-    file_doc = await db.files.find_one({"file_path": file_path}, {"_id": 0})
+    # Try to find file in MongoDB - search by file_path OR file_id
+    file_doc = await db.files.find_one(
+        {"$or": [{"file_path": file_path}, {"file_id": file_path}]}, 
+        {"_id": 0}
+    )
+    
+    # Also try searching in leads collection documents array
+    if not file_doc:
+        # Search in leads documents array
+        lead_with_doc = await db.leads.find_one(
+            {"documents": {"$elemMatch": {"$or": [{"file_path": file_path}, {"file_id": file_path}]}}},
+            {"_id": 0, "documents": 1}
+        )
+        if lead_with_doc and lead_with_doc.get("documents"):
+            for doc in lead_with_doc["documents"]:
+                if doc.get("file_path") == file_path or doc.get("file_id") == file_path:
+                    # Found metadata in lead, now get from files collection using file_id
+                    file_id = doc.get("file_id")
+                    if file_id:
+                        file_doc = await db.files.find_one({"file_id": file_id}, {"_id": 0})
+                    break
     
     if file_doc and file_doc.get("content"):
         # File found in MongoDB - decode and return
@@ -261,7 +280,12 @@ async def download_file(
     full_path = STORAGE_DIR / file_path
     
     if not full_path.exists():
-        raise HTTPException(status_code=404, detail="File not found")
+        # File not found anywhere - likely an old file that was lost
+        logger.warning(f"File not found: {file_path} (not in MongoDB or local storage)")
+        raise HTTPException(
+            status_code=404, 
+            detail="File not found. This document may have been uploaded before the storage update and needs to be re-uploaded."
+        )
     
     # Security check - ensure file is within storage directory
     try:

@@ -349,16 +349,26 @@ async def delete_file(
 async def storage_status():
     """Check storage status"""
     try:
-        total_files = sum(1 for _ in STORAGE_DIR.rglob("*") if _.is_file())
-        total_size = sum(f.stat().st_size for f in STORAGE_DIR.rglob("*") if f.is_file())
+        # Count files in MongoDB
+        mongo_files = await db.files.count_documents({})
+        
+        # Get total size from MongoDB
+        pipeline = [{"$group": {"_id": None, "total_size": {"$sum": "$size"}}}]
+        result = await db.files.aggregate(pipeline).to_list(1)
+        mongo_size = result[0]["total_size"] if result else 0
+        
+        # Local storage stats (fallback)
+        local_files = sum(1 for _ in STORAGE_DIR.rglob("*") if _.is_file())
+        local_size = sum(f.stat().st_size for f in STORAGE_DIR.rglob("*") if f.is_file())
         
         return {
             "configured": True,
-            "storage_type": "local",
-            "storage_path": str(STORAGE_DIR),
-            "total_files": total_files,
-            "total_size_mb": round(total_size / (1024 * 1024), 2),
-            "message": "Local storage is ready"
+            "storage_type": "mongodb",
+            "mongodb_files": mongo_files,
+            "mongodb_size_mb": round(mongo_size / (1024 * 1024), 2),
+            "local_files": local_files,
+            "local_size_mb": round(local_size / (1024 * 1024), 2),
+            "message": "MongoDB storage is active (files persist across deployments)"
         }
     except Exception as e:
         return {

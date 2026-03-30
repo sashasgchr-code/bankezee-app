@@ -26,9 +26,10 @@ const BankEligibilityCard = ({
   const requiresNOC = isUsedVehicleBT;
 
   // Check if all vehicle loan prerequisites are complete for disbursal
-  // For loans WITHOUT NOC: RC + Hypothecation
-  // For loans WITH NOC (Used Vehicle BT): RC + NOC + Hypothecation
+  // Requires: TVR Done + EMI OK + RC + (NOC for BT) + Hypothecation
   const canShowDisbursalForVehicle = isVehicleLoan && 
+    elig.tvr_done === 'yes' &&
+    elig.emi_ok === 'yes' &&
     elig.rc_submitted === 'yes' && 
     (!requiresNOC || elig.noc_submitted === 'yes') && 
     elig.hypothecation === 'yes';

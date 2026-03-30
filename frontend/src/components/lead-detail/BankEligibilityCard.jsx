@@ -10,7 +10,8 @@ const BankEligibilityCard = ({
   onUpdate, 
   onRemove,
   showSmFields = false,  // Only for Admin/Ops
-  isVehicleLoan = false  // Vehicle loan flag for RC/NOC/Hypothecation workflow
+  isVehicleLoan = false,  // Vehicle loan flag for RC/NOC/Hypothecation workflow
+  loanType = ''  // Specific loan type for conditional NOC display
 }) => {
   const elig = eligibility;
   
@@ -18,10 +19,18 @@ const BankEligibilityCard = ({
     onUpdate(index, field, value);
   };
 
+  // Determine if NOC is required based on loan type
+  // NOC is ONLY required for "Used Vehicle Loan - BT"
+  const loanTypeLower = loanType.toLowerCase();
+  const isUsedVehicleBT = loanTypeLower.includes('used vehicle') && loanTypeLower.includes('bt');
+  const requiresNOC = isUsedVehicleBT;
+
   // Check if all vehicle loan prerequisites are complete for disbursal
+  // For loans WITHOUT NOC: RC + Hypothecation
+  // For loans WITH NOC (Used Vehicle BT): RC + NOC + Hypothecation
   const canShowDisbursalForVehicle = isVehicleLoan && 
     elig.rc_submitted === 'yes' && 
-    elig.noc_submitted === 'yes' && 
+    (!requiresNOC || elig.noc_submitted === 'yes') && 
     elig.hypothecation === 'yes';
 
   // For non-vehicle loans, show disbursal section directly after approval

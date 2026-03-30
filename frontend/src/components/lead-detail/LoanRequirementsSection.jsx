@@ -9,7 +9,7 @@ const LOAN_TYPES = [
   { value: 'new_home_loan', label: 'New Home Loan' },
   { value: 'business_loan', label: 'Business Loan' },
   { value: 'new_vehicle_loan', label: 'New Vehicle Loan' },
-  { value: 'used_vehicle_loan', label: 'Used Vehicle Loan' },
+  { value: 'used_vehicle_loan_bt', label: 'Used Vehicle Loan - BT' },
   { value: 'balance_transfer_pl', label: 'Balance Transfer-PL' },
   { value: 'balance_transfer_hl', label: 'Balance Transfer-HL' },
   { value: 'balance_transfer_topup_pl', label: 'Balance Transfer+Top Up PL' },

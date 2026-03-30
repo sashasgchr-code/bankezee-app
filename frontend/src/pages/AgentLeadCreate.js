@@ -326,7 +326,7 @@ const AgentLeadCreate = () => {
                         <SelectItem value="new_home_loan">New Home Loan</SelectItem>
                         <SelectItem value="business_loan">Business Loan</SelectItem>
                         <SelectItem value="new_vehicle_loan">New Vehicle Loan</SelectItem>
-                        <SelectItem value="used_vehicle_loan">Used Vehicle Loan</SelectItem>
+                        <SelectItem value="used_vehicle_loan_bt">Used Vehicle Loan - BT</SelectItem>
                         <SelectItem value="balance_transfer_pl">Balance Transfer-PL</SelectItem>
                         <SelectItem value="balance_transfer_hl">Balance Transfer-HL</SelectItem>
                         <SelectItem value="balance_transfer_topup_pl">Balance Transfer+Top Up PL</SelectItem>

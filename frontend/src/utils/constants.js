@@ -8,7 +8,6 @@ export const LOAN_TYPES = [
   { value: 'new_home_loan', label: 'New Home Loan' },
   { value: 'business_loan', label: 'Business Loan' },
   { value: 'new_vehicle_loan', label: 'New Vehicle Loan' },
-  { value: 'used_vehicle_loan_fresh', label: 'Used Vehicle Loan - Fresh' },
   { value: 'used_vehicle_loan_bt', label: 'Used Vehicle Loan - BT' },
   { value: 'balance_transfer_pl', label: 'Balance Transfer-PL' },
   { value: 'balance_transfer_hl', label: 'Balance Transfer-HL' },
@@ -173,8 +172,16 @@ export const calculateDashboardStats = (leads) => {
 
 // Get loan type label from value
 export const getLoanTypeLabel = (value) => {
-  const type = LOAN_TYPES.find(t => t.value === value);
-  return type ? type.label : value || '-';
+  // Map old values to new
+  const legacyMap = {
+    'used_vehicle_loan': 'used_vehicle_loan_bt',
+    'used_vehicle_loan_fresh': 'used_vehicle_loan_bt',
+    'Used Vehicle Loan': 'Used Vehicle Loan - BT',
+    'Used Vehicle Loan - Fresh': 'Used Vehicle Loan - BT',
+  };
+  const mapped = legacyMap[value] || value;
+  const type = LOAN_TYPES.find(t => t.value === mapped || t.label === mapped);
+  return type ? type.label : mapped || '-';
 };
 
 // Helper to check if a date falls within a filter period

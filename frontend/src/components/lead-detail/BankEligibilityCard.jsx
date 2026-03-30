@@ -22,7 +22,7 @@ const BankEligibilityCard = ({
   // Determine if NOC is required based on loan type
   // NOC is ONLY required for "Used Vehicle Loan - BT"
   const loanTypeLower = loanType.toLowerCase();
-  const isUsedVehicleBT = loanTypeLower.includes('used vehicle') && loanTypeLower.includes('bt');
+  const isUsedVehicleBT = (loanTypeLower.includes('used vehicle') || loanTypeLower.includes('used_vehicle')) && loanTypeLower.includes('bt');
   const requiresNOC = isUsedVehicleBT;
 
   // Check if all vehicle loan prerequisites are complete for disbursal
@@ -295,69 +295,6 @@ const BankEligibilityCard = ({
                 <div><p className="text-xs text-slate-500 mb-1">Declined Bank</p>{canEdit ? <Input value={elig.declined_bank || ''} onChange={(e) => updateField('declined_bank', e.target.value)} className="h-9 bg-white" placeholder="Bank" /> : <p className="font-medium">{elig.declined_bank || '-'}</p>}</div>
                 <div className="col-span-2"><p className="text-xs text-slate-500 mb-1">Decline Reason</p>{canEdit ? <Input value={elig.declined_reason || ''} onChange={(e) => updateField('declined_reason', e.target.value)} className="h-9 bg-white" placeholder="Reason" /> : <p className="font-medium">{elig.declined_reason || '-'}</p>}</div>
               </>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Vehicle Loan Pre-Verification: TVR Done & EMI OK (only for vehicle loans when approved) */}
-      {isVehicleLoan && elig.approval_status === 'approved' && (
-        <div className="mt-4 pt-4 border-t border-dashed">
-          <p className="text-xs font-semibold text-blue-700 mb-2">🚗 Vehicle Loan - Pre-Verification</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {/* TVR Done */}
-            <div>
-              <p className="text-xs text-slate-500 mb-1">TVR Done?</p>
-              {canEdit ? (
-                <Select value={elig.tvr_done || undefined} onValueChange={(v) => updateField('tvr_done', v)}>
-                  <SelectTrigger className="h-9 bg-white"><SelectValue placeholder="Select" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="yes">Yes</SelectItem>
-                    <SelectItem value="no">No</SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <p className={`font-medium ${elig.tvr_done === 'yes' ? 'text-green-600' : 'text-amber-600'}`}>
-                  {elig.tvr_done === 'yes' ? 'Yes' : elig.tvr_done === 'no' ? 'No' : '-'}
-                </p>
-              )}
-            </div>
-            {elig.tvr_done === 'no' && (
-              <div className="col-span-3">
-                <p className="text-xs text-slate-500 mb-1">TVR Not Done Reason</p>
-                {canEdit ? (
-                  <Input value={elig.tvr_not_done_reason || ''} onChange={(e) => updateField('tvr_not_done_reason', e.target.value)} className="h-9 bg-white" placeholder="Reason why TVR not done" />
-                ) : (
-                  <p className="font-medium">{elig.tvr_not_done_reason || '-'}</p>
-                )}
-              </div>
-            )}
-            {/* EMI OK */}
-            <div>
-              <p className="text-xs text-slate-500 mb-1">EMI OK?</p>
-              {canEdit ? (
-                <Select value={elig.emi_ok || undefined} onValueChange={(v) => updateField('emi_ok', v)}>
-                  <SelectTrigger className="h-9 bg-white"><SelectValue placeholder="Select" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="yes">Yes</SelectItem>
-                    <SelectItem value="no">No</SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <p className={`font-medium ${elig.emi_ok === 'yes' ? 'text-green-600' : 'text-amber-600'}`}>
-                  {elig.emi_ok === 'yes' ? 'Yes' : elig.emi_ok === 'no' ? 'No' : '-'}
-                </p>
-              )}
-            </div>
-            {elig.emi_ok === 'no' && (
-              <div className="col-span-3">
-                <p className="text-xs text-slate-500 mb-1">EMI Not OK Reason</p>
-                {canEdit ? (
-                  <Input value={elig.emi_not_ok_reason || ''} onChange={(e) => updateField('emi_not_ok_reason', e.target.value)} className="h-9 bg-white" placeholder="Reason why EMI not OK" />
-                ) : (
-                  <p className="font-medium">{elig.emi_not_ok_reason || '-'}</p>
-                )}
-              </div>
             )}
           </div>
         </div>

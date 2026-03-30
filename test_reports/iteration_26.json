@@ -1,0 +1,90 @@
+{
+  "summary": "Tested Vehicle Loan eligibility workflow for Bankezee CRM. All 9 test cases PASSED. TVR/EMI Pre-Verification section appears FIRST for vehicle loans, Bank Eligibility is gated behind TVR+EMI=Yes, NOC step appears only for 'Used Vehicle Loan - BT', and no duplicate TVR/EMI section exists.",
+
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+
+  "passed_tests": [
+    "TEST 1: TVR/EMI Pre-Verification section appears FIRST in eligibility card for Vehicle Loans (New Vehicle Loan) - PASS",
+    "TEST 2: Bank Eligibility fields are HIDDEN until TVR=yes AND EMI=yes for Vehicle Loans - PASS",
+    "TEST 3: Bank Eligibility section appears after TVR=Yes AND EMI=Yes - PASS",
+    "TEST 4: TVR/EMI section does NOT appear for Personal Loan - PASS",
+    "TEST 5: Bank Eligibility shows immediately for Personal Loan (no TVR/EMI gate) - PASS",
+    "TEST 6: NOC Submitted field appears for Used Vehicle Loan - BT after RC=Yes - PASS",
+    "TEST 7: NOC Submitted field does NOT appear for New Vehicle Loan (code verified: requiresNOC = isUsedVehicleBT) - PASS",
+    "TEST 8: NO duplicate TVR/EMI section after Approval Status (only 1 occurrence of TVR Done? and EMI OK? in code) - PASS",
+    "TEST 9: Disbursement section for Vehicle Loans only shows after ALL prerequisites (TVR=yes, EMI=yes, RC=yes, NOC=yes for BT, Hypothecation=yes) - PASS (code verified)"
+  ],
+
+  "failed_tests": [],
+
+  "test_report_links": [
+    "/app/frontend/src/components/lead-detail/BankEligibilityCard.jsx",
+    "/app/frontend/src/components/lead-detail/EligibilityTracker.jsx",
+    "/app/frontend/src/pages/LeadDetailPage.js"
+  ],
+
+  "action_items": [],
+
+  "critical_code_review_comments": [],
+
+  "updated_files": [],
+
+  "success_rate": {
+    "backend": "N/A (frontend only testing)",
+    "frontend": "100% (9/9 tests passed)"
+  },
+
+  "test_credentials": {
+    "operations": "ops@bankezee.com / ops123",
+    "admin": "admin@bankezee.com / admin123"
+  },
+
+  "seed_data_creation": "Created 3 test leads via API: TEST Vehicle Loan Customer (New Vehicle Loan), TEST Used Vehicle BT Customer (Used Vehicle Loan - BT), TEST Personal Loan Customer (New Personal Loan)",
+
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+
+  "context_for_next_testing_agent": "Vehicle Loan eligibility workflow fully tested. Key findings: 1) TVR/EMI Pre-Verification section appears at top of Bank Eligibility card for vehicle loans only. 2) Bank eligibility fields are hidden until TVR=yes AND EMI=yes. 3) NOC step only appears for 'Used Vehicle Loan - BT' type (checks for 'used vehicle' or 'used_vehicle' AND 'bt' in loan type). 4) No duplicate TVR/EMI section exists. 5) Disbursement requires all prerequisites including TVR, EMI, RC, NOC (for BT), and Hypothecation.",
+
+  "mocked_apis": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  },
+
+  "feature_verification": {
+    "tvr_emi_appears_first_for_vehicle_loans": "PASS - '🚗 Vehicle Loan - Pre-Verification' section with TVR Done? and EMI OK? fields appears at top of Bank #1 card",
+    "bank_eligibility_hidden_until_tvr_emi_ok": "PASS - Bank Name and Eligible? fields only appear after TVR=Yes AND EMI=Yes",
+    "tvr_emi_not_shown_for_personal_loan": "PASS - Personal Loan shows Bank Name and Eligible? directly without TVR/EMI section",
+    "noc_appears_for_used_vehicle_bt": "PASS - NOC Submitted? field appears after RC Submitted?=Yes for Used Vehicle Loan - BT",
+    "noc_not_shown_for_new_vehicle_loan": "PASS - Code verified: requiresNOC = isUsedVehicleBT (false for New Vehicle Loan)",
+    "no_duplicate_tvr_emi_section": "PASS - Only 1 occurrence of 'TVR Done?' and 'EMI OK?' in BankEligibilityCard.jsx",
+    "disbursement_requires_all_prerequisites": "PASS - Code verified: canShowDisbursalForVehicle requires tvr_done, emi_ok, rc_submitted, noc_submitted (for BT), hypothecation all = 'yes'"
+  },
+
+  "test_leads_created": {
+    "new_vehicle_loan": {
+      "id": "1024a221-0f92-4d2a-ab12-0bcabb9c0f07",
+      "name": "TEST Vehicle Loan Customer",
+      "requirement": "New Vehicle Loan"
+    },
+    "used_vehicle_bt": {
+      "id": "43781238-8c39-45dc-87a4-9bf063dcb021",
+      "name": "TEST Used Vehicle BT Customer",
+      "requirement": "Used Vehicle Loan - BT"
+    },
+    "personal_loan": {
+      "id": "3a4bd131-fe79-4257-b72d-9b8e7be4b92b",
+      "name": "TEST Personal Loan Customer",
+      "requirement": "New Personal Loan"
+    }
+  }
+}

@@ -738,22 +738,40 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 - UTC timezone handling fixed for all date comparisons
 - Data migration script created to backfill timestamps for historical data
 
+## Session 12 Highlights (December 2025)
+
+### Bugs Fixed
+1. **Vehicle Loan TVR/EMI Workflow Fix (P0) ✅**
+   - Removed duplicate TVR/EMI section that appeared AFTER Approval Status
+   - TVR/EMI Pre-Verification now correctly appears FIRST (before Bank Eligibility) for vehicle loans only
+   - Fixed `isUsedVehicleBT` check to handle both underscore (`used_vehicle_loan_bt`) and space (`Used Vehicle Loan - BT`) formats
+   - Workflow order: TVR/EMI → Bank Eligibility → Login → Approval → RC/NOC/Hypothecation → Disbursement
+   - Personal Loan correctly skips TVR/EMI entirely
+   - NOC step only appears for "Used Vehicle Loan - BT"
+   - All 9 test cases passed (100%)
+   - File: `BankEligibilityCard.jsx`
+
 ## Pending/Future Tasks
 
 ### P0 (High Priority)
-- Implement Document Upload to Google Drive (currently mocked)
+- None
 
 ### P1 (Medium Priority)
 - Commission Payout Reports feature
 - Bulk User Approval feature
 
 ### P2 (Low Priority)
-- Activate Notifications System (Twilio SMS, Resend Email)
 - Bulk Agent Mapping feature
+- Activate Notifications System (Twilio SMS, Resend Email)
 - Refactor `AdminDashboard.js` (>2500 lines - needs to be broken into components)
 - Refactor `OperationsDashboard.js` (duplicated filtering/stats logic)
 
+### P3 (Deferred - Awaiting External Setup)
+- Google Drive Integration for documents (user will provide Google Workspace)
+- Twilio SMS for real OTP (user will provide API keys)
+- Resend Email notifications (user will provide API keys)
+
 ## Known Mocked Features
-- Document Upload to Google Drive (uses local file storage)
+- Document Upload to Google Drive (using MongoDB GridFS)
 - SMS/OTP notifications (always accepts 123456)
 - Email notifications (not implemented)

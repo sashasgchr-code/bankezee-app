@@ -97,7 +97,7 @@ export const clearAllUserFilters = () => {
  */
 export const ADMIN_DEFAULT_FILTERS = {
   timeFilter: 'all',
-  loanTypeFilter: 'all',
+  loanTypeFilter: [],
   statusFilter: 'all',
   sourceFilter: 'all',
   sourceIdFilter: 'all',
@@ -114,7 +114,7 @@ export const ADMIN_DEFAULT_FILTERS = {
  */
 export const OPS_DEFAULT_FILTERS = {
   timeFilter: 'all',
-  loanTypeFilter: 'all',
+  loanTypeFilter: [],
   statusFilter: 'all',
   sourceFilter: 'all',
   activityTimeFilter: 'all',

@@ -13,7 +13,7 @@ import api from '@/utils/api';
 import { toast } from 'sonner';
 import { Users, LogOut, LayoutDashboard, Eye, UserPlus, CheckSquare, X, Trash2, UserCog, Building, Briefcase, Download, FileText, Clock, CheckCircle, XCircle, ChevronDown, ChevronUp, CreditCard, User, MapPin, Phone, Mail, Hash, Building2, BarChart3, Key, Copy, Search, FileDown, AlertTriangle, Pencil } from 'lucide-react';
 import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
-import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats, calculateTotalEligible, calculateDashboardStatsWithActivityDates, calculateTotalEligibleWithActivityDate, LOAN_TYPES, TIME_FILTERS } from '@/utils/constants';
+import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats, calculateTotalEligible, calculateDashboardStatsWithActivityDates, calculateTotalEligibleWithActivityDate, LOAN_TYPES, TIME_FILTERS, getLoanTypeLabel } from '@/utils/constants';
 import { maskMobile, maskEmail } from '@/utils/masking';
 import { saveFilters, loadFilters, clearAllUserFilters, ADMIN_DEFAULT_FILTERS } from '@/utils/filterPersistence';
 import jsPDF from 'jspdf';
@@ -2285,7 +2285,7 @@ const AdminDashboard = () => {
                       <div>
                         <p className="font-medium">{lead.full_name}</p>
                         <p className="text-sm text-slate-600">
-                          <MaskedField value={lead.mobile} type="mobile" /> | {lead.requirement || lead.additional_data?.loan_type || lead.loan_type || 'N/A'}
+                          <MaskedField value={lead.mobile} type="mobile" /> | {getLoanTypeLabel(lead.requirement || lead.additional_data?.loan_type || lead.loan_type) || 'N/A'}
                         </p>
                         <p className="text-xs text-slate-500 mt-1">
                           {new Date(lead.created_at).toLocaleDateString()}

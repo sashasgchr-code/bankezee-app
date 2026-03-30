@@ -132,11 +132,13 @@ export const filterBySource = (leads, sourceType, sourceId) => {
 };
 
 // Filter leads by loan type
-export const filterByLoanType = (leads, loanType) => {
-  if (loanType === 'all') return leads;
+export const filterByLoanType = (leads, loanTypes) => {
+  // Handle both old string format and new array format
+  if (!loanTypes || loanTypes === 'all' || (Array.isArray(loanTypes) && loanTypes.length === 0)) return leads;
+  const typesArray = Array.isArray(loanTypes) ? loanTypes : [loanTypes];
   return leads.filter(lead => {
     const type = lead.additional_data?.type_of_loan || lead.requirement;
-    return type === loanType;
+    return typesArray.includes(type);
   });
 };
 

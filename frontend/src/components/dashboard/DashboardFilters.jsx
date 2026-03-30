@@ -1,6 +1,82 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { LOAN_TYPES, TIME_FILTERS, LEAD_STATUSES } from '@/utils/constants';
+import { useState, useRef, useEffect } from 'react';
+import { ChevronDown } from 'lucide-react';
+
+const LoanTypeMultiSelect = ({ selected = [], onChange }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const toggleType = (value) => {
+    const next = selected.includes(value)
+      ? selected.filter(v => v !== value)
+      : [...selected, value];
+    onChange(next);
+  };
+
+  const label = selected.length === 0
+    ? 'All Loan Types'
+    : selected.length === 1
+      ? LOAN_TYPES.find(t => t.value === selected[0])?.label || selected[0]
+      : `${selected.length} Types`;
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex h-9 w-52 items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+        data-testid="loan-type-filter"
+      >
+        <span className="truncate">{label}</span>
+        <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1 w-64 rounded-md border bg-white shadow-lg max-h-72 overflow-y-auto">
+          <div className="p-2 border-b flex gap-2">
+            <button
+              type="button"
+              className="text-xs text-blue-600 hover:underline"
+              onClick={() => onChange([])}
+            >
+              Clear All
+            </button>
+            <button
+              type="button"
+              className="text-xs text-blue-600 hover:underline"
+              onClick={() => onChange(LOAN_TYPES.map(t => t.value))}
+            >
+              Select All
+            </button>
+          </div>
+          {LOAN_TYPES.map(type => (
+            <label
+              key={type.value}
+              className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 cursor-pointer text-sm"
+            >
+              <Checkbox
+                checked={selected.includes(type.value)}
+                onCheckedChange={() => toggleType(type.value)}
+                data-testid={`loan-type-${type.value}`}
+              />
+              {type.label}
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const DashboardFilters = ({ 
   timeFilter, 
@@ -125,18 +201,13 @@ const DashboardFilters = ({
         </>
       )}
 
-      {/* Loan Type Filter */}
-      <Select value={loanTypeFilter} onValueChange={onLoanTypeFilterChange}>
-        <SelectTrigger className="w-48" data-testid="loan-type-filter">
-          <SelectValue placeholder="Loan Type" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Loan Types</SelectItem>
-          {LOAN_TYPES.map(type => (
-            <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {/* Loan Type Filter - Multi-select with checkboxes */}
+      <div>
+        <LoanTypeMultiSelect
+          selected={Array.isArray(loanTypeFilter) ? loanTypeFilter : (loanTypeFilter === 'all' ? [] : [loanTypeFilter])}
+          onChange={onLoanTypeFilterChange}
+        />
+      </div>
 
       {/* Status Filter */}
       {showStatusFilter && (

@@ -184,9 +184,10 @@ const BankEligibilityCard = ({
           </div>
         )}
       </div>
+      )}
 
-      {/* Login Status Section */}
-      {elig.is_eligible === 'yes' && (
+      {/* Login Status Section - For vehicle loans, only show after TVR+EMI OK */}
+      {(!isVehicleLoan || (elig.tvr_done === 'yes' && elig.emi_ok === 'yes')) && elig.is_eligible === 'yes' && (
         <div className="mt-4 pt-4 border-t border-dashed">
           <p className="text-xs font-semibold text-slate-700 mb-2">Login Status</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

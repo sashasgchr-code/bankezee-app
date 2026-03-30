@@ -177,7 +177,8 @@ export const calculateDashboardStats = (leads) => {
 export const getLoanTypeLabel = (value) => {
   // Map old values to new
   const legacyMap = {
-    'used_vehicle_loan': 'used_vehicle_loan_bt',
+    'used_vehicle_loan': 'Used Vehicle Loan - BT',
+    'vehicle_loan': 'Vehicle Loan',
     'Used Vehicle Loan': 'Used Vehicle Loan - BT',
   };
   const mapped = legacyMap[value] || value;

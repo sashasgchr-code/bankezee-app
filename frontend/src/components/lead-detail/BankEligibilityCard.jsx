@@ -229,7 +229,7 @@ const BankEligibilityCard = ({
         </div>
       )}
 
-      {/* Vehicle Loan Workflow: RC → NOC → Hypothecation (only for vehicle loans when approved) */}
+      {/* Vehicle Loan Workflow: RC → (NOC for BT only) → Hypothecation (only for vehicle loans when approved) */}
       {isVehicleLoan && elig.approval_status === 'approved' && (
         <div className="mt-4 pt-4 border-t border-dashed">
           <p className="text-xs font-semibold text-orange-700 mb-2">🚗 Vehicle Loan - Document Verification</p>
@@ -264,8 +264,8 @@ const BankEligibilityCard = ({
             )}
           </div>
 
-          {/* NOC Submitted - Only show if RC is Yes */}
-          {elig.rc_submitted === 'yes' && (
+          {/* NOC Submitted - Only show for Used Vehicle Loan - BT */}
+          {requiresNOC && elig.rc_submitted === 'yes' && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
               <div>
                 <p className="text-xs text-slate-500 mb-1">NOC Submitted?</p>
@@ -296,8 +296,8 @@ const BankEligibilityCard = ({
             </div>
           )}
 
-          {/* Hypothecation - Only show if NOC is Yes */}
-          {elig.rc_submitted === 'yes' && elig.noc_submitted === 'yes' && (
+          {/* Hypothecation - Show after RC (if no NOC required) or after NOC (if NOC required) */}
+          {elig.rc_submitted === 'yes' && (!requiresNOC || elig.noc_submitted === 'yes') && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div>
                 <p className="text-xs text-slate-500 mb-1">Hypothecation Done?</p>

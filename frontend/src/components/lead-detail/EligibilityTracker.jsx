@@ -50,6 +50,7 @@ const EligibilityTracker = ({
                 onRemove={onRemove}
                 showSmFields={showSmFields}
                 isVehicleLoan={isVehicleLoan}
+                loanType={loanType}
               />
             ))}
           </div>

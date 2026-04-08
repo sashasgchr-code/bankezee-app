@@ -17,6 +17,7 @@ import {
   LeadAssignmentCard,
   ActivityLog
 } from '@/components/lead-detail';
+import VehiclePreVerification from '@/components/lead-detail/VehiclePreVerification';
 
 const EMPTY_ELIGIBILITY = {
   bank_name: '',
@@ -64,6 +65,8 @@ const LeadDetailPage = () => {
   const [savingDetails, setSavingDetails] = useState(false);
   const [editedDetails, setEditedDetails] = useState({});
   const [sourceInfo, setSourceInfo] = useState(null);
+  const [vehiclePreVerification, setVehiclePreVerification] = useState({ tvr_done: '', emi_ok: '', tvr_not_done_reason: '', emi_not_ok_reason: '' });
+  const [savingPreVerification, setSavingPreVerification] = useState(false);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const canEdit = ['admin', 'operations'].includes(user.role);
 
@@ -96,6 +99,12 @@ const LeadDetailPage = () => {
       
       // Initialize edited details
       const additionalData = leadData.additional_data || {};
+      setVehiclePreVerification({
+        tvr_done: additionalData.tvr_done || '',
+        emi_ok: additionalData.emi_ok || '',
+        tvr_not_done_reason: additionalData.tvr_not_done_reason || '',
+        emi_not_ok_reason: additionalData.emi_not_ok_reason || '',
+      });
       setEditedDetails({
         full_name: leadData.full_name || '',
         mobile: leadData.mobile || '',
@@ -177,6 +186,30 @@ const LeadDetailPage = () => {
 
   const handleDetailChange = (field, value) => {
     setEditedDetails(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handlePreVerificationUpdate = (field, value) => {
+    setVehiclePreVerification(prev => ({ ...prev, [field]: value }));
+  };
+
+  const savePreVerification = async () => {
+    setSavingPreVerification(true);
+    try {
+      await api.put(`/crm/${leadId}/details`, {
+        additional_data: {
+          tvr_done: vehiclePreVerification.tvr_done,
+          emi_ok: vehiclePreVerification.emi_ok,
+          tvr_not_done_reason: vehiclePreVerification.tvr_not_done_reason,
+          emi_not_ok_reason: vehiclePreVerification.emi_not_ok_reason,
+        }
+      });
+      toast.success('Pre-verification saved');
+      fetchLead();
+    } catch (error) {
+      toast.error('Failed to save pre-verification');
+    } finally {
+      setSavingPreVerification(false);
+    }
   };
 
   const handleSaveDetails = async () => {
@@ -406,18 +439,46 @@ const LeadDetailPage = () => {
               </CardContent>
             </Card>
 
-            {/* Eligibility Tracker */}
-            <EligibilityTracker
-              eligibilities={eligibilities}
-              canEdit={canEdit}
-              onUpdate={updateEligibility}
-              onAdd={addEligibility}
-              onRemove={removeEligibility}
-              onSave={saveEligibilities}
-              isSaving={savingEligibilities}
-              showSmFields={['admin', 'operations'].includes(user.role)}
-              loanType={lead.requirement || additionalData.type_of_loan || ''}
-            />
+            {/* Vehicle Loan Pre-Verification - Separate section above Bank Eligibilities */}
+            {(() => {
+              const loanType = lead.additional_data?.type_of_loan || lead.requirement || '';
+              const isVehicleLoan = loanType && (
+                loanType.toLowerCase().includes('vehicle') || 
+                loanType.toLowerCase().includes('car')
+              );
+              const preVerified = vehiclePreVerification.tvr_done === 'yes' && vehiclePreVerification.emi_ok === 'yes';
+              return (
+                <>
+                  {isVehicleLoan && (
+                    <VehiclePreVerification
+                      tvrDone={vehiclePreVerification.tvr_done}
+                      emiOk={vehiclePreVerification.emi_ok}
+                      tvrReason={vehiclePreVerification.tvr_not_done_reason}
+                      emiReason={vehiclePreVerification.emi_not_ok_reason}
+                      canEdit={canEdit}
+                      onUpdate={handlePreVerificationUpdate}
+                      onSave={savePreVerification}
+                      isSaving={savingPreVerification}
+                    />
+                  )}
+
+                  {/* Eligibility Tracker - For vehicle loans, only show after TVR+EMI OK */}
+                  {(!isVehicleLoan || preVerified) && (
+                    <EligibilityTracker
+                      eligibilities={eligibilities}
+                      canEdit={canEdit}
+                      onUpdate={updateEligibility}
+                      onAdd={addEligibility}
+                      onRemove={removeEligibility}
+                      onSave={saveEligibilities}
+                      isSaving={savingEligibilities}
+                      showSmFields={['admin', 'operations'].includes(user.role)}
+                      loanType={loanType}
+                    />
+                  )}
+                </>
+              );
+            })()}
 
             {/* Status Update - Only for Admin/Ops */}
             {canEdit && (

@@ -369,7 +369,7 @@ async def get_daily_report(
                 status_details["rejection_reason"] = elig.get("disbursement_rejection_reason", "")
         
         # Get type_of_loan from additional_data (this is the "Type of Loan" field in CRM)
-        type_of_loan = lead.get("additional_data", {}).get("type_of_loan", "") or lead.get("loan_type", "")
+        type_of_loan = lead.get("additional_data", {}).get("type_of_loan", "") or lead.get("requirement", "") or lead.get("loan_type", "")
         
         enriched_lead = {
             "id": lead.get("id"),

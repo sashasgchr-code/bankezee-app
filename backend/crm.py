@@ -101,6 +101,24 @@ class EligibilityUpdate(BaseModel):
     eligibilities: List[EligibilityEntry]
 
 
+
+@router.post("/sync-loan-types")
+async def sync_loan_types(current_user: User = Depends(get_current_user)):
+    """One-time sync: copy additional_data.type_of_loan to requirement field for all leads"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    
+    leads = await db.leads.find({}, {"_id": 0, "id": 1, "requirement": 1, "additional_data": 1}).to_list(5000)
+    synced = 0
+    for lead in leads:
+        ad = lead.get("additional_data") or {}
+        tol = ad.get("type_of_loan")
+        if tol and tol != lead.get("requirement"):
+            await db.leads.update_one({"id": lead["id"]}, {"$set": {"requirement": tol}})
+            synced += 1
+    return {"message": f"Synced {synced} leads", "total": len(leads)}
+
+
 # Static routes MUST be defined before dynamic routes like /{lead_id}
 @router.put("/bulk-assign")
 async def bulk_assign_leads(
@@ -309,6 +327,9 @@ async def update_lead_details(
         existing_additional = lead.get("additional_data", {}) or {}
         merged_additional = {**existing_additional, **update_data.additional_data}
         update_dict["additional_data"] = merged_additional
+        # Sync type_of_loan to requirement field for consistency
+        if "type_of_loan" in update_data.additional_data and update_data.additional_data["type_of_loan"]:
+            update_dict["requirement"] = update_data.additional_data["type_of_loan"]
     
     if not update_dict:
         return {"message": "No changes to update"}

@@ -645,7 +645,7 @@ const AdminDashboard = () => {
           lead.mobile || '',
           lead.email || '',
           `"${(lead.city || '').replace(/"/g, '""')}"`,
-          lead.loan_type || lead.requirement || '',
+          lead.additional_data?.type_of_loan || lead.requirement || lead.loan_type || '',
           lead.created_at || '',
           // Source Info
           lead.source || '',
@@ -2285,7 +2285,7 @@ const AdminDashboard = () => {
                       <div>
                         <p className="font-medium">{lead.full_name}</p>
                         <p className="text-sm text-slate-600">
-                          <MaskedField value={lead.mobile} type="mobile" /> | {getLoanTypeLabel(lead.requirement || lead.additional_data?.loan_type || lead.loan_type) || 'N/A'}
+                          <MaskedField value={lead.mobile} type="mobile" /> | {getLoanTypeLabel(lead.additional_data?.type_of_loan || lead.requirement || lead.loan_type) || 'N/A'}
                         </p>
                         <p className="text-xs text-slate-500 mt-1">
                           {new Date(lead.created_at).toLocaleDateString()}

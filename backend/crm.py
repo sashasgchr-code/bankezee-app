@@ -51,11 +51,17 @@ class LeadDetailsUpdate(BaseModel):
     additional_data: Optional[dict] = None
 
 class EligibilityEntry(BaseModel):
-    bank_name: str
+    bank_name: Optional[str] = None
     is_eligible: Optional[str] = None  # 'yes' or 'no'
     eligible_amount: Optional[float] = None
     eligible_roi: Optional[float] = None  # ROI percentage
     not_eligible_reason: Optional[str] = None
+    # Vehicle Loan Pre-Verification
+    tvr_done: Optional[str] = None  # 'yes' or 'no'
+    tvr_not_done_reason: Optional[str] = None
+    emi_ok: Optional[str] = None  # 'yes' or 'no'
+    emi_not_ok_reason: Optional[str] = None
+    # Login
     login_done: Optional[str] = None  # 'yes' or 'no'
     login_done_at: Optional[str] = None  # Timestamp when login was done
     login_bank: Optional[str] = None
@@ -71,6 +77,14 @@ class EligibilityEntry(BaseModel):
     approved_roi: Optional[float] = None
     declined_bank: Optional[str] = None
     declined_reason: Optional[str] = None
+    # Vehicle Loan Document Verification
+    rc_submitted: Optional[str] = None  # 'yes' or 'no'
+    rc_not_submitted_reason: Optional[str] = None
+    noc_submitted: Optional[str] = None  # 'yes' or 'no' (only for Used Vehicle Loan - BT)
+    noc_not_submitted_reason: Optional[str] = None
+    hypothecation: Optional[str] = None  # 'yes' or 'no'
+    hypothecation_not_done_reason: Optional[str] = None
+    # Disbursement
     disbursed: Optional[str] = None  # 'yes' or 'no'
     disbursed_at: Optional[str] = None  # Timestamp when disbursed
     disbursed_bank: Optional[str] = None

@@ -740,16 +740,32 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 
 ## Session 12 Highlights (December 2025)
 
+### Features Built
+1. **Sales & Operations Report (P1) ✅**
+   - New report page at `/reports/sales-operations` with 5 sections:
+     - Business Volume Metrics (files generated, logged, approvals, disbursals, values)
+     - Conversion Metrics (Lead→Login, Login→Approval, Approval→Disbursal, E2E)
+     - Team Productivity (per-agent breakdown)
+     - Bank/Lender Performance (logins, approvals, disbursals per bank)
+     - Pipeline Health (Pre-Login, Login, Approved)
+     - Rejection & Drop Analysis (reasons: Low CIBIL, Low Income, High FOIR, etc.)
+   - Filterable by: Date range, Manager, Agent, Loan Type
+   - Printable
+   - Accessible from Admin and Ops dashboards
+
 ### Bugs Fixed
 1. **Vehicle Loan TVR/EMI Workflow Fix (P0) ✅**
-   - Removed duplicate TVR/EMI section that appeared AFTER Approval Status
-   - TVR/EMI Pre-Verification now correctly appears FIRST (before Bank Eligibility) for vehicle loans only
-   - Fixed `isUsedVehicleBT` check to handle both underscore (`used_vehicle_loan_bt`) and space (`Used Vehicle Loan - BT`) formats
-   - Workflow order: TVR/EMI → Bank Eligibility → Login → Approval → RC/NOC/Hypothecation → Disbursement
-   - Personal Loan correctly skips TVR/EMI entirely
-   - NOC step only appears for "Used Vehicle Loan - BT"
-   - All 9 test cases passed (100%)
-   - File: `BankEligibilityCard.jsx`
+   - TVR/EMI moved to separate lead-level section (not per-bank)
+   - Bank Eligibilities gated behind TVR+EMI = Yes
+   - Backend EligibilityEntry model updated with missing fields
+2. **Loan Type Label Fix ✅**
+   - Cards now show proper labels instead of raw DB values
+   - Legacy mapping for old values (vehicle_loan, used_vehicle_loan)
+3. **Loan Type Sync Fix ✅**
+   - `additional_data.type_of_loan` now auto-syncs to `lead.requirement` on save
+   - One-time sync endpoint: `POST /api/crm/sync-loan-types`
+4. **Multi-select Loan Type Filter ✅**
+   - Checkbox-based multi-select for loan type filtering in dashboards
 
 ## Pending/Future Tasks
 

@@ -1394,6 +1394,16 @@ const AdminDashboard = () => {
             Agent Performance
           </Button>
           <Button
+            onClick={() => navigate('/reports/sales-operations')}
+            variant="outline"
+            size="sm"
+            className="text-green-600 border-green-300 hover:bg-green-50"
+            data-testid="sales-ops-report-btn"
+          >
+            <BarChart3 className="w-4 h-4 mr-1" />
+            Sales & Ops Report
+          </Button>
+          <Button
             onClick={() => setShowExportModal(true)}
             variant="outline"
             size="sm"

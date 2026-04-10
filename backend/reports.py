@@ -902,3 +902,223 @@ async def get_agent_performance_report(
             "to": to_date
         }
     }
+
+
+@router.get("/sales-operations")
+async def get_sales_operations_report(
+    from_date: str = Query(..., description="Start date (YYYY-MM-DD)"),
+    to_date: str = Query(..., description="End date (YYYY-MM-DD)"),
+    agent_id: Optional[str] = Query(None),
+    manager_id: Optional[str] = Query(None),
+    loan_type: Optional[str] = Query(None),
+    current_user: User = Depends(get_current_user)
+):
+    """Comprehensive Sales & Operations Report with all metrics"""
+    if current_user.role not in ["admin", "operations"]:
+        raise HTTPException(status_code=403, detail="Only admin or operations can access reports")
+
+    try:
+        start_date = datetime.strptime(from_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        end_date = datetime.strptime(to_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59, tzinfo=timezone.utc)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format")
+
+    # Build query
+    query = {"created_at": {"$gte": start_date.isoformat(), "$lte": end_date.isoformat()}}
+    if manager_id:
+        query["manager_id"] = manager_id
+    if agent_id:
+        query["assigned_to"] = agent_id
+    if loan_type:
+        loan_types = loan_type.split(",")
+        query["$or"] = [
+            {"requirement": {"$in": loan_types}},
+            {"additional_data.type_of_loan": {"$in": loan_types}}
+        ]
+
+    leads = await db.leads.find(query, {"_id": 0}).to_list(10000)
+
+    # Fetch agents/managers for names
+    agents = await db.users.find({"role": {"$in": ["sales_agent", "team_leader"]}}, {"_id": 0, "id": 1, "full_name": 1}).to_list(1000)
+    agents_map = {a["id"]: a["full_name"] for a in agents}
+    managers = await db.users.find({"role": "manager"}, {"_id": 0, "id": 1, "full_name": 1}).to_list(100)
+    managers_map = {m["id"]: m["full_name"] for m in managers}
+
+    # ---- 1. BUSINESS VOLUME METRICS ----
+    total_files = len(leads)
+    total_logged = 0
+    total_approvals = 0
+    total_disbursals = 0
+    total_disbursal_value = 0
+    total_not_eligible = 0
+    total_eligible = 0
+
+    # Bank performance tracking
+    bank_stats = {}
+    # Agent performance tracking
+    agent_stats = {}
+    # Pipeline tracking
+    pipeline = {"pre_login": 0, "login": 0, "approved": 0}
+    # Rejection reasons
+    rejection_reasons = {
+        "Low CIBIL": 0, "Low Income": 0, "High FOIR": 0,
+        "Documentation": 0, "Change of Mind": 0, "Delayed Process": 0, "Other": 0
+    }
+    total_login_to_approval_rejections = 0
+
+    def categorize_rejection(reason_text, reasons_dict):
+        reason_lower = (reason_text or "").lower()
+        if not reason_lower:
+            return
+        if "cibil" in reason_lower:
+            reasons_dict["Low CIBIL"] += 1
+        elif "income" in reason_lower:
+            reasons_dict["Low Income"] += 1
+        elif "foir" in reason_lower:
+            reasons_dict["High FOIR"] += 1
+        elif "document" in reason_lower:
+            reasons_dict["Documentation"] += 1
+        elif "change" in reason_lower or "mind" in reason_lower:
+            reasons_dict["Change of Mind"] += 1
+        elif "delay" in reason_lower:
+            reasons_dict["Delayed Process"] += 1
+        else:
+            reasons_dict["Other"] += 1
+
+    for lead in leads:
+        eligibilities = lead.get("eligibilities", [])
+        assigned_to = lead.get("assigned_to", "")
+        agent_name = agents_map.get(assigned_to, assigned_to[:8] if assigned_to else "Unassigned")
+
+        if agent_name not in agent_stats:
+            agent_stats[agent_name] = {"files": 0, "logins": 0, "approvals": 0, "disbursals": 0, "disbursal_value": 0}
+        agent_stats[agent_name]["files"] += 1
+
+        lead_has_login = False
+        lead_has_approval = False
+        lead_has_disbursal = False
+        lead_disbursal_value = 0
+
+        for elig in eligibilities:
+            bank = elig.get("bank_name") or elig.get("login_bank") or "Unknown"
+            if bank and bank != "Unknown":
+                if bank not in bank_stats:
+                    bank_stats[bank] = {"logins": 0, "approvals": 0, "disbursals": 0}
+
+            # Eligible check
+            if elig.get("is_eligible") == "yes":
+                total_eligible += 1
+            elif elig.get("is_eligible") == "no":
+                total_not_eligible += 1
+                categorize_rejection(elig.get("not_eligible_reason"), rejection_reasons)
+
+            # Login
+            if elig.get("login_done") == "yes":
+                if not lead_has_login:
+                    lead_has_login = True
+                    total_logged += 1
+                if bank and bank != "Unknown":
+                    bank_stats[bank]["logins"] += 1
+
+            # Approval
+            if elig.get("approval_status") == "approved":
+                if not lead_has_approval:
+                    lead_has_approval = True
+                    total_approvals += 1
+                if bank and bank != "Unknown":
+                    bank_stats[bank]["approvals"] += 1
+            elif elig.get("approval_status") == "declined":
+                total_login_to_approval_rejections += 1
+                categorize_rejection(elig.get("declined_reason"), rejection_reasons)
+
+            # Disbursal
+            if elig.get("disbursed") == "yes":
+                amt = float(elig.get("disbursed_amount") or 0)
+                if not lead_has_disbursal:
+                    lead_has_disbursal = True
+                    total_disbursals += 1
+                lead_disbursal_value += amt
+                if bank and bank != "Unknown":
+                    bank_stats[bank]["disbursals"] += 1
+
+        total_disbursal_value += lead_disbursal_value
+
+        # Agent stats
+        if lead_has_login:
+            agent_stats[agent_name]["logins"] += 1
+        if lead_has_approval:
+            agent_stats[agent_name]["approvals"] += 1
+        if lead_has_disbursal:
+            agent_stats[agent_name]["disbursals"] += 1
+            agent_stats[agent_name]["disbursal_value"] += lead_disbursal_value
+
+        # Pipeline (current state of lead - only count non-disbursed)
+        if not lead_has_disbursal:
+            if lead_has_approval:
+                pipeline["approved"] += 1
+            elif lead_has_login:
+                pipeline["login"] += 1
+            else:
+                pipeline["pre_login"] += 1
+
+    # Conversion metrics
+    lead_to_login = round((total_logged / total_files * 100), 1) if total_files > 0 else 0
+    login_to_approval = round((total_approvals / total_logged * 100), 1) if total_logged > 0 else 0
+    approval_to_disbursal = round((total_disbursals / total_approvals * 100), 1) if total_approvals > 0 else 0
+    lead_to_disbursal = round((total_disbursals / total_files * 100), 1) if total_files > 0 else 0
+    avg_loan_value = round(total_disbursal_value / total_disbursals, 2) if total_disbursals > 0 else 0
+
+    # Rejection rate
+    rejection_pct = round((total_login_to_approval_rejections / total_logged * 100), 1) if total_logged > 0 else 0
+
+    # Agent productivity
+    num_agents = len([a for a in agent_stats if agent_stats[a]["files"] > 0])
+    files_per_agent = round(total_files / num_agents, 1) if num_agents > 0 else 0
+    disbursals_per_agent = round(total_disbursals / num_agents, 1) if num_agents > 0 else 0
+
+    return {
+        "business_volume": {
+            "total_files_generated": total_files,
+            "total_files_logged": total_logged,
+            "total_approvals": total_approvals,
+            "total_disbursals": total_disbursals,
+            "total_disbursal_value": total_disbursal_value,
+            "avg_loan_value": avg_loan_value,
+        },
+        "conversion_metrics": {
+            "lead_to_login": lead_to_login,
+            "login_to_approval": login_to_approval,
+            "approval_to_disbursal": approval_to_disbursal,
+            "lead_to_disbursal_e2e": lead_to_disbursal,
+        },
+        "team_productivity": {
+            "num_agents": num_agents,
+            "files_per_agent": files_per_agent,
+            "disbursals_per_agent": disbursals_per_agent,
+            "agent_breakdown": [
+                {"name": name, **stats}
+                for name, stats in sorted(agent_stats.items(), key=lambda x: x[1]["files"], reverse=True)
+            ]
+        },
+        "bank_performance": [
+            {"bank": bank, **stats}
+            for bank, stats in sorted(bank_stats.items(), key=lambda x: x[1]["disbursals"], reverse=True)
+        ],
+        "pipeline_health": {
+            "pre_login": pipeline["pre_login"],
+            "login": pipeline["login"],
+            "approved": pipeline["approved"],
+            "total": pipeline["pre_login"] + pipeline["login"] + pipeline["approved"],
+        },
+        "rejection_analysis": {
+            "total_rejection_pct": rejection_pct,
+            "total_rejections": total_login_to_approval_rejections + total_not_eligible,
+            "reasons": rejection_reasons,
+        },
+        "date_range": {"from": from_date, "to": to_date},
+        "filters_applied": {
+            "agent_id": agent_id,
+            "manager_id": manager_id,
+            "loan_type": loan_type,
+        }
+    }

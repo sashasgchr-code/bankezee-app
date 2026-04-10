@@ -249,54 +249,60 @@ export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'al
   const total = leads.length;
   const newLeads = leads.filter(l => STATUS_CATEGORIES.new.includes(l.status)).length;
   
-  // First, filter leads that have ANY activity in the time period
-  let leadsWithActivityInRange = leads;
-  
+  // Helper: check if a timestamp string falls in the selected activity date range
+  const tsInRange = (tsStr) => {
+    if (!tsStr) return false;
+    if (timeFilter === 'all') return true;
+    return isDateInRange(tsStr, timeFilter, fromDate, toDate);
+  };
+
+  // For in-progress, check if lead has any activity in range
+  let inProgressLeads = leads;
   if (timeFilter !== 'all') {
-    leadsWithActivityInRange = leads.filter(lead => {
-      // Check if ANY activity falls within the filter period
+    inProgressLeads = leads.filter(lead => {
       const activities = lead.activities || [];
-      return activities.some(activity => {
-        const ts = activity.timestamp;
-        return isDateInRange(ts, timeFilter, fromDate, toDate);
-      });
+      return activities.some(a => isDateInRange(a.timestamp, timeFilter, fromDate, toDate));
     });
   }
-  
-  // In Progress: count from leads with activity in range
-  const inProgress = leadsWithActivityInRange.filter(l => STATUS_CATEGORIES.in_progress.includes(l.status)).length;
-  
-  // Now sum ALL eligibility amounts from leads with activity in range
+  const inProgress = inProgressLeads.filter(l => STATUS_CATEGORIES.in_progress.includes(l.status)).length;
+
+  // For approved/disbursed/rejected: check eligibility-level timestamps
+  // This naturally includes spillover (old lead, recent activity)
   let approved = 0;
   let disbursed = 0;
   let rejected = 0;
   let totalDisbursedAmount = 0;
   let totalApprovedAmount = 0;
-  
-  leadsWithActivityInRange.forEach(lead => {
+
+  leads.forEach(lead => {
     if (!lead.eligibilities) return;
-    
+
     lead.eligibilities.forEach(elig => {
-      // Count approved
-      if (elig.approval_status === 'approved') {
+      // Approved: check approved_at timestamp in range
+      if (elig.approval_status === 'approved' && tsInRange(elig.approved_at)) {
         approved++;
         totalApprovedAmount += parseFloat(elig.approved_amount) || 0;
       }
-      
-      // Count disbursed (handle both 'yes' and true)
+
+      // Disbursed: check disbursed_at timestamp in range
       const disbursedValue = String(elig.disbursed || '').toLowerCase();
-      if (disbursedValue === 'yes' || disbursedValue === 'true') {
+      if ((disbursedValue === 'yes' || disbursedValue === 'true') && tsInRange(elig.disbursed_at)) {
         disbursed++;
         totalDisbursedAmount += parseFloat(elig.disbursed_amount) || 0;
       }
-      
-      // Count rejected
+
+      // Rejected: check if lead has activity for this in range (use approved_at or activity log)
       if (elig.approval_status === 'declined') {
-        rejected++;
+        // For declined, check activity log since there's no declined_at timestamp
+        const activities = lead.activities || [];
+        const hasDeclineActivity = timeFilter === 'all' || activities.some(a => 
+          isDateInRange(a.timestamp, timeFilter, fromDate, toDate)
+        );
+        if (hasDeclineActivity) rejected++;
       }
     });
   });
-  
+
   return {
     total,
     newLeads,
@@ -306,42 +312,38 @@ export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'al
     rejected,
     totalDisbursedAmount,
     totalApprovedAmount,
-    leadsWithActivity: leadsWithActivityInRange.length
+    leadsWithActivity: inProgressLeads.length
   };
 };
 
 // Calculate total eligible amount based on activity date
 // This matches the Daily Report logic: filter LEADS by activity date, then sum ALL their eligible amounts where is_eligible=yes AND login_done=yes
 export const calculateTotalEligibleWithActivityDate = (leads, timeFilter = 'all', fromDate = null, toDate = null) => {
-  // First, filter leads that have ANY activity in the time period
-  let leadsWithActivityInRange = leads;
-  
-  if (timeFilter !== 'all') {
-    leadsWithActivityInRange = leads.filter(lead => {
-      const activities = lead.activities || [];
-      return activities.some(activity => {
-        const ts = activity.timestamp;
-        return isDateInRange(ts, timeFilter, fromDate, toDate);
-      });
-    });
-  }
-  
-  // Now sum ALL eligible amounts from leads with activity in range (where is_eligible = yes AND login_done = yes)
+  const tsInRange = (tsStr) => {
+    if (!tsStr) return false;
+    if (timeFilter === 'all') return true;
+    return isDateInRange(tsStr, timeFilter, fromDate, toDate);
+  };
+
   let total = 0;
-  
-  leadsWithActivityInRange.forEach(lead => {
+
+  leads.forEach(lead => {
     if (!lead.eligibilities) return;
-    
+
     lead.eligibilities.forEach(elig => {
       const isEligible = String(elig.is_eligible || '').toLowerCase();
       const loginDone = String(elig.login_done || '').toLowerCase();
       // Only count if BOTH is_eligible AND login_done are 'yes'
+      // Check login_done_at timestamp for activity date filtering
       if ((isEligible === 'yes' || isEligible === 'true') && (loginDone === 'yes' || loginDone === 'true')) {
-        total += parseFloat(elig.eligible_amount) || 0;
+        // If filter active, check login_done_at timestamp; otherwise count all
+        if (timeFilter === 'all' || tsInRange(elig.login_done_at)) {
+          total += parseFloat(elig.eligible_amount) || 0;
+        }
       }
     });
   });
-  
+
   return total;
 };
 

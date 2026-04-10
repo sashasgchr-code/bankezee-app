@@ -913,7 +913,7 @@ async def get_sales_operations_report(
     loan_type: Optional[str] = Query(None),
     current_user: User = Depends(get_current_user)
 ):
-    """Comprehensive Sales & Operations Report with all metrics"""
+    """Sales & Operations Report with Current/Spillover split"""
     if current_user.role not in ["admin", "operations"]:
         raise HTTPException(status_code=403, detail="Only admin or operations can access reports")
 
@@ -923,59 +923,39 @@ async def get_sales_operations_report(
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid date format")
 
-    # Build query
-    query = {"created_at": {"$gte": start_date.isoformat(), "$lte": end_date.isoformat()}}
+    start_iso = start_date.isoformat()
+    end_iso = end_date.isoformat()
+
+    # Build base filter (agent, manager, loan type)
+    base_filter = {}
     if manager_id:
-        query["manager_id"] = manager_id
+        base_filter["manager_id"] = manager_id
     if agent_id:
-        query["assigned_to"] = agent_id
+        base_filter["assigned_to"] = agent_id
     if loan_type:
         loan_types = loan_type.split(",")
-        query["$or"] = [
+        base_filter["$or"] = [
             {"requirement": {"$in": loan_types}},
             {"additional_data.type_of_loan": {"$in": loan_types}}
         ]
 
-    leads = await db.leads.find(query, {"_id": 0}).to_list(10000)
+    # Query 1: Current month leads (created within date range)
+    current_query = {**base_filter, "created_at": {"$gte": start_iso, "$lte": end_iso}}
+    current_leads = await db.leads.find(current_query, {"_id": 0}).to_list(10000)
+
+    # Query 2: Spillover leads (created BEFORE date range - activity might be in range)
+    spillover_query = {**base_filter, "created_at": {"$lt": start_iso}}
+    older_leads = await db.leads.find(spillover_query, {"_id": 0}).to_list(10000)
 
     # Fetch agents/managers for names
-    agents = await db.users.find({"role": {"$in": ["sales_agent", "team_leader"]}}, {"_id": 0, "id": 1, "full_name": 1}).to_list(1000)
+    agents = await db.users.find(
+        {"role": {"$in": ["sales_agent", "team_leader"]}},
+        {"_id": 0, "id": 1, "full_name": 1}
+    ).to_list(1000)
     agents_map = {a["id"]: a["full_name"] for a in agents}
-    managers = await db.users.find({"role": "manager"}, {"_id": 0, "id": 1, "full_name": 1}).to_list(100)
-    managers_map = {m["id"]: m["full_name"] for m in managers}
 
-    # ---- 1. BUSINESS VOLUME METRICS ----
-    total_files = len(leads)
-    total_logged = 0
-    total_approvals = 0
-    total_disbursals = 0
-    total_disbursal_value = 0
-    total_not_eligible = 0
-    total_eligible = 0
-
-    # Bank performance tracking
-    bank_stats = {}
-    # Agent performance tracking
-    agent_stats = {}
-    # Pipeline tracking
-    pipeline = {"pre_login": 0, "login": 0, "approved": 0}
-    # Rejection reasons
-    rejection_reasons = {
-        "Low CIBIL": 0, "Low Income": 0, "High FOIR": 0,
-        "Documentation": 0, "Change of Mind": 0, "Delayed Process": 0, "Other": 0
-    }
-    total_login_to_approval_rejections = 0
-
-    # TAT tracking (in days)
-    tat_lead_to_login = []
-    tat_login_to_approval = []
-    tat_approval_to_disbursal = []
-    tat_lead_to_disbursal = []
-    # Per-bank TAT
-    bank_tat = {}  # bank -> {"lead_to_login": [], "login_to_approval": [], "approval_to_disbursal": []}
-
+    # --- Helper functions ---
     def parse_ts(ts_str):
-        """Parse ISO timestamp string to datetime"""
         if not ts_str:
             return None
         try:
@@ -983,19 +963,19 @@ async def get_sales_operations_report(
         except (ValueError, AttributeError):
             return None
 
+    def in_range(ts_str):
+        dt = parse_ts(ts_str)
+        return dt is not None and start_date <= dt <= end_date
+
     def days_between(dt1, dt2):
-        """Calculate days between two datetimes, rounded to 1 decimal"""
         if dt1 and dt2:
-            diff = abs((dt2 - dt1).total_seconds()) / 86400
-            return round(diff, 1)
+            return round(abs((dt2 - dt1).total_seconds()) / 86400, 1)
         return None
 
     def tat_stats(values):
-        """Compute mode, min, max for a list of TAT values"""
         if not values:
             return {"mode": None, "min": None, "max": None, "avg": None, "count": 0}
         from collections import Counter
-        # Round to nearest integer for mode calculation
         rounded = [round(v) for v in values]
         counter = Counter(rounded)
         mode_val = counter.most_common(1)[0][0]
@@ -1026,161 +1006,266 @@ async def get_sales_operations_report(
         else:
             reasons_dict["Other"] += 1
 
-    for lead in leads:
-        eligibilities = lead.get("eligibilities", [])
-        assigned_to = lead.get("assigned_to", "")
-        agent_name = agents_map.get(assigned_to, assigned_to[:8] if assigned_to else "Unassigned")
+    # --- Processing function for a set of leads ---
+    def process_leads(leads, is_spillover=False):
+        result = {
+            "files": len(leads) if not is_spillover else 0,
+            "logged": 0, "approvals": 0, "disbursals": 0,
+            "disbursal_value": 0,
+        }
+        agent_data = {}
+        bank_data = {}
+        bank_tat_data = {}
+        tat_data = {"l2l": [], "l2a": [], "a2d": [], "l2d": []}
+        pipeline_data = {"pre_login": 0, "login": 0, "approved": 0}
+        rejection_data = {
+            "Low CIBIL": 0, "Low Income": 0, "High FOIR": 0,
+            "Documentation": 0, "Change of Mind": 0, "Delayed Process": 0, "Other": 0
+        }
+        total_rejections = 0
 
-        if agent_name not in agent_stats:
-            agent_stats[agent_name] = {"files": 0, "logins": 0, "approvals": 0, "disbursals": 0, "disbursal_value": 0}
-        agent_stats[agent_name]["files"] += 1
+        for lead in leads:
+            eligibilities = lead.get("eligibilities", [])
+            assigned_to = lead.get("assigned_to", "")
+            agent_name = agents_map.get(assigned_to, assigned_to[:8] if assigned_to else "Unassigned")
 
-        lead_has_login = False
-        lead_has_approval = False
-        lead_has_disbursal = False
-        lead_disbursal_value = 0
+            # For spillover: check if any activity timestamp falls in range
+            if is_spillover:
+                has_activity_in_range = False
+                for elig in eligibilities:
+                    if (in_range(elig.get("login_done_at")) or
+                            in_range(elig.get("approved_at")) or
+                            in_range(elig.get("disbursed_at"))):
+                        has_activity_in_range = True
+                        break
+                if not has_activity_in_range:
+                    continue
+                # Count spillover lead as a "file" in this context
+                result["files"] += 1
 
-        for elig in eligibilities:
-            bank = elig.get("bank_name") or elig.get("login_bank") or "Unknown"
-            if bank and bank != "Unknown":
-                if bank not in bank_stats:
-                    bank_stats[bank] = {"logins": 0, "approvals": 0, "disbursals": 0}
+            if agent_name not in agent_data:
+                agent_data[agent_name] = {"files": 0, "logins": 0, "approvals": 0, "disbursals": 0, "disbursal_value": 0}
+            agent_data[agent_name]["files"] += 1
 
-            # Eligible check
-            if elig.get("is_eligible") == "yes":
-                total_eligible += 1
-            elif elig.get("is_eligible") == "no":
-                total_not_eligible += 1
-                categorize_rejection(elig.get("not_eligible_reason"), rejection_reasons)
+            lead_has_login = False
+            lead_has_approval = False
+            lead_has_disbursal = False
+            lead_disbursal_value = 0
 
-            # Login
-            if elig.get("login_done") == "yes":
-                if not lead_has_login:
-                    lead_has_login = True
-                    total_logged += 1
+            for elig in eligibilities:
+                bank = elig.get("bank_name") or elig.get("login_bank") or "Unknown"
+                if bank and bank != "Unknown" and bank not in bank_data:
+                    bank_data[bank] = {"logins": 0, "approvals": 0, "disbursals": 0}
+
+                # For spillover, only count activities that happened in the date range
+                login_in_range = not is_spillover or in_range(elig.get("login_done_at"))
+                approval_in_range = not is_spillover or in_range(elig.get("approved_at"))
+                disbursal_in_range = not is_spillover or in_range(elig.get("disbursed_at"))
+
+                # Eligible/Not eligible
+                if elig.get("is_eligible") == "no":
+                    categorize_rejection(elig.get("not_eligible_reason"), rejection_data)
+
+                # Login
+                if elig.get("login_done") == "yes" and login_in_range:
+                    if not lead_has_login:
+                        lead_has_login = True
+                        result["logged"] += 1
+                    if bank and bank != "Unknown":
+                        bank_data[bank]["logins"] += 1
+
+                # Approval
+                if elig.get("approval_status") == "approved" and approval_in_range:
+                    if not lead_has_approval:
+                        lead_has_approval = True
+                        result["approvals"] += 1
+                    if bank and bank != "Unknown":
+                        bank_data[bank]["approvals"] += 1
+                elif elig.get("approval_status") == "declined":
+                    total_rejections += 1
+                    categorize_rejection(elig.get("declined_reason"), rejection_data)
+
+                # Disbursal
+                if elig.get("disbursed") == "yes" and disbursal_in_range:
+                    amt = float(elig.get("disbursed_amount") or 0)
+                    if not lead_has_disbursal:
+                        lead_has_disbursal = True
+                        result["disbursals"] += 1
+                    lead_disbursal_value += amt
+                    if bank and bank != "Unknown":
+                        bank_data[bank]["disbursals"] += 1
+
+                # TAT
+                lead_created = parse_ts(lead.get("created_at"))
+                login_at = parse_ts(elig.get("login_done_at"))
+                approved_at = parse_ts(elig.get("approved_at"))
+                disbursed_at = parse_ts(elig.get("disbursed_at"))
+
                 if bank and bank != "Unknown":
-                    bank_stats[bank]["logins"] += 1
+                    if bank not in bank_tat_data:
+                        bank_tat_data[bank] = {"lead_to_login": [], "login_to_approval": [], "approval_to_disbursal": []}
 
-            # Approval
-            if elig.get("approval_status") == "approved":
-                if not lead_has_approval:
-                    lead_has_approval = True
-                    total_approvals += 1
-                if bank and bank != "Unknown":
-                    bank_stats[bank]["approvals"] += 1
-            elif elig.get("approval_status") == "declined":
-                total_login_to_approval_rejections += 1
-                categorize_rejection(elig.get("declined_reason"), rejection_reasons)
+                d = days_between(lead_created, login_at)
+                if d is not None:
+                    tat_data["l2l"].append(d)
+                    if bank and bank != "Unknown":
+                        bank_tat_data[bank]["lead_to_login"].append(d)
+                d = days_between(login_at, approved_at)
+                if d is not None:
+                    tat_data["l2a"].append(d)
+                    if bank and bank != "Unknown":
+                        bank_tat_data[bank]["login_to_approval"].append(d)
+                d = days_between(approved_at, disbursed_at)
+                if d is not None:
+                    tat_data["a2d"].append(d)
+                    if bank and bank != "Unknown":
+                        bank_tat_data[bank]["approval_to_disbursal"].append(d)
+                d = days_between(lead_created, disbursed_at)
+                if d is not None:
+                    tat_data["l2d"].append(d)
 
-            # Disbursal
-            if elig.get("disbursed") == "yes":
-                amt = float(elig.get("disbursed_amount") or 0)
-                if not lead_has_disbursal:
-                    lead_has_disbursal = True
-                    total_disbursals += 1
-                lead_disbursal_value += amt
-                if bank and bank != "Unknown":
-                    bank_stats[bank]["disbursals"] += 1
+            result["disbursal_value"] += lead_disbursal_value
 
-            # TAT Computation per eligibility entry
-            lead_created = parse_ts(lead.get("created_at"))
-            login_at = parse_ts(elig.get("login_done_at"))
-            approved_at = parse_ts(elig.get("approved_at"))
-            disbursed_at = parse_ts(elig.get("disbursed_at"))
-
-            if bank and bank != "Unknown":
-                if bank not in bank_tat:
-                    bank_tat[bank] = {"lead_to_login": [], "login_to_approval": [], "approval_to_disbursal": []}
-
-            # Lead → Login TAT
-            d = days_between(lead_created, login_at)
-            if d is not None:
-                tat_lead_to_login.append(d)
-                if bank and bank != "Unknown":
-                    bank_tat[bank]["lead_to_login"].append(d)
-
-            # Login → Approval TAT
-            d = days_between(login_at, approved_at)
-            if d is not None:
-                tat_login_to_approval.append(d)
-                if bank and bank != "Unknown":
-                    bank_tat[bank]["login_to_approval"].append(d)
-
-            # Approval → Disbursal TAT
-            d = days_between(approved_at, disbursed_at)
-            if d is not None:
-                tat_approval_to_disbursal.append(d)
-                if bank and bank != "Unknown":
-                    bank_tat[bank]["approval_to_disbursal"].append(d)
-
-            # Lead → Disbursal E2E TAT
-            d = days_between(lead_created, disbursed_at)
-            if d is not None:
-                tat_lead_to_disbursal.append(d)
-
-        total_disbursal_value += lead_disbursal_value
-
-        # Agent stats
-        if lead_has_login:
-            agent_stats[agent_name]["logins"] += 1
-        if lead_has_approval:
-            agent_stats[agent_name]["approvals"] += 1
-        if lead_has_disbursal:
-            agent_stats[agent_name]["disbursals"] += 1
-            agent_stats[agent_name]["disbursal_value"] += lead_disbursal_value
-
-        # Pipeline (current state of lead - only count non-disbursed)
-        if not lead_has_disbursal:
+            if lead_has_login:
+                agent_data[agent_name]["logins"] += 1
             if lead_has_approval:
-                pipeline["approved"] += 1
-            elif lead_has_login:
-                pipeline["login"] += 1
-            else:
-                pipeline["pre_login"] += 1
+                agent_data[agent_name]["approvals"] += 1
+            if lead_has_disbursal:
+                agent_data[agent_name]["disbursals"] += 1
+                agent_data[agent_name]["disbursal_value"] += lead_disbursal_value
 
-    # Conversion metrics
-    lead_to_login = round((total_logged / total_files * 100), 1) if total_files > 0 else 0
-    login_to_approval = round((total_approvals / total_logged * 100), 1) if total_logged > 0 else 0
-    approval_to_disbursal = round((total_disbursals / total_approvals * 100), 1) if total_approvals > 0 else 0
-    lead_to_disbursal = round((total_disbursals / total_files * 100), 1) if total_files > 0 else 0
+            if not lead_has_disbursal:
+                if lead_has_approval:
+                    pipeline_data["approved"] += 1
+                elif lead_has_login:
+                    pipeline_data["login"] += 1
+                else:
+                    pipeline_data["pre_login"] += 1
+
+        return {
+            "metrics": result,
+            "agent_data": agent_data,
+            "bank_data": bank_data,
+            "bank_tat_data": bank_tat_data,
+            "tat_data": tat_data,
+            "pipeline": pipeline_data,
+            "rejections": rejection_data,
+            "total_rejections": total_rejections,
+        }
+
+    # Process both sets
+    curr = process_leads(current_leads, is_spillover=False)
+    spill = process_leads(older_leads, is_spillover=True)
+
+    # Merge helper
+    def m(c, s):
+        return {"current": c, "spillover": s, "total": c + s}
+
+    cm = curr["metrics"]
+    sm = spill["metrics"]
+
+    total_files = cm["files"]  # Only current month for files generated
+    total_logged = cm["logged"] + sm["logged"]
+    total_approvals = cm["approvals"] + sm["approvals"]
+    total_disbursals = cm["disbursals"] + sm["disbursals"]
+    total_disbursal_value = cm["disbursal_value"] + sm["disbursal_value"]
     avg_loan_value = round(total_disbursal_value / total_disbursals, 2) if total_disbursals > 0 else 0
 
-    # Rejection rate
-    rejection_pct = round((total_login_to_approval_rejections / total_logged * 100), 1) if total_logged > 0 else 0
+    # Conversion (based on totals)
+    def pct(num, denom):
+        return round((num / denom * 100), 1) if denom > 0 else 0
 
-    # Agent productivity
-    num_agents = len([a for a in agent_stats if agent_stats[a]["files"] > 0])
-    files_per_agent = round(total_files / num_agents, 1) if num_agents > 0 else 0
-    disbursals_per_agent = round(total_disbursals / num_agents, 1) if num_agents > 0 else 0
+    # Merge agent stats
+    merged_agents = {}
+    for src in [curr["agent_data"], spill["agent_data"]]:
+        for name, stats in src.items():
+            if name not in merged_agents:
+                merged_agents[name] = {"files": 0, "logins": 0, "approvals": 0, "disbursals": 0, "disbursal_value": 0}
+            for k in ["files", "logins", "approvals", "disbursals", "disbursal_value"]:
+                merged_agents[name][k] += stats[k]
+
+    # Merge bank stats
+    merged_banks = {}
+    for src in [curr["bank_data"], spill["bank_data"]]:
+        for bank, stats in src.items():
+            if bank not in merged_banks:
+                merged_banks[bank] = {"logins": 0, "approvals": 0, "disbursals": 0}
+            for k in ["logins", "approvals", "disbursals"]:
+                merged_banks[bank][k] += stats[k]
+
+    # Merge bank TAT
+    merged_bank_tat = {}
+    for src in [curr["bank_tat_data"], spill["bank_tat_data"]]:
+        for bank, tat in src.items():
+            if bank not in merged_bank_tat:
+                merged_bank_tat[bank] = {"lead_to_login": [], "login_to_approval": [], "approval_to_disbursal": []}
+            for k in ["lead_to_login", "login_to_approval", "approval_to_disbursal"]:
+                merged_bank_tat[bank][k].extend(tat[k])
+
+    # Merge TAT
+    merged_tat = {}
+    for k in ["l2l", "l2a", "a2d", "l2d"]:
+        merged_tat[k] = curr["tat_data"][k] + spill["tat_data"][k]
+
+    # Merge pipeline
+    merged_pipeline = {}
+    for k in ["pre_login", "login", "approved"]:
+        merged_pipeline[k] = curr["pipeline"][k] + spill["pipeline"][k]
+
+    # Merge rejections
+    merged_rejections = {}
+    for k in curr["rejections"]:
+        merged_rejections[k] = curr["rejections"][k] + spill["rejections"].get(k, 0)
+    total_rej = curr["total_rejections"] + spill["total_rejections"]
+
+    num_agents = len([a for a in merged_agents if merged_agents[a]["files"] > 0])
 
     return {
         "business_volume": {
             "total_files_generated": total_files,
-            "total_files_logged": total_logged,
-            "total_approvals": total_approvals,
-            "total_disbursals": total_disbursals,
-            "total_disbursal_value": total_disbursal_value,
+            "files_logged": m(cm["logged"], sm["logged"]),
+            "approvals": m(cm["approvals"], sm["approvals"]),
+            "disbursals": m(cm["disbursals"], sm["disbursals"]),
+            "disbursal_value": m(cm["disbursal_value"], sm["disbursal_value"]),
             "avg_loan_value": avg_loan_value,
         },
         "conversion_metrics": {
-            "lead_to_login": lead_to_login,
-            "login_to_approval": login_to_approval,
-            "approval_to_disbursal": approval_to_disbursal,
-            "lead_to_disbursal_e2e": lead_to_disbursal,
+            "lead_to_login": m(
+                pct(cm["logged"], cm["files"]),
+                pct(sm["logged"], sm["files"]),
+                ),
+            "login_to_approval": m(
+                pct(cm["approvals"], cm["logged"]),
+                pct(sm["approvals"], sm["logged"]),
+                ),
+            "approval_to_disbursal": m(
+                pct(cm["disbursals"], cm["approvals"]),
+                pct(sm["disbursals"], sm["approvals"]),
+                ),
+            "lead_to_disbursal_e2e": m(
+                pct(cm["disbursals"], cm["files"]),
+                pct(sm["disbursals"], sm["files"]),
+                ),
+            "totals": {
+                "lead_to_login": pct(total_logged, total_files + sm["files"]),
+                "login_to_approval": pct(total_approvals, total_logged),
+                "approval_to_disbursal": pct(total_disbursals, total_approvals),
+                "lead_to_disbursal_e2e": pct(total_disbursals, total_files + sm["files"]),
+            }
         },
         "tat_analysis": {
-            "lead_to_login": tat_stats(tat_lead_to_login),
-            "login_to_approval": tat_stats(tat_login_to_approval),
-            "approval_to_disbursal": tat_stats(tat_approval_to_disbursal),
-            "lead_to_disbursal_e2e": tat_stats(tat_lead_to_disbursal),
+            "lead_to_login": tat_stats(merged_tat["l2l"]),
+            "login_to_approval": tat_stats(merged_tat["l2a"]),
+            "approval_to_disbursal": tat_stats(merged_tat["a2d"]),
+            "lead_to_disbursal_e2e": tat_stats(merged_tat["l2d"]),
         },
         "team_productivity": {
             "num_agents": num_agents,
-            "files_per_agent": files_per_agent,
-            "disbursals_per_agent": disbursals_per_agent,
+            "files_per_agent": round((total_files + sm["files"]) / num_agents, 1) if num_agents > 0 else 0,
+            "disbursals_per_agent": round(total_disbursals / num_agents, 1) if num_agents > 0 else 0,
             "agent_breakdown": [
                 {"name": name, **stats}
-                for name, stats in sorted(agent_stats.items(), key=lambda x: x[1]["files"], reverse=True)
+                for name, stats in sorted(merged_agents.items(), key=lambda x: x[1]["files"], reverse=True)
             ]
         },
         "bank_performance": [
@@ -1188,24 +1273,25 @@ async def get_sales_operations_report(
                 "bank": bank,
                 **stats,
                 "tat": {
-                    "lead_to_login": tat_stats(bank_tat.get(bank, {}).get("lead_to_login", [])),
-                    "login_to_approval": tat_stats(bank_tat.get(bank, {}).get("login_to_approval", [])),
-                    "approval_to_disbursal": tat_stats(bank_tat.get(bank, {}).get("approval_to_disbursal", [])),
+                    "lead_to_login": tat_stats(merged_bank_tat.get(bank, {}).get("lead_to_login", [])),
+                    "login_to_approval": tat_stats(merged_bank_tat.get(bank, {}).get("login_to_approval", [])),
+                    "approval_to_disbursal": tat_stats(merged_bank_tat.get(bank, {}).get("approval_to_disbursal", [])),
                 }
             }
-            for bank, stats in sorted(bank_stats.items(), key=lambda x: x[1]["disbursals"], reverse=True)
+            for bank, stats in sorted(merged_banks.items(), key=lambda x: x[1]["disbursals"], reverse=True)
         ],
         "pipeline_health": {
-            "pre_login": pipeline["pre_login"],
-            "login": pipeline["login"],
-            "approved": pipeline["approved"],
-            "total": pipeline["pre_login"] + pipeline["login"] + pipeline["approved"],
+            "pre_login": merged_pipeline["pre_login"],
+            "login": merged_pipeline["login"],
+            "approved": merged_pipeline["approved"],
+            "total": sum(merged_pipeline.values()),
         },
         "rejection_analysis": {
-            "total_rejection_pct": rejection_pct,
-            "total_rejections": total_login_to_approval_rejections + total_not_eligible,
-            "reasons": rejection_reasons,
+            "total_rejection_pct": pct(total_rej, total_logged),
+            "total_rejections": total_rej + sum(merged_rejections.values()),
+            "reasons": merged_rejections,
         },
+        "spillover_count": sm["files"],
         "date_range": {"from": from_date, "to": to_date},
         "filters_applied": {
             "agent_id": agent_id,

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Download, Printer, FileText, TrendingUp, Users, Building2, AlertTriangle, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Printer, FileText, TrendingUp, Users, Building2, AlertTriangle, BarChart3 } from 'lucide-react';
 import api from '@/utils/api';
 import { toast } from 'sonner';
 import { LOAN_TYPES } from '@/utils/constants';
@@ -18,13 +18,11 @@ const formatCurrency = (value) => {
 
 export default function SalesOperationsReport() {
   const navigate = useNavigate();
-  const printRef = useRef();
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState(null);
   const [managers, setManagers] = useState([]);
   const [agents, setAgents] = useState([]);
 
-  // Filters
   const now = new Date();
   const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
   const today = now.toISOString().split('T')[0];
@@ -34,9 +32,7 @@ export default function SalesOperationsReport() {
   const [selectedAgent, setSelectedAgent] = useState('all');
   const [selectedLoanType, setSelectedLoanType] = useState('all');
 
-  useEffect(() => {
-    fetchFiltersData();
-  }, []);
+  useEffect(() => { fetchFiltersData(); }, []);
 
   const fetchFiltersData = async () => {
     try {
@@ -65,13 +61,36 @@ export default function SalesOperationsReport() {
     }
   };
 
-  const handlePrint = () => window.print();
+  // Split metric display component
+  const SplitMetric = ({ label, data, prefix = '', isCurrency = false, highlight = false }) => {
+    const fmt = (v) => isCurrency ? `${prefix}${formatCurrency(v)}` : `${prefix}${v}`;
+    return (
+      <div className={`p-3 rounded-lg border ${highlight ? 'bg-green-50 border-green-200' : 'bg-white border-slate-200'}`}>
+        <p className="text-xs text-slate-500 font-medium mb-1">{label}</p>
+        <p className={`text-xl font-bold ${highlight ? 'text-green-700' : 'text-slate-800'}`}>{fmt(data.total)}</p>
+        <div className="flex gap-3 mt-1">
+          <span className="text-xs text-blue-600">Current: <b>{fmt(data.current)}</b></span>
+          {data.spillover > 0 && <span className="text-xs text-amber-600">Spillover: <b>{fmt(data.spillover)}</b></span>}
+        </div>
+      </div>
+    );
+  };
 
-  const MetricBox = ({ label, value, sub, highlight }) => (
+  const MetricBox = ({ label, value, highlight }) => (
     <div className={`p-3 rounded-lg border ${highlight ? 'bg-green-50 border-green-200' : 'bg-white border-slate-200'}`}>
       <p className="text-xs text-slate-500 font-medium">{label}</p>
       <p className={`text-xl font-bold mt-1 ${highlight ? 'text-green-700' : 'text-slate-800'}`}>{value}</p>
-      {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
+    </div>
+  );
+
+  const SplitPctMetric = ({ label, data, highlight }) => (
+    <div className={`p-3 rounded-lg border ${highlight ? 'bg-green-50 border-green-200' : 'bg-white border-slate-200'}`}>
+      <p className="text-xs text-slate-500 font-medium mb-1">{label}</p>
+      <p className={`text-xl font-bold ${highlight ? 'text-green-700' : 'text-slate-800'}`}>{data.total}%</p>
+      <div className="flex gap-3 mt-1">
+        <span className="text-xs text-blue-600">Current: <b>{data.current}%</b></span>
+        {data.spillover > 0 && <span className="text-xs text-amber-600">Spillover: <b>{data.spillover}%</b></span>}
+      </div>
     </div>
   );
 
@@ -96,19 +115,15 @@ export default function SalesOperationsReport() {
             <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="print:hidden">
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            <h1 className="text-lg font-bold text-slate-800" data-testid="report-title">
-              Sales & Operations Report
-            </h1>
+            <h1 className="text-lg font-bold text-slate-800" data-testid="report-title">Sales & Operations Report</h1>
           </div>
-          <div className="flex gap-2 print:hidden">
-            <Button variant="outline" size="sm" onClick={handlePrint}>
-              <Printer className="w-4 h-4 mr-1" /> Print
-            </Button>
-          </div>
+          <Button variant="outline" size="sm" onClick={() => window.print()} className="print:hidden">
+            <Printer className="w-4 h-4 mr-1" /> Print
+          </Button>
         </div>
       </div>
 
-      <div className="max-w-[1400px] mx-auto px-4 py-4" ref={printRef}>
+      <div className="max-w-[1400px] mx-auto px-4 py-4">
         {/* Filters */}
         <Card className="mb-4 print:hidden" data-testid="report-filters">
           <CardContent className="pt-4">
@@ -167,13 +182,15 @@ export default function SalesOperationsReport() {
 
         {report && (
           <div className="space-y-4">
-            {/* Report Header */}
             <div className="text-center py-2 print:py-4">
               <h2 className="text-xl font-bold text-slate-800">BANKEZEE - SALES & OPERATIONS REPORT</h2>
               <p className="text-sm text-slate-500">{fromDate} to {toDate}</p>
+              {r.spillover_count > 0 && (
+                <p className="text-xs text-amber-600 mt-1">Includes {r.spillover_count} spillover cases from previous period</p>
+              )}
             </div>
 
-            {/* Section 1: Business Volume Metrics */}
+            {/* Section 1: Business Volume */}
             <Card data-testid="business-volume-section">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
@@ -184,21 +201,21 @@ export default function SalesOperationsReport() {
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
                   <MetricBox label="Total Files Generated" value={r.business_volume.total_files_generated} />
-                  <MetricBox label="Total Files Logged" value={r.business_volume.total_files_logged} />
-                  <MetricBox label="Total Approvals" value={r.business_volume.total_approvals} />
-                  <MetricBox label="Total Disbursals" value={r.business_volume.total_disbursals} highlight />
-                  <MetricBox label="Total Disbursal Value" value={`₹${formatCurrency(r.business_volume.total_disbursal_value)}`} highlight />
+                  <SplitMetric label="Files Logged" data={r.business_volume.files_logged} />
+                  <SplitMetric label="Total Approvals" data={r.business_volume.approvals} />
+                  <SplitMetric label="Total Disbursals" data={r.business_volume.disbursals} highlight />
+                  <SplitMetric label="Disbursal Value" data={r.business_volume.disbursal_value} prefix="₹" isCurrency highlight />
                   <MetricBox label="Avg Loan Value" value={`₹${formatCurrency(r.business_volume.avg_loan_value)}`} />
                 </div>
-                {/* Conversion Metrics */}
+
                 <p className="text-xs font-semibold text-slate-600 mb-2 mt-4">CONVERSION METRICS</p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <MetricBox label="Lead → Login %" value={`${r.conversion_metrics.lead_to_login}%`} />
-                  <MetricBox label="Login → Approval %" value={`${r.conversion_metrics.login_to_approval}%`} />
-                  <MetricBox label="Approval → Disbursal %" value={`${r.conversion_metrics.approval_to_disbursal}%`} />
-                  <MetricBox label="Lead → Disbursal (E2E) %" value={`${r.conversion_metrics.lead_to_disbursal_e2e}%`} highlight />
+                  <SplitPctMetric label="Lead → Login %" data={r.conversion_metrics.lead_to_login} />
+                  <SplitPctMetric label="Login → Approval %" data={r.conversion_metrics.login_to_approval} />
+                  <SplitPctMetric label="Approval → Disbursal %" data={r.conversion_metrics.approval_to_disbursal} />
+                  <SplitPctMetric label="Lead → Disbursal (E2E) %" data={r.conversion_metrics.lead_to_disbursal_e2e} highlight />
                 </div>
-                {/* TAT Analysis */}
+
                 <p className="text-xs font-semibold text-slate-600 mb-2 mt-4">TAT ANALYSIS (in days)</p>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse" data-testid="tat-analysis-table">
@@ -281,7 +298,7 @@ export default function SalesOperationsReport() {
               </CardContent>
             </Card>
 
-            {/* Section 3: Bank/Lender Performance */}
+            {/* Section 3: Bank Performance */}
             <Card data-testid="bank-performance-section">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
@@ -330,7 +347,7 @@ export default function SalesOperationsReport() {
                     </table>
                   </div>
                 ) : (
-                  <p className="text-slate-400 text-sm">No bank data available for this period</p>
+                  <p className="text-slate-400 text-sm">No bank data available</p>
                 )}
               </CardContent>
             </Card>
@@ -361,7 +378,7 @@ export default function SalesOperationsReport() {
               </CardContent>
             </Card>
 
-            {/* Section 5: Rejection & Drop Analysis */}
+            {/* Section 5: Rejection Analysis */}
             <Card data-testid="rejection-analysis-section">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">

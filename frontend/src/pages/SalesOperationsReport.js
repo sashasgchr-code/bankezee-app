@@ -83,17 +83,6 @@ export default function SalesOperationsReport() {
     </div>
   );
 
-  const SplitPctMetric = ({ label, data, highlight }) => (
-    <div className={`p-3 rounded-lg border ${highlight ? 'bg-green-50 border-green-200' : 'bg-white border-slate-200'}`}>
-      <p className="text-xs text-slate-500 font-medium mb-1">{label}</p>
-      <p className={`text-xl font-bold ${highlight ? 'text-green-700' : 'text-slate-800'}`}>{data.total}%</p>
-      <div className="flex gap-3 mt-1">
-        <span className="text-xs text-blue-600">Current: <b>{data.current}%</b></span>
-        {data.spillover > 0 && <span className="text-xs text-amber-600">Spillover: <b>{data.spillover}%</b></span>}
-      </div>
-    </div>
-  );
-
   const TatCell = ({ stat }) => {
     if (!stat || !stat.count) return <span className="text-slate-400">-</span>;
     return (
@@ -208,12 +197,12 @@ export default function SalesOperationsReport() {
                   <MetricBox label="Avg Loan Value" value={`₹${formatCurrency(r.business_volume.avg_loan_value)}`} />
                 </div>
 
-                <p className="text-xs font-semibold text-slate-600 mb-2 mt-4">CONVERSION METRICS</p>
+                <p className="text-xs font-semibold text-slate-600 mb-2 mt-4">CONVERSION METRICS (Current Month Only)</p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <SplitPctMetric label="Lead → Login %" data={r.conversion_metrics.lead_to_login} />
-                  <SplitPctMetric label="Login → Approval %" data={r.conversion_metrics.login_to_approval} />
-                  <SplitPctMetric label="Approval → Disbursal %" data={r.conversion_metrics.approval_to_disbursal} />
-                  <SplitPctMetric label="Lead → Disbursal (E2E) %" data={r.conversion_metrics.lead_to_disbursal_e2e} highlight />
+                  <MetricBox label="Lead → Login %" value={`${r.conversion_metrics.lead_to_login}%`} />
+                  <MetricBox label="Login → Approval %" value={`${r.conversion_metrics.login_to_approval}%`} />
+                  <MetricBox label="Approval → Disbursal %" value={`${r.conversion_metrics.approval_to_disbursal}%`} />
+                  <MetricBox label="Lead → Disbursal (E2E) %" value={`${r.conversion_metrics.lead_to_disbursal_e2e}%`} highlight />
                 </div>
 
                 <p className="text-xs font-semibold text-slate-600 mb-2 mt-4">TAT ANALYSIS (in days)</p>

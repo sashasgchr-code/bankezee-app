@@ -1241,28 +1241,10 @@ async def get_sales_operations_report(
             "avg_loan_value": avg_loan_value,
         },
         "conversion_metrics": {
-            "lead_to_login": m(
-                pct(cm["logged"], cm["files"]),
-                pct(sm["logged"], sm["files"]),
-                ),
-            "login_to_approval": m(
-                pct(cm["approvals"], cm["logged"]),
-                pct(sm["approvals"], sm["logged"]),
-                ),
-            "approval_to_disbursal": m(
-                pct(cm["disbursals"], cm["approvals"]),
-                pct(sm["disbursals"], sm["approvals"]),
-                ),
-            "lead_to_disbursal_e2e": m(
-                pct(cm["disbursals"], cm["files"]),
-                pct(sm["disbursals"], sm["files"]),
-                ),
-            "totals": {
-                "lead_to_login": pct(total_logged, total_files + sm["files"]),
-                "login_to_approval": pct(total_approvals, total_logged),
-                "approval_to_disbursal": pct(total_disbursals, total_approvals),
-                "lead_to_disbursal_e2e": pct(total_disbursals, total_files + sm["files"]),
-            }
+            "lead_to_login": pct(cm["logged"], cm["files"]),
+            "login_to_approval": pct(cm["approvals"], cm["logged"]),
+            "approval_to_disbursal": pct(cm["disbursals"], cm["approvals"]),
+            "lead_to_disbursal_e2e": pct(cm["disbursals"], cm["files"]),
         },
         "tat_analysis": {
             "lead_to_login": tat_stats(merged_tat["l2l"]),

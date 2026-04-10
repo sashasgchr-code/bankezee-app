@@ -75,6 +75,16 @@ export default function SalesOperationsReport() {
     </div>
   );
 
+  const TatCell = ({ stat }) => {
+    if (!stat || !stat.count) return <span className="text-slate-400">-</span>;
+    return (
+      <div className="text-xs leading-relaxed">
+        <div><span className="text-slate-500">Mode:</span> <span className="font-semibold">{stat.mode}d</span></div>
+        <div><span className="text-green-600">Low:</span> {stat.min}d <span className="text-red-600 ml-1">High:</span> {stat.max}d</div>
+      </div>
+    );
+  };
+
   const r = report;
 
   return (
@@ -188,6 +198,39 @@ export default function SalesOperationsReport() {
                   <MetricBox label="Approval → Disbursal %" value={`${r.conversion_metrics.approval_to_disbursal}%`} />
                   <MetricBox label="Lead → Disbursal (E2E) %" value={`${r.conversion_metrics.lead_to_disbursal_e2e}%`} highlight />
                 </div>
+                {/* TAT Analysis */}
+                <p className="text-xs font-semibold text-slate-600 mb-2 mt-4">TAT ANALYSIS (in days)</p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-collapse" data-testid="tat-analysis-table">
+                    <thead>
+                      <tr className="bg-slate-100">
+                        <th className="text-left p-2 border text-xs font-semibold">Stage</th>
+                        <th className="text-center p-2 border text-xs font-semibold">Mode (days)</th>
+                        <th className="text-center p-2 border text-xs font-semibold">Lowest TAT</th>
+                        <th className="text-center p-2 border text-xs font-semibold">Highest TAT</th>
+                        <th className="text-center p-2 border text-xs font-semibold">Avg TAT</th>
+                        <th className="text-center p-2 border text-xs font-semibold">Sample Size</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { label: 'Lead → Login', data: r.tat_analysis.lead_to_login },
+                        { label: 'Login → Approval', data: r.tat_analysis.login_to_approval },
+                        { label: 'Approval → Disbursal', data: r.tat_analysis.approval_to_disbursal },
+                        { label: 'Lead → Disbursal (E2E)', data: r.tat_analysis.lead_to_disbursal_e2e },
+                      ].map((row) => (
+                        <tr key={row.label} className="hover:bg-slate-50">
+                          <td className="p-2 border font-medium">{row.label}</td>
+                          <td className="p-2 border text-center font-bold text-blue-700">{row.data.mode !== null ? `${row.data.mode}d` : '-'}</td>
+                          <td className="p-2 border text-center text-green-600 font-medium">{row.data.min !== null ? `${row.data.min}d` : '-'}</td>
+                          <td className="p-2 border text-center text-red-600 font-medium">{row.data.max !== null ? `${row.data.max}d` : '-'}</td>
+                          <td className="p-2 border text-center">{row.data.avg !== null ? `${row.data.avg}d` : '-'}</td>
+                          <td className="p-2 border text-center text-slate-400">{row.data.count}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </CardContent>
             </Card>
 
@@ -270,6 +313,18 @@ export default function SalesOperationsReport() {
                         <tr className="hover:bg-slate-50 bg-green-50">
                           <td className="p-2 border font-semibold text-green-700">Disbursals</td>
                           {r.bank_performance.map((b, i) => <td key={i} className="p-2 border text-center font-semibold text-green-700">{b.disbursals}</td>)}
+                        </tr>
+                        <tr className="hover:bg-blue-50">
+                          <td className="p-2 border font-medium text-blue-700">TAT: Lead→Login</td>
+                          {r.bank_performance.map((b, i) => <td key={i} className="p-2 border text-center"><TatCell stat={b.tat?.lead_to_login} /></td>)}
+                        </tr>
+                        <tr className="hover:bg-blue-50">
+                          <td className="p-2 border font-medium text-blue-700">TAT: Login→Approval</td>
+                          {r.bank_performance.map((b, i) => <td key={i} className="p-2 border text-center"><TatCell stat={b.tat?.login_to_approval} /></td>)}
+                        </tr>
+                        <tr className="hover:bg-blue-50">
+                          <td className="p-2 border font-medium text-blue-700">TAT: Approval→Disbursal</td>
+                          {r.bank_performance.map((b, i) => <td key={i} className="p-2 border text-center"><TatCell stat={b.tat?.approval_to_disbursal} /></td>)}
                         </tr>
                       </tbody>
                     </table>

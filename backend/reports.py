@@ -966,6 +966,47 @@ async def get_sales_operations_report(
     }
     total_login_to_approval_rejections = 0
 
+    # TAT tracking (in days)
+    tat_lead_to_login = []
+    tat_login_to_approval = []
+    tat_approval_to_disbursal = []
+    tat_lead_to_disbursal = []
+    # Per-bank TAT
+    bank_tat = {}  # bank -> {"lead_to_login": [], "login_to_approval": [], "approval_to_disbursal": []}
+
+    def parse_ts(ts_str):
+        """Parse ISO timestamp string to datetime"""
+        if not ts_str:
+            return None
+        try:
+            return datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+        except (ValueError, AttributeError):
+            return None
+
+    def days_between(dt1, dt2):
+        """Calculate days between two datetimes, rounded to 1 decimal"""
+        if dt1 and dt2:
+            diff = abs((dt2 - dt1).total_seconds()) / 86400
+            return round(diff, 1)
+        return None
+
+    def tat_stats(values):
+        """Compute mode, min, max for a list of TAT values"""
+        if not values:
+            return {"mode": None, "min": None, "max": None, "avg": None, "count": 0}
+        from collections import Counter
+        # Round to nearest integer for mode calculation
+        rounded = [round(v) for v in values]
+        counter = Counter(rounded)
+        mode_val = counter.most_common(1)[0][0]
+        return {
+            "mode": mode_val,
+            "min": round(min(values), 1),
+            "max": round(max(values), 1),
+            "avg": round(sum(values) / len(values), 1),
+            "count": len(values)
+        }
+
     def categorize_rejection(reason_text, reasons_dict):
         reason_lower = (reason_text or "").lower()
         if not reason_lower:
@@ -1041,6 +1082,42 @@ async def get_sales_operations_report(
                 if bank and bank != "Unknown":
                     bank_stats[bank]["disbursals"] += 1
 
+            # TAT Computation per eligibility entry
+            lead_created = parse_ts(lead.get("created_at"))
+            login_at = parse_ts(elig.get("login_done_at"))
+            approved_at = parse_ts(elig.get("approved_at"))
+            disbursed_at = parse_ts(elig.get("disbursed_at"))
+
+            if bank and bank != "Unknown":
+                if bank not in bank_tat:
+                    bank_tat[bank] = {"lead_to_login": [], "login_to_approval": [], "approval_to_disbursal": []}
+
+            # Lead → Login TAT
+            d = days_between(lead_created, login_at)
+            if d is not None:
+                tat_lead_to_login.append(d)
+                if bank and bank != "Unknown":
+                    bank_tat[bank]["lead_to_login"].append(d)
+
+            # Login → Approval TAT
+            d = days_between(login_at, approved_at)
+            if d is not None:
+                tat_login_to_approval.append(d)
+                if bank and bank != "Unknown":
+                    bank_tat[bank]["login_to_approval"].append(d)
+
+            # Approval → Disbursal TAT
+            d = days_between(approved_at, disbursed_at)
+            if d is not None:
+                tat_approval_to_disbursal.append(d)
+                if bank and bank != "Unknown":
+                    bank_tat[bank]["approval_to_disbursal"].append(d)
+
+            # Lead → Disbursal E2E TAT
+            d = days_between(lead_created, disbursed_at)
+            if d is not None:
+                tat_lead_to_disbursal.append(d)
+
         total_disbursal_value += lead_disbursal_value
 
         # Agent stats
@@ -1091,6 +1168,12 @@ async def get_sales_operations_report(
             "approval_to_disbursal": approval_to_disbursal,
             "lead_to_disbursal_e2e": lead_to_disbursal,
         },
+        "tat_analysis": {
+            "lead_to_login": tat_stats(tat_lead_to_login),
+            "login_to_approval": tat_stats(tat_login_to_approval),
+            "approval_to_disbursal": tat_stats(tat_approval_to_disbursal),
+            "lead_to_disbursal_e2e": tat_stats(tat_lead_to_disbursal),
+        },
         "team_productivity": {
             "num_agents": num_agents,
             "files_per_agent": files_per_agent,
@@ -1101,7 +1184,15 @@ async def get_sales_operations_report(
             ]
         },
         "bank_performance": [
-            {"bank": bank, **stats}
+            {
+                "bank": bank,
+                **stats,
+                "tat": {
+                    "lead_to_login": tat_stats(bank_tat.get(bank, {}).get("lead_to_login", [])),
+                    "login_to_approval": tat_stats(bank_tat.get(bank, {}).get("login_to_approval", [])),
+                    "approval_to_disbursal": tat_stats(bank_tat.get(bank, {}).get("approval_to_disbursal", [])),
+                }
+            }
             for bank, stats in sorted(bank_stats.items(), key=lambda x: x[1]["disbursals"], reverse=True)
         ],
         "pipeline_health": {

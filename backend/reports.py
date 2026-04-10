@@ -1050,9 +1050,9 @@ async def get_sales_operations_report(
             lead_disbursal_value = 0
 
             for elig in eligibilities:
-                bank = elig.get("bank_name") or elig.get("login_bank") or "Unknown"
-                if bank and bank != "Unknown" and bank not in bank_data:
-                    bank_data[bank] = {"logins": 0, "approvals": 0, "disbursals": 0}
+                raw_bank = elig.get("bank_name") or elig.get("login_bank") or ""
+                # Normalize bank name: uppercase, strip whitespace
+                bank = raw_bank.strip().upper() if raw_bank.strip() else "UNKNOWN"
 
                 # For spillover, only count activities that happened in the date range
                 login_in_range = not is_spillover or in_range(elig.get("login_done_at"))
@@ -1063,20 +1063,22 @@ async def get_sales_operations_report(
                 if elig.get("is_eligible") == "no":
                     categorize_rejection(elig.get("not_eligible_reason"), rejection_data)
 
-                # Login
+                # Login — only add bank to stats when login is done
                 if elig.get("login_done") == "yes" and login_in_range:
                     if not lead_has_login:
                         lead_has_login = True
                         result["logged"] += 1
-                    if bank and bank != "Unknown":
+                    if bank and bank != "UNKNOWN":
+                        if bank not in bank_data:
+                            bank_data[bank] = {"logins": 0, "approvals": 0, "disbursals": 0}
                         bank_data[bank]["logins"] += 1
 
-                # Approval
+                # Approval — only count if bank already tracked (i.e. had a login)
                 if elig.get("approval_status") == "approved" and approval_in_range:
                     if not lead_has_approval:
                         lead_has_approval = True
                         result["approvals"] += 1
-                    if bank and bank != "Unknown":
+                    if bank and bank != "UNKNOWN" and bank in bank_data:
                         bank_data[bank]["approvals"] += 1
                 elif elig.get("approval_status") == "declined":
                     total_rejections += 1
@@ -1089,7 +1091,7 @@ async def get_sales_operations_report(
                         lead_has_disbursal = True
                         result["disbursals"] += 1
                     lead_disbursal_value += amt
-                    if bank and bank != "Unknown":
+                    if bank and bank != "UNKNOWN" and bank in bank_data:
                         bank_data[bank]["disbursals"] += 1
 
                 # TAT - only compute for stages that actually occurred
@@ -1098,7 +1100,7 @@ async def get_sales_operations_report(
                 approved_at = parse_ts(elig.get("approved_at"))
                 disbursed_at = parse_ts(elig.get("disbursed_at"))
 
-                if bank and bank != "Unknown":
+                if bank and bank != "UNKNOWN":
                     if bank not in bank_tat_data:
                         bank_tat_data[bank] = {"lead_to_login": [], "login_to_approval": [], "approval_to_disbursal": []}
 
@@ -1107,7 +1109,7 @@ async def get_sales_operations_report(
                     d = days_between(lead_created, login_at)
                     if d is not None:
                         tat_data["l2l"].append(d)
-                        if bank and bank != "Unknown":
+                        if bank and bank != "UNKNOWN":
                             bank_tat_data[bank]["lead_to_login"].append(d)
 
                 # Login → Approval TAT: only if BOTH login and approval happened
@@ -1115,7 +1117,7 @@ async def get_sales_operations_report(
                     d = days_between(login_at, approved_at)
                     if d is not None:
                         tat_data["l2a"].append(d)
-                        if bank and bank != "Unknown":
+                        if bank and bank != "UNKNOWN":
                             bank_tat_data[bank]["login_to_approval"].append(d)
 
                 # Approval → Disbursal TAT: only if BOTH approval and disbursal happened
@@ -1123,7 +1125,7 @@ async def get_sales_operations_report(
                     d = days_between(approved_at, disbursed_at)
                     if d is not None:
                         tat_data["a2d"].append(d)
-                        if bank and bank != "Unknown":
+                        if bank and bank != "UNKNOWN":
                             bank_tat_data[bank]["approval_to_disbursal"].append(d)
 
                 # Lead → Disbursal E2E TAT: only if disbursal actually happened

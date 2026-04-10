@@ -36,12 +36,19 @@ export default function SalesOperationsReport() {
 
   const fetchFiltersData = async () => {
     try {
-      const [mgrs, agts] = await Promise.all([
-        api.get('/auth/managers').catch(() => ({ data: [] })),
-        api.get('/auth/agents').catch(() => ({ data: [] })),
-      ]);
-      setManagers(mgrs.data || []);
-      setAgents(agts.data || []);
+      const res = await api.get('/auth/admin/all-users').catch(() => ({ data: {} }));
+      const data = res.data || {};
+      // Flatten all user types into managers and agents lists
+      const mgrs = data.managers || [];
+      const agts = [
+        ...(data.sales_agents || []),
+        ...(data.team_leaders || []),
+        ...(data.freelance_partners || []),
+        ...(data.retail_partners || []),
+        ...(data.operations || []),
+      ];
+      setManagers(mgrs);
+      setAgents(agts);
     } catch (e) { console.error(e); }
   };
 

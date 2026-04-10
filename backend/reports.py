@@ -947,12 +947,9 @@ async def get_sales_operations_report(
     spillover_query = {**base_filter, "created_at": {"$lt": start_iso}}
     older_leads = await db.leads.find(spillover_query, {"_id": 0}).to_list(10000)
 
-    # Fetch agents/managers for names
-    agents = await db.users.find(
-        {"role": {"$in": ["sales_agent", "team_leader"]}},
-        {"_id": 0, "id": 1, "full_name": 1}
-    ).to_list(1000)
-    agents_map = {a["id"]: a["full_name"] for a in agents}
+    # Fetch ALL users for name lookup (leads can be assigned to any role)
+    all_users = await db.users.find({}, {"_id": 0, "id": 1, "full_name": 1, "role": 1}).to_list(5000)
+    agents_map = {u["id"]: u["full_name"] for u in all_users}
 
     # --- Helper functions ---
     def parse_ts(ts_str):

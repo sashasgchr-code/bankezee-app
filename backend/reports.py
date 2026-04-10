@@ -966,7 +966,11 @@ async def get_sales_operations_report(
 
     def days_between(dt1, dt2):
         if dt1 and dt2:
-            return round(abs((dt2 - dt1).total_seconds()) / 86400, 1)
+            diff = round(abs((dt2 - dt1).total_seconds()) / 86400, 1)
+            # Skip if timestamps are identical (bulk data entry)
+            if diff == 0.0:
+                return None
+            return diff
         return None
 
     def tat_stats(values):
@@ -1023,8 +1027,11 @@ async def get_sales_operations_report(
 
         for lead in leads:
             eligibilities = lead.get("eligibilities", [])
+            # Use source_id (actual agent/partner) for team metrics, fallback to assigned_to
+            source_id = lead.get("source_id") or ""
             assigned_to = lead.get("assigned_to", "")
-            agent_name = agents_map.get(assigned_to, assigned_to[:8] if assigned_to else "Unassigned")
+            agent_id = source_id if source_id else assigned_to
+            agent_name = agents_map.get(agent_id, agents_map.get(assigned_to, assigned_to[:8] if assigned_to else "Unassigned"))
 
             # For spillover: check if any activity timestamp falls in range
             if is_spillover:

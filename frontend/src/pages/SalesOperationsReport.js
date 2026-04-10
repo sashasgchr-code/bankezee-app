@@ -304,41 +304,31 @@ export default function SalesOperationsReport() {
               </CardHeader>
               <CardContent>
                 {r.bank_performance.length > 0 ? (
-                  <div className="overflow-x-auto">
+                  <div>
                     <table className="w-full text-sm border-collapse" data-testid="bank-performance-table">
                       <thead>
                         <tr className="bg-slate-100">
-                          <th className="text-left p-2 border text-xs font-semibold">Metric</th>
-                          {r.bank_performance.map((b, i) => (
-                            <th key={i} className="text-center p-2 border text-xs font-semibold">{b.bank}</th>
-                          ))}
+                          <th className="text-left p-2 border text-xs font-semibold">Bank</th>
+                          <th className="text-center p-2 border text-xs font-semibold">Logins</th>
+                          <th className="text-center p-2 border text-xs font-semibold">Approvals</th>
+                          <th className="text-center p-2 border text-xs font-semibold">Disbursals</th>
+                          <th className="text-center p-2 border text-xs font-semibold">TAT: Lead→Login</th>
+                          <th className="text-center p-2 border text-xs font-semibold">TAT: Login→Approval</th>
+                          <th className="text-center p-2 border text-xs font-semibold">TAT: Approval→Disbursal</th>
                         </tr>
                       </thead>
                       <tbody>
-                        <tr className="hover:bg-slate-50">
-                          <td className="p-2 border font-medium">Logins</td>
-                          {r.bank_performance.map((b, i) => <td key={i} className="p-2 border text-center">{b.logins}</td>)}
-                        </tr>
-                        <tr className="hover:bg-slate-50">
-                          <td className="p-2 border font-medium">Approvals</td>
-                          {r.bank_performance.map((b, i) => <td key={i} className="p-2 border text-center">{b.approvals}</td>)}
-                        </tr>
-                        <tr className="hover:bg-slate-50 bg-green-50">
-                          <td className="p-2 border font-semibold text-green-700">Disbursals</td>
-                          {r.bank_performance.map((b, i) => <td key={i} className="p-2 border text-center font-semibold text-green-700">{b.disbursals}</td>)}
-                        </tr>
-                        <tr className="hover:bg-blue-50">
-                          <td className="p-2 border font-medium text-blue-700">TAT: Lead→Login</td>
-                          {r.bank_performance.map((b, i) => <td key={i} className="p-2 border text-center"><TatCell stat={b.tat?.lead_to_login} /></td>)}
-                        </tr>
-                        <tr className="hover:bg-blue-50">
-                          <td className="p-2 border font-medium text-blue-700">TAT: Login→Approval</td>
-                          {r.bank_performance.map((b, i) => <td key={i} className="p-2 border text-center"><TatCell stat={b.tat?.login_to_approval} /></td>)}
-                        </tr>
-                        <tr className="hover:bg-blue-50">
-                          <td className="p-2 border font-medium text-blue-700">TAT: Approval→Disbursal</td>
-                          {r.bank_performance.map((b, i) => <td key={i} className="p-2 border text-center"><TatCell stat={b.tat?.approval_to_disbursal} /></td>)}
-                        </tr>
+                        {r.bank_performance.map((b, i) => (
+                          <tr key={i} className="hover:bg-slate-50">
+                            <td className="p-2 border font-semibold">{b.bank}</td>
+                            <td className="p-2 border text-center">{b.logins}</td>
+                            <td className="p-2 border text-center">{b.approvals}</td>
+                            <td className="p-2 border text-center font-semibold text-green-700">{b.disbursals}</td>
+                            <td className="p-2 border text-center"><TatCell stat={b.tat?.lead_to_login} /></td>
+                            <td className="p-2 border text-center"><TatCell stat={b.tat?.login_to_approval} /></td>
+                            <td className="p-2 border text-center"><TatCell stat={b.tat?.approval_to_disbursal} /></td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>

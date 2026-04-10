@@ -1095,7 +1095,7 @@ async def get_sales_operations_report(
                     if bank and bank != "Unknown":
                         bank_data[bank]["disbursals"] += 1
 
-                # TAT
+                # TAT - only compute for stages that actually occurred
                 lead_created = parse_ts(lead.get("created_at"))
                 login_at = parse_ts(elig.get("login_done_at"))
                 approved_at = parse_ts(elig.get("approved_at"))
@@ -1105,24 +1105,35 @@ async def get_sales_operations_report(
                     if bank not in bank_tat_data:
                         bank_tat_data[bank] = {"lead_to_login": [], "login_to_approval": [], "approval_to_disbursal": []}
 
-                d = days_between(lead_created, login_at)
-                if d is not None:
-                    tat_data["l2l"].append(d)
-                    if bank and bank != "Unknown":
-                        bank_tat_data[bank]["lead_to_login"].append(d)
-                d = days_between(login_at, approved_at)
-                if d is not None:
-                    tat_data["l2a"].append(d)
-                    if bank and bank != "Unknown":
-                        bank_tat_data[bank]["login_to_approval"].append(d)
-                d = days_between(approved_at, disbursed_at)
-                if d is not None:
-                    tat_data["a2d"].append(d)
-                    if bank and bank != "Unknown":
-                        bank_tat_data[bank]["approval_to_disbursal"].append(d)
-                d = days_between(lead_created, disbursed_at)
-                if d is not None:
-                    tat_data["l2d"].append(d)
+                # Lead → Login TAT: only if login actually happened
+                if login_at:
+                    d = days_between(lead_created, login_at)
+                    if d is not None:
+                        tat_data["l2l"].append(d)
+                        if bank and bank != "Unknown":
+                            bank_tat_data[bank]["lead_to_login"].append(d)
+
+                # Login → Approval TAT: only if BOTH login and approval happened
+                if login_at and approved_at:
+                    d = days_between(login_at, approved_at)
+                    if d is not None:
+                        tat_data["l2a"].append(d)
+                        if bank and bank != "Unknown":
+                            bank_tat_data[bank]["login_to_approval"].append(d)
+
+                # Approval → Disbursal TAT: only if BOTH approval and disbursal happened
+                if approved_at and disbursed_at:
+                    d = days_between(approved_at, disbursed_at)
+                    if d is not None:
+                        tat_data["a2d"].append(d)
+                        if bank and bank != "Unknown":
+                            bank_tat_data[bank]["approval_to_disbursal"].append(d)
+
+                # Lead → Disbursal E2E TAT: only if disbursal actually happened
+                if disbursed_at:
+                    d = days_between(lead_created, disbursed_at)
+                    if d is not None:
+                        tat_data["l2d"].append(d)
 
             result["disbursal_value"] += lead_disbursal_value
 

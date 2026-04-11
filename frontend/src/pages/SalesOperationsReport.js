@@ -4,16 +4,71 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Printer, FileText, TrendingUp, Users, Building2, AlertTriangle, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Printer, FileText, TrendingUp, Users, Building2, AlertTriangle, BarChart3, ChevronDown } from 'lucide-react';
 import api from '@/utils/api';
 import { toast } from 'sonner';
 import { LOAN_TYPES } from '@/utils/constants';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const formatCurrency = (value) => {
   if (!value) return '0';
   if (value >= 10000000) return `${(value / 10000000).toFixed(2)} Cr`;
   if (value >= 100000) return `${(value / 100000).toFixed(2)} L`;
   return value.toLocaleString('en-IN');
+};
+
+const LoanTypeMultiSelect = ({ selected = [], onChange }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const toggleType = (value) => {
+    const next = selected.includes(value)
+      ? selected.filter(v => v !== value)
+      : [...selected, value];
+    onChange(next);
+  };
+
+  const label = selected.length === 0
+    ? 'All Loan Types'
+    : selected.length === 1
+      ? LOAN_TYPES.find(t => t.value === selected[0])?.label || selected[0]
+      : `${selected.length} Types`;
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex h-9 w-52 items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+        data-testid="loan-type-filter"
+      >
+        <span className="truncate">{label}</span>
+        <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1 w-64 rounded-md border bg-white shadow-lg max-h-72 overflow-y-auto">
+          <div className="p-2 border-b flex gap-2">
+            <button type="button" className="text-xs text-blue-600 hover:underline" onClick={() => onChange([])}>Clear All</button>
+            <button type="button" className="text-xs text-blue-600 hover:underline" onClick={() => onChange(LOAN_TYPES.map(t => t.value))}>Select All</button>
+          </div>
+          {LOAN_TYPES.map(type => (
+            <label key={type.value} className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 cursor-pointer text-sm">
+              <Checkbox checked={selected.includes(type.value)} onCheckedChange={() => toggleType(type.value)} />
+              {type.label}
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default function SalesOperationsReport() {
@@ -30,7 +85,7 @@ export default function SalesOperationsReport() {
   const [toDate, setToDate] = useState(today);
   const [selectedManager, setSelectedManager] = useState('all');
   const [selectedAgent, setSelectedAgent] = useState('all');
-  const [selectedLoanType, setSelectedLoanType] = useState('all');
+  const [selectedLoanType, setSelectedLoanType] = useState([]);
 
   useEffect(() => { fetchFiltersData(); }, []);
 
@@ -58,7 +113,7 @@ export default function SalesOperationsReport() {
       const params = new URLSearchParams({ from_date: fromDate, to_date: toDate });
       if (selectedManager !== 'all') params.append('manager_id', selectedManager);
       if (selectedAgent !== 'all') params.append('agent_id', selectedAgent);
-      if (selectedLoanType !== 'all') params.append('loan_type', selectedLoanType);
+      if (selectedLoanType.length > 0) params.append('loan_type', selectedLoanType.join(','));
       const res = await api.get(`/reports/sales-operations?${params}`);
       setReport(res.data);
     } catch (error) {
@@ -154,13 +209,7 @@ export default function SalesOperationsReport() {
               </div>
               <div>
                 <p className="text-xs text-slate-500 mb-1">Loan Type</p>
-                <Select value={selectedLoanType} onValueChange={setSelectedLoanType}>
-                  <SelectTrigger className="w-48 h-9" data-testid="loan-type-filter"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Loan Types</SelectItem>
-                    {LOAN_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <LoanTypeMultiSelect selected={selectedLoanType} onChange={setSelectedLoanType} />
               </div>
               <Button onClick={fetchReport} disabled={loading} className="h-9" data-testid="generate-report-btn">
                 {loading ? 'Generating...' : 'Generate Report'}

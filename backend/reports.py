@@ -975,13 +975,14 @@ async def get_sales_operations_report(
 
     def tat_stats(values):
         if not values:
-            return {"mode": None, "min": None, "max": None, "avg": None, "count": 0}
+            return {"mode": None, "mode_count": 0, "min": None, "max": None, "avg": None, "count": 0}
         from collections import Counter
         rounded = [round(v) for v in values]
         counter = Counter(rounded)
-        mode_val = counter.most_common(1)[0][0]
+        mode_val, mode_count = counter.most_common(1)[0]
         return {
             "mode": mode_val,
+            "mode_count": mode_count,
             "min": round(min(values), 1),
             "max": round(max(values), 1),
             "avg": round(sum(values) / len(values), 1),
@@ -1077,7 +1078,7 @@ async def get_sales_operations_report(
                         result["logged"] += 1
                     if bank and bank != "UNKNOWN":
                         if bank not in bank_data:
-                            bank_data[bank] = {"logins": 0, "approvals": 0, "disbursals": 0}
+                            bank_data[bank] = {"logins": 0, "approvals": 0, "disbursals": 0, "disbursal_amount": 0}
                         bank_data[bank]["logins"] += 1
 
                 # Approval — only count if bank already tracked (i.e. had a login)
@@ -1100,6 +1101,7 @@ async def get_sales_operations_report(
                     lead_disbursal_value += amt
                     if bank and bank != "UNKNOWN" and bank in bank_data:
                         bank_data[bank]["disbursals"] += 1
+                        bank_data[bank]["disbursal_amount"] += amt
 
                 # TAT - only compute for stages that actually occurred
                 lead_created = parse_ts(lead.get("created_at"))
@@ -1206,8 +1208,8 @@ async def get_sales_operations_report(
     for src in [curr["bank_data"], spill["bank_data"]]:
         for bank, stats in src.items():
             if bank not in merged_banks:
-                merged_banks[bank] = {"logins": 0, "approvals": 0, "disbursals": 0}
-            for k in ["logins", "approvals", "disbursals"]:
+                merged_banks[bank] = {"logins": 0, "approvals": 0, "disbursals": 0, "disbursal_amount": 0}
+            for k in ["logins", "approvals", "disbursals", "disbursal_amount"]:
                 merged_banks[bank][k] += stats[k]
 
     # Merge bank TAT
@@ -1250,6 +1252,7 @@ async def get_sales_operations_report(
             "lead_to_login": pct(cm["logged"], cm["files"]),
             "login_to_approval": pct(cm["approvals"], cm["logged"]),
             "approval_to_disbursal": pct(cm["disbursals"], cm["approvals"]),
+            "logged_to_disbursal": pct(cm["disbursals"], cm["logged"]),
             "lead_to_disbursal_e2e": pct(cm["disbursals"], cm["files"]),
         },
         "tat_analysis": {

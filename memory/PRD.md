@@ -746,7 +746,7 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
      - Business Volume Metrics (files generated, logged, approvals, disbursals, values)
      - Conversion Metrics (Lead→Login, Login→Approval, Approval→Disbursal, E2E)
      - Team Productivity (per-agent breakdown)
-     - Bank/Lender Performance (logins, approvals, disbursals per bank)
+     - Bank/Lender Performance (logins, approvals, disbursals, disbursal amount per bank)
      - Pipeline Health (Pre-Login, Login, Approved)
      - Rejection & Drop Analysis (reasons: Low CIBIL, Low Income, High FOIR, etc.)
    - Filterable by: Date range, Manager, Agent, Loan Type

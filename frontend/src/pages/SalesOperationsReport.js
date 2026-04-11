@@ -254,10 +254,11 @@ export default function SalesOperationsReport() {
                 </div>
 
                 <p className="text-xs font-semibold text-slate-600 mb-2 mt-4">CONVERSION METRICS (Current Month Only)</p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                   <MetricBox label="Lead → Login %" value={`${r.conversion_metrics.lead_to_login}%`} />
                   <MetricBox label="Login → Approval %" value={`${r.conversion_metrics.login_to_approval}%`} />
                   <MetricBox label="Approval → Disbursal %" value={`${r.conversion_metrics.approval_to_disbursal}%`} />
+                  <MetricBox label="Logged → Disbursal %" value={`${r.conversion_metrics.logged_to_disbursal}%`} />
                   <MetricBox label="Lead → Disbursal (E2E) %" value={`${r.conversion_metrics.lead_to_disbursal_e2e}%`} highlight />
                 </div>
 
@@ -361,6 +362,7 @@ export default function SalesOperationsReport() {
                           <th className="text-center p-2 border text-xs font-semibold">Logins</th>
                           <th className="text-center p-2 border text-xs font-semibold">Approvals</th>
                           <th className="text-center p-2 border text-xs font-semibold">Disbursals</th>
+                          <th className="text-center p-2 border text-xs font-semibold">Disbursal Amt</th>
                           <th className="text-center p-2 border text-xs font-semibold">TAT: Lead→Login</th>
                           <th className="text-center p-2 border text-xs font-semibold">TAT: Login→Approval</th>
                           <th className="text-center p-2 border text-xs font-semibold">TAT: Approval→Disbursal</th>
@@ -373,6 +375,7 @@ export default function SalesOperationsReport() {
                             <td className="p-2 border text-center">{b.logins}</td>
                             <td className="p-2 border text-center">{b.approvals}</td>
                             <td className="p-2 border text-center font-semibold text-green-700">{b.disbursals}</td>
+                            <td className="p-2 border text-center font-semibold text-green-700">{b.disbursal_amount ? `₹${(b.disbursal_amount / 100000).toFixed(2)}L` : '-'}</td>
                             <td className="p-2 border text-center"><TatCell stat={b.tat?.lead_to_login} /></td>
                             <td className="p-2 border text-center"><TatCell stat={b.tat?.login_to_approval} /></td>
                             <td className="p-2 border text-center"><TatCell stat={b.tat?.approval_to_disbursal} /></td>

@@ -13,7 +13,8 @@ export const LOAN_TYPES = [
   { value: 'balance_transfer_pl', label: 'Balance Transfer-PL' },
   { value: 'balance_transfer_hl', label: 'Balance Transfer-HL' },
   { value: 'balance_transfer_topup_pl', label: 'Balance Transfer+Top Up PL' },
-  { value: 'balance_transfer_topup_hl', label: 'Balance Transfer+Top Up HL' }
+  { value: 'balance_transfer_topup_hl', label: 'Balance Transfer+Top Up HL' },
+  { value: 'education_loan', label: 'Education Loan' }
 ];
 
 // Time period filters

@@ -156,6 +156,7 @@ const PartnerLeadCreate = () => {
                     <SelectItem value="balance_transfer_hl">Balance Transfer-HL</SelectItem>
                     <SelectItem value="balance_transfer_topup_pl">Balance Transfer+Top Up PL</SelectItem>
                     <SelectItem value="balance_transfer_topup_hl">Balance Transfer+Top Up HL</SelectItem>
+                    <SelectItem value="education_loan">Education Loan</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

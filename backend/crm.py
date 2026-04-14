@@ -508,11 +508,38 @@ async def update_eligibilities(
         was_disbursed = bank_name in existing_disbursed_amounts
         is_disbursed = str(elig_dict.get('disbursed', '')).lower() in ('yes', 'true')
         
-        # Disbursed timestamp
+        # Disbursed timestamp - use user-provided date if present, otherwise auto-generate
         if is_disbursed and not was_disbursed:
-            elig_dict['disbursed_at'] = now
+            # New disbursal: use user-provided disbursed_at date or fallback to now
+            user_disbursed_at = elig_dict.get('disbursed_at')
+            if user_disbursed_at and user_disbursed_at != now:
+                # User provided a date (e.g. "2025-04-10"), convert to ISO format
+                try:
+                    if len(str(user_disbursed_at)) == 10:  # Date only: "YYYY-MM-DD"
+                        from datetime import datetime as dt_parse
+                        parsed = dt_parse.strptime(str(user_disbursed_at), "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                        elig_dict['disbursed_at'] = parsed.isoformat()
+                    else:
+                        elig_dict['disbursed_at'] = user_disbursed_at  # Already ISO format
+                except:
+                    elig_dict['disbursed_at'] = now
+            else:
+                elig_dict['disbursed_at'] = now
         elif is_disbursed and was_disbursed:
-            elig_dict['disbursed_at'] = existing_elig.get('disbursed_at') or now
+            # Existing disbursal: preserve user-edited date or keep existing
+            user_disbursed_at = elig_dict.get('disbursed_at')
+            if user_disbursed_at:
+                try:
+                    if len(str(user_disbursed_at)) == 10:  # Date only: "YYYY-MM-DD"
+                        from datetime import datetime as dt_parse
+                        parsed = dt_parse.strptime(str(user_disbursed_at), "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                        elig_dict['disbursed_at'] = parsed.isoformat()
+                    else:
+                        elig_dict['disbursed_at'] = user_disbursed_at
+                except:
+                    elig_dict['disbursed_at'] = existing_elig.get('disbursed_at') or now
+            else:
+                elig_dict['disbursed_at'] = existing_elig.get('disbursed_at') or now
         
         if was_disbursed and not is_disbursed:
             # Disbursement is being reversed - deduct the commission

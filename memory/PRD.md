@@ -754,7 +754,7 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 - **In Progress**: Based on Lead Created date, statuses: contacted, docs_collected, docs_pending, sent_for_eligibility, sent_for_login, login, underwriting, fi, fi_negative, fi_reinitiated, query_hold, sent_for_approval
 - **Login**: Based on Activity Date (eligibility login_done_at), includes spillover
 - **Approved**: Based on Activity Date (eligibility approved_at), includes spillover
-- **Disbursed**: Based on Activity Date (eligibility disbursed_at), includes spillover
+- **Disbursed**: Based on Activity Date (eligibility disbursed_at — user-entered disbursal date), includes spillover
 - **Rejected**: Based on Activity Date, lead-level statuses: rejected, not_eligible, customer_not_interested, customer_not_supporting, not_login
      - Pipeline Health (Pre-Login, Login, Approved)
      - Rejection & Drop Analysis (reasons: Low CIBIL, Low Income, High FOIR, etc.)

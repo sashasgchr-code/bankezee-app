@@ -350,6 +350,7 @@ const BankEligibilityCard = ({
             </div>
             {elig.disbursed === 'yes' && (
               <>
+                <div><p className="text-xs text-slate-500 mb-1">Disbursal Date</p>{canEdit ? <Input type="date" value={elig.disbursed_at ? elig.disbursed_at.substring(0, 10) : ''} onChange={(e) => updateField('disbursed_at', e.target.value)} className="h-9 bg-white" /> : <p className="font-medium">{elig.disbursed_at ? new Date(elig.disbursed_at).toLocaleDateString() : '-'}</p>}</div>
                 <div><p className="text-xs text-slate-500 mb-1">Disbursed Bank</p>{canEdit ? <Input value={elig.disbursed_bank || ''} onChange={(e) => updateField('disbursed_bank', e.target.value)} className="h-9 bg-white" placeholder="Bank" /> : <p className="font-medium">{elig.disbursed_bank || '-'}</p>}</div>
                 <div><p className="text-xs text-slate-500 mb-1">Disbursed Amount</p>{canEdit ? <Input type="number" value={elig.disbursed_amount || ''} onChange={(e) => updateField('disbursed_amount', e.target.value)} className="h-9 bg-white" placeholder="Amount" /> : <p className="font-medium">{elig.disbursed_amount ? `₹${Number(elig.disbursed_amount).toLocaleString()}` : '-'}</p>}</div>
                 <div><p className="text-xs text-slate-500 mb-1">Tenure (months)</p>{canEdit ? <Input type="number" value={elig.disbursed_tenure || ''} onChange={(e) => updateField('disbursed_tenure', e.target.value)} className="h-9 bg-white" placeholder="Months" /> : <p className="font-medium">{elig.disbursed_tenure || '-'}</p>}</div>

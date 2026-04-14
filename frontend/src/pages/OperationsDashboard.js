@@ -8,7 +8,7 @@ import api from '@/utils/api';
 import { toast } from 'sonner';
 import { FileText, LogOut, LayoutDashboard, Eye, Download, BarChart3, Search, FileDown, AlertTriangle } from 'lucide-react';
 import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
-import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats, calculateTotalEligible, calculateDashboardStatsWithActivityDates, calculateTotalEligibleWithActivityDate, getLoanTypeLabel } from '@/utils/constants';
+import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats, calculateTotalEligible, calculateDashboardStatsWithActivityDates, calculateTotalEligibleWithActivityDate, getLoanTypeLabel, STATUS_CATEGORIES } from '@/utils/constants';
 import { maskMobile, maskEmail } from '@/utils/masking';
 import { saveFilters, loadFilters, clearAllUserFilters, OPS_DEFAULT_FILTERS } from '@/utils/filterPersistence';
 import jsPDF from 'jspdf';
@@ -375,11 +375,12 @@ const OperationsDashboard = () => {
   // For the leads list & "Total Leads"/"New" stats, apply LEAD TIME FILTER (based on lead creation date)
   let filteredLeads = filterByTimePeriod(baseFilteredLeads, timeFilter, filterFromDate, filterToDate);
   
-  // Override total and newLeads in stats to use lead creation date filter
+  // Override total, newLeads, and inProgress in stats to use lead creation date filter
   const leadsStats = {
     ...stats,
     total: filteredLeads.length,
-    newLeads: filteredLeads.filter(l => ['new', 'fresh'].includes(l.status)).length
+    newLeads: filteredLeads.filter(l => ['new', 'fresh'].includes(l.status)).length,
+    inProgress: filteredLeads.filter(l => STATUS_CATEGORIES.in_progress.includes(l.status)).length,
   };
 
   // Export Dashboard to PDF

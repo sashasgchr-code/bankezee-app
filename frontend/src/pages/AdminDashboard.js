@@ -13,7 +13,7 @@ import api from '@/utils/api';
 import { toast } from 'sonner';
 import { Users, LogOut, LayoutDashboard, Eye, UserPlus, CheckSquare, X, Trash2, UserCog, Building, Briefcase, Download, FileText, Clock, CheckCircle, XCircle, ChevronDown, ChevronUp, CreditCard, User, MapPin, Phone, Mail, Hash, Building2, BarChart3, Key, Copy, Search, FileDown, AlertTriangle, Pencil } from 'lucide-react';
 import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
-import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats, calculateTotalEligible, calculateDashboardStatsWithActivityDates, calculateTotalEligibleWithActivityDate, LOAN_TYPES, TIME_FILTERS, getLoanTypeLabel } from '@/utils/constants';
+import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats, calculateTotalEligible, calculateDashboardStatsWithActivityDates, calculateTotalEligibleWithActivityDate, LOAN_TYPES, TIME_FILTERS, getLoanTypeLabel, STATUS_CATEGORIES } from '@/utils/constants';
 import { maskMobile, maskEmail } from '@/utils/masking';
 import { saveFilters, loadFilters, clearAllUserFilters, ADMIN_DEFAULT_FILTERS } from '@/utils/filterPersistence';
 import jsPDF from 'jspdf';
@@ -1277,12 +1277,13 @@ const AdminDashboard = () => {
   // Use baseFilteredLeads (not filteredLeads) so it's not affected by Lead Created filter
   const filteredTotalEligible = calculateTotalEligibleWithActivityDate(baseFilteredLeads, activityTimeFilter, activityFromDate, activityToDate);
   
-  // Only Total Leads and New stats use the Lead Created date filter
-  // All other stats (In Progress, Approved, Disbursed, Rejected, Total Eligible) use Activity Date filter
+  // Only Total Leads, New, and In Progress stats use the Lead Created date filter
+  // All other stats (Login, Approved, Disbursed, Rejected, Total Eligible) use Activity Date filter
   const leadsStats = {
     ...stats,
     total: filteredLeads.length,
-    newLeads: filteredLeads.filter(l => ['new', 'fresh'].includes(l.status)).length
+    newLeads: filteredLeads.filter(l => ['new', 'fresh'].includes(l.status)).length,
+    inProgress: filteredLeads.filter(l => STATUS_CATEGORIES.in_progress.includes(l.status)).length,
   };
 
   if (loading) {

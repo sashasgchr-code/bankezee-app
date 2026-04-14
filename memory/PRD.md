@@ -747,6 +747,15 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
      - Conversion Metrics (Lead→Login, Login→Approval, Approval→Disbursal, E2E)
      - Team Productivity (per-agent breakdown)
      - Bank/Lender Performance (logins, approvals, disbursals, disbursal amount per bank)
+
+### Dashboard Stats Logic
+- **Total Leads**: Based on Lead Created date
+- **New**: Based on Lead Created date, currently in "new" status
+- **In Progress**: Based on Lead Created date, statuses: contacted, docs_collected, docs_pending, sent_for_eligibility, sent_for_login, login, underwriting, fi, fi_negative, fi_reinitiated, query_hold, sent_for_approval
+- **Login**: Based on Activity Date (eligibility login_done_at), includes spillover
+- **Approved**: Based on Activity Date (eligibility approved_at), includes spillover
+- **Disbursed**: Based on Activity Date (eligibility disbursed_at), includes spillover
+- **Rejected**: Based on Activity Date, lead-level statuses: rejected, not_eligible, customer_not_interested, customer_not_supporting, not_login
      - Pipeline Health (Pre-Login, Login, Approved)
      - Rejection & Drop Analysis (reasons: Low CIBIL, Low Income, High FOIR, etc.)
    - Filterable by: Date range, Manager, Agent, Loan Type

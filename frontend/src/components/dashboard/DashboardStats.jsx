@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, CheckCircle, DollarSign, Clock, XCircle, TrendingUp, Banknote } from 'lucide-react';
+import { FileText, CheckCircle, DollarSign, Clock, XCircle, TrendingUp, Banknote, LogIn } from 'lucide-react';
 
 const DashboardStats = ({ stats, earnings = {}, showEarnings = true, totalEligible = null }) => {
   const statCards = [
@@ -23,7 +23,15 @@ const DashboardStats = ({ stats, earnings = {}, showEarnings = true, totalEligib
       icon: Clock, 
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-50',
-      subtitle: 'Contacted, Docs, Bank, Login'
+      subtitle: 'Based on created date'
+    },
+    {
+      title: 'Login',
+      value: stats.loginCount || 0,
+      icon: LogIn,
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-50',
+      subtitle: 'Based on activity date'
     },
     { 
       title: 'Approved', 
@@ -104,7 +112,7 @@ const DashboardStats = ({ stats, earnings = {}, showEarnings = true, totalEligib
     );
   }
 
-  const gridCols = showEarnings ? 'lg:grid-cols-5 xl:grid-cols-9' : 'lg:grid-cols-4 xl:grid-cols-8';
+  const gridCols = showEarnings ? 'lg:grid-cols-5 xl:grid-cols-10' : 'lg:grid-cols-5 xl:grid-cols-9';
 
   return (
     <div className={`grid grid-cols-2 md:grid-cols-3 ${gridCols} gap-4 mb-8`}>

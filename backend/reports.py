@@ -1047,6 +1047,7 @@ async def get_sales_operations_report(
             lead_has_login = False
             lead_has_approval = False
             lead_has_disbursal = False
+            lead_has_rejection = False
             lead_disbursal_value = 0
 
             # Check activity log for login stage (lead was in 'login' or any post-login stage at least once)
@@ -1114,7 +1115,9 @@ async def get_sales_operations_report(
                             bank_data[bank] = {"logins": 0, "approvals": 0, "disbursals": 0, "disbursal_amount": 0}
                         bank_data[bank]["approvals"] += 1
                 elif elig.get("approval_status") == "declined":
-                    total_rejections += 1
+                    if not lead_has_rejection:
+                        lead_has_rejection = True
+                        total_rejections += 1
                     categorize_rejection(elig.get("declined_reason"), rejection_data)
 
                 # Disbursal

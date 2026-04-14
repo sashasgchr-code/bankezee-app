@@ -288,23 +288,23 @@ export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'al
     const eligibilities = lead.eligibilities || [];
     const isCurrent = isLeadCurrent(lead);
 
-    // Track per-lead (not per-eligibility) for login
+    // Track per-lead flags (one count per file)
     let leadHasLoginInRange = false;
+    let leadHasApprovalInRange = false;
+    let leadHasDisbursalInRange = false;
 
     eligibilities.forEach(elig => {
-      // Approved: check approved_at timestamp in range
+      // Approved: check approved_at timestamp in range — sum amounts always, count per lead
       if (elig.approval_status === 'approved' && tsInRange(elig.approved_at)) {
-        approved++;
-        if (isCurrent) approvedCurrent++; else approvedSpillover++;
         totalApprovedAmount += parseFloat(elig.approved_amount) || 0;
+        leadHasApprovalInRange = true;
       }
 
-      // Disbursed: check disbursed_at timestamp in range
+      // Disbursed: check disbursed_at timestamp in range — sum amounts always, count per lead
       const disbursedValue = String(elig.disbursed || '').toLowerCase();
       if ((disbursedValue === 'yes' || disbursedValue === 'true') && tsInRange(elig.disbursed_at)) {
-        disbursed++;
-        if (isCurrent) disbursedCurrent++; else disbursedSpillover++;
         totalDisbursedAmount += parseFloat(elig.disbursed_amount) || 0;
+        leadHasDisbursalInRange = true;
       }
 
       // Login: check login_done_at timestamp in range (count per lead, not per eligibility)
@@ -317,6 +317,14 @@ export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'al
     if (leadHasLoginInRange) {
       loginCount++;
       if (isCurrent) loginCurrent++; else loginSpillover++;
+    }
+    if (leadHasApprovalInRange) {
+      approved++;
+      if (isCurrent) approvedCurrent++; else approvedSpillover++;
+    }
+    if (leadHasDisbursalInRange) {
+      disbursed++;
+      if (isCurrent) disbursedCurrent++; else disbursedSpillover++;
     }
 
     // Rejected: check LEAD-LEVEL status (not eligibility-level)

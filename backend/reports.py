@@ -1057,10 +1057,10 @@ async def get_sales_operations_report(
                 if elig.get("is_eligible") == "no":
                     categorize_rejection(elig.get("not_eligible_reason"), rejection_data)
 
-                # Login — count as logged if login_done=yes, OR approved, OR disbursed
-                # (approval/disbursal implies login was done)
+                # Login — count as logged if login_done=yes, OR any approval status set, OR disbursed
+                # (any approval/declined/disbursed status implies login was done)
                 is_logged = (elig.get("login_done") == "yes" or
-                             elig.get("approval_status") == "approved" or
+                             elig.get("approval_status") in ("approved", "declined") or
                              elig.get("disbursed") == "yes")
                 # For date range: use login_done_at, fallback to approved_at or disbursed_at
                 logged_ts = elig.get("login_done_at") or elig.get("approved_at") or elig.get("disbursed_at")

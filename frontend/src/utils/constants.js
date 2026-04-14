@@ -257,6 +257,12 @@ export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'al
     return isDateInRange(tsStr, timeFilter, fromDate, toDate);
   };
 
+  // Helper: check if a lead was created within the activity date range (current) or before (spillover)
+  const isLeadCurrent = (lead) => {
+    if (timeFilter === 'all') return true;
+    return isDateInRange(lead.created_at, timeFilter, fromDate, toDate);
+  };
+
   // For in-progress, check if lead has any activity in range
   let inProgressLeads = leads;
   if (timeFilter !== 'all') {
@@ -270,16 +276,17 @@ export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'al
   // For approved/disbursed: check eligibility-level timestamps
   // For login: check login_done_at timestamps
   // For rejected: check lead-level status + activity in range
-  // This naturally includes spillover (old lead, recent activity)
-  let approved = 0;
-  let disbursed = 0;
-  let rejected = 0;
-  let loginCount = 0;
+  // Track current vs spillover for each
+  let approved = 0, approvedCurrent = 0, approvedSpillover = 0;
+  let disbursed = 0, disbursedCurrent = 0, disbursedSpillover = 0;
+  let rejected = 0, rejectedCurrent = 0, rejectedSpillover = 0;
+  let loginCount = 0, loginCurrent = 0, loginSpillover = 0;
   let totalDisbursedAmount = 0;
   let totalApprovedAmount = 0;
 
   leads.forEach(lead => {
     const eligibilities = lead.eligibilities || [];
+    const isCurrent = isLeadCurrent(lead);
 
     // Track per-lead (not per-eligibility) for login
     let leadHasLoginInRange = false;
@@ -288,6 +295,7 @@ export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'al
       // Approved: check approved_at timestamp in range
       if (elig.approval_status === 'approved' && tsInRange(elig.approved_at)) {
         approved++;
+        if (isCurrent) approvedCurrent++; else approvedSpillover++;
         totalApprovedAmount += parseFloat(elig.approved_amount) || 0;
       }
 
@@ -295,6 +303,7 @@ export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'al
       const disbursedValue = String(elig.disbursed || '').toLowerCase();
       if ((disbursedValue === 'yes' || disbursedValue === 'true') && tsInRange(elig.disbursed_at)) {
         disbursed++;
+        if (isCurrent) disbursedCurrent++; else disbursedSpillover++;
         totalDisbursedAmount += parseFloat(elig.disbursed_amount) || 0;
       }
 
@@ -305,7 +314,10 @@ export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'al
       }
     });
 
-    if (leadHasLoginInRange) loginCount++;
+    if (leadHasLoginInRange) {
+      loginCount++;
+      if (isCurrent) loginCurrent++; else loginSpillover++;
+    }
 
     // Rejected: check LEAD-LEVEL status (not eligibility-level)
     // Only count leads with rejected statuses that have activity in the date range
@@ -314,7 +326,10 @@ export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'al
       const hasActivityInRange = timeFilter === 'all' || activities.some(a => 
         isDateInRange(a.timestamp, timeFilter, fromDate, toDate)
       );
-      if (hasActivityInRange) rejected++;
+      if (hasActivityInRange) {
+        rejected++;
+        if (isCurrent) rejectedCurrent++; else rejectedSpillover++;
+      }
     }
   });
 
@@ -322,10 +337,18 @@ export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'al
     total,
     newLeads,
     approved,
+    approvedCurrent,
+    approvedSpillover,
     disbursed,
+    disbursedCurrent,
+    disbursedSpillover,
     inProgress,
     rejected,
+    rejectedCurrent,
+    rejectedSpillover,
     loginCount,
+    loginCurrent,
+    loginSpillover,
     totalDisbursedAmount,
     totalApprovedAmount,
     leadsWithActivity: inProgressLeads.length

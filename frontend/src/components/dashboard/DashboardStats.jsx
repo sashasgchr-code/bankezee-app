@@ -31,7 +31,8 @@ const DashboardStats = ({ stats, earnings = {}, showEarnings = true, totalEligib
       icon: LogIn,
       color: 'text-indigo-600',
       bgColor: 'bg-indigo-50',
-      subtitle: 'Based on activity date'
+      current: stats.loginCurrent,
+      spillover: stats.loginSpillover
     },
     { 
       title: 'Approved', 
@@ -39,7 +40,8 @@ const DashboardStats = ({ stats, earnings = {}, showEarnings = true, totalEligib
       icon: CheckCircle, 
       color: 'text-green-600',
       bgColor: 'bg-green-50',
-      subtitle: 'Based on activity date'
+      current: stats.approvedCurrent,
+      spillover: stats.approvedSpillover
     },
     { 
       title: 'Total Approved', 
@@ -56,7 +58,8 @@ const DashboardStats = ({ stats, earnings = {}, showEarnings = true, totalEligib
       icon: Banknote, 
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-50',
-      subtitle: 'Based on activity date'
+      current: stats.disbursedCurrent,
+      spillover: stats.disbursedSpillover
     },
     { 
       title: 'Total Disbursed', 
@@ -73,7 +76,8 @@ const DashboardStats = ({ stats, earnings = {}, showEarnings = true, totalEligib
       icon: XCircle, 
       color: 'text-red-600',
       bgColor: 'bg-red-50',
-      subtitle: 'Based on activity date'
+      current: stats.rejectedCurrent,
+      spillover: stats.rejectedSpillover
     }
   ];
 
@@ -128,9 +132,15 @@ const DashboardStats = ({ stats, earnings = {}, showEarnings = true, totalEligib
             <div className={`text-xl font-bold ${stat.isAmount ? stat.color : ''}`}>
               {stat.value}
             </div>
-            {stat.subtitle && (
+            {(stat.current !== undefined || stat.spillover !== undefined) ? (
+              <p className="text-[10px] mt-0.5">
+                <span className="text-blue-600">Current: {stat.current || 0}</span>
+                {' '}
+                <span className="text-orange-600">Spillover: {stat.spillover || 0}</span>
+              </p>
+            ) : stat.subtitle ? (
               <p className="text-[10px] text-slate-500 mt-0.5 truncate">{stat.subtitle}</p>
-            )}
+            ) : null}
           </CardContent>
         </Card>
       ))}

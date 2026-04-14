@@ -1029,6 +1029,12 @@ async def get_sales_operations_report(
                             in_range(elig.get("disbursed_at"))):
                         has_activity_in_range = True
                         break
+                # Also check activity log for status changes in range
+                if not has_activity_in_range:
+                    for act in lead.get("activities", []):
+                        if act.get("type") == "status_change" and in_range(act.get("timestamp")):
+                            has_activity_in_range = True
+                            break
                 if not has_activity_in_range:
                     continue
                 # Count spillover lead as a "file" in this context
@@ -1042,6 +1048,29 @@ async def get_sales_operations_report(
             lead_has_approval = False
             lead_has_disbursal = False
             lead_disbursal_value = 0
+
+            # Check activity log for login stage (lead was in 'login' or any post-login stage at least once)
+            login_and_beyond = {'login', 'sent_for_approval', 'underwriting', 'fi', 'fi_negative',
+                                'fi_reinitiated', 'query_hold', 'approved', 'disbursed',
+                                'declined', 'not_disbursed'}
+            activities = lead.get("activities", [])
+            lead_was_logged_via_activity = False
+            logged_activity_ts = None
+            for act in activities:
+                to_status = (act.get("to_status") or "").lower()
+                if to_status in login_and_beyond:
+                    lead_was_logged_via_activity = True
+                    # Use the timestamp of the first login-or-beyond activity
+                    if not logged_activity_ts:
+                        logged_activity_ts = act.get("timestamp")
+                    break
+
+            # If activity log shows login, count this lead as logged
+            if lead_was_logged_via_activity:
+                activity_in_range = not is_spillover or in_range(logged_activity_ts)
+                if activity_in_range:
+                    lead_has_login = True
+                    result["logged"] += 1
 
             for elig in eligibilities:
                 raw_bank = elig.get("bank_name") or elig.get("login_bank") or ""
@@ -1057,7 +1086,7 @@ async def get_sales_operations_report(
                 if elig.get("is_eligible") == "no":
                     categorize_rejection(elig.get("not_eligible_reason"), rejection_data)
 
-                # Login — count as logged if login_done=yes, OR any approval status set, OR disbursed
+                # Login — count as logged via eligibility fields if not already counted via activity log
                 # (any approval/declined/disbursed status implies login was done)
                 is_logged = (elig.get("login_done") == "yes" or
                              elig.get("approval_status") in ("approved", "declined") or

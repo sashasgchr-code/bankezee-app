@@ -149,7 +149,7 @@ export default function SalesOperationsReport() {
     if (!stat || !stat.count) return <span className="text-slate-400">-</span>;
     return (
       <div className="text-xs leading-relaxed">
-        <div><span className="text-slate-500">Mode:</span> <span className="font-semibold">{stat.mode}d</span></div>
+        <div><span className="text-slate-500">Mode:</span> <span className="font-semibold">{stat.mode}d</span> <span className="text-slate-400">({stat.mode_count})</span></div>
         <div><span className="text-green-600">Low:</span> {stat.min}d <span className="text-red-600 ml-1">High:</span> {stat.max}d</div>
       </div>
     );
@@ -284,7 +284,7 @@ export default function SalesOperationsReport() {
                       ].map((row) => (
                         <tr key={row.label} className="hover:bg-slate-50">
                           <td className="p-2 border font-medium">{row.label}</td>
-                          <td className="p-2 border text-center font-bold text-blue-700">{row.data.mode !== null ? `${row.data.mode}d` : '-'}</td>
+                          <td className="p-2 border text-center font-bold text-blue-700">{row.data.mode !== null ? <>{row.data.mode}d <span className="font-normal text-slate-400 text-xs">({row.data.mode_count})</span></> : '-'}</td>
                           <td className="p-2 border text-center text-green-600 font-medium">{row.data.min !== null ? `${row.data.min}d` : '-'}</td>
                           <td className="p-2 border text-center text-red-600 font-medium">{row.data.max !== null ? `${row.data.max}d` : '-'}</td>
                           <td className="p-2 border text-center">{row.data.avg !== null ? `${row.data.avg}d` : '-'}</td>

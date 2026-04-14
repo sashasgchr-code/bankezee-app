@@ -1071,8 +1071,16 @@ async def get_sales_operations_report(
                 if elig.get("is_eligible") == "no":
                     categorize_rejection(elig.get("not_eligible_reason"), rejection_data)
 
-                # Login — only add bank to stats when login is done
-                if elig.get("login_done") == "yes" and login_in_range:
+                # Login — count as logged if login_done=yes, OR approved, OR disbursed
+                # (approval/disbursal implies login was done)
+                is_logged = (elig.get("login_done") == "yes" or
+                             elig.get("approval_status") == "approved" or
+                             elig.get("disbursed") == "yes")
+                # For date range: use login_done_at, fallback to approved_at or disbursed_at
+                logged_ts = elig.get("login_done_at") or elig.get("approved_at") or elig.get("disbursed_at")
+                logged_in_range = not is_spillover or in_range(logged_ts)
+
+                if is_logged and logged_in_range:
                     if not lead_has_login:
                         lead_has_login = True
                         result["logged"] += 1
@@ -1081,12 +1089,14 @@ async def get_sales_operations_report(
                             bank_data[bank] = {"logins": 0, "approvals": 0, "disbursals": 0, "disbursal_amount": 0}
                         bank_data[bank]["logins"] += 1
 
-                # Approval — only count if bank already tracked (i.e. had a login)
+                # Approval
                 if elig.get("approval_status") == "approved" and approval_in_range:
                     if not lead_has_approval:
                         lead_has_approval = True
                         result["approvals"] += 1
-                    if bank and bank != "UNKNOWN" and bank in bank_data:
+                    if bank and bank != "UNKNOWN":
+                        if bank not in bank_data:
+                            bank_data[bank] = {"logins": 0, "approvals": 0, "disbursals": 0, "disbursal_amount": 0}
                         bank_data[bank]["approvals"] += 1
                 elif elig.get("approval_status") == "declined":
                     total_rejections += 1
@@ -1099,7 +1109,9 @@ async def get_sales_operations_report(
                         lead_has_disbursal = True
                         result["disbursals"] += 1
                     lead_disbursal_value += amt
-                    if bank and bank != "UNKNOWN" and bank in bank_data:
+                    if bank and bank != "UNKNOWN":
+                        if bank not in bank_data:
+                            bank_data[bank] = {"logins": 0, "approvals": 0, "disbursals": 0, "disbursal_amount": 0}
                         bank_data[bank]["disbursals"] += 1
                         bank_data[bank]["disbursal_amount"] += amt
 

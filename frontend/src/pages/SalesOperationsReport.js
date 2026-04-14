@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Printer, FileText, TrendingUp, Users, Building2, AlertTriangle, BarChart3, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Printer, FileText, Users, Building2, AlertTriangle, BarChart3, ChevronDown } from 'lucide-react';
 import api from '@/utils/api';
 import { toast } from 'sonner';
 import { LOAN_TYPES } from '@/utils/constants';
@@ -390,38 +390,12 @@ export default function SalesOperationsReport() {
               </CardContent>
             </Card>
 
-            {/* Section 4: Pipeline Health */}
-            <Card data-testid="pipeline-health-section">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-orange-600" />
-                  4. Pipeline Health Metrics
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <table className="w-full text-sm border-collapse max-w-lg" data-testid="pipeline-table">
-                  <thead>
-                    <tr className="bg-slate-100">
-                      <th className="text-left p-2 border text-xs font-semibold">Stage</th>
-                      <th className="text-center p-2 border text-xs font-semibold">Number</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr><td className="p-2 border">Pre-Login</td><td className="p-2 border text-center">{r.pipeline_health.pre_login}</td></tr>
-                    <tr><td className="p-2 border">Login</td><td className="p-2 border text-center">{r.pipeline_health.login}</td></tr>
-                    <tr><td className="p-2 border">Approved</td><td className="p-2 border text-center">{r.pipeline_health.approved}</td></tr>
-                    <tr className="bg-slate-100 font-bold"><td className="p-2 border">TOTAL</td><td className="p-2 border text-center">{r.pipeline_health.total}</td></tr>
-                  </tbody>
-                </table>
-              </CardContent>
-            </Card>
-
-            {/* Section 5: Rejection Analysis */}
+            {/* Section 4: Rejection Analysis */}
             <Card data-testid="rejection-analysis-section">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-red-600" />
-                  5. Rejection & Drop Analysis
+                  4. Rejection & Drop Analysis
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -439,6 +413,7 @@ export default function SalesOperationsReport() {
                   </thead>
                   <tbody>
                     {Object.entries(r.rejection_analysis.reasons)
+                      .filter(([, count]) => count > 0)
                       .sort(([,a], [,b]) => b - a)
                       .map(([reason, count]) => (
                         <tr key={reason} className="hover:bg-slate-50">

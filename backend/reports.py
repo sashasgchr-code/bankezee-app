@@ -990,23 +990,12 @@ async def get_sales_operations_report(
         }
 
     def categorize_rejection(reason_text, reasons_dict):
-        reason_lower = (reason_text or "").lower()
+        reason_lower = (reason_text or "").strip()
         if not reason_lower:
             return
-        if "cibil" in reason_lower:
-            reasons_dict["Low CIBIL"] += 1
-        elif "income" in reason_lower:
-            reasons_dict["Low Income"] += 1
-        elif "foir" in reason_lower:
-            reasons_dict["High FOIR"] += 1
-        elif "document" in reason_lower:
-            reasons_dict["Documentation"] += 1
-        elif "change" in reason_lower or "mind" in reason_lower:
-            reasons_dict["Change of Mind"] += 1
-        elif "delay" in reason_lower:
-            reasons_dict["Delayed Process"] += 1
-        else:
-            reasons_dict["Other"] += 1
+        # Use the actual reason text (title-cased) instead of bucketing into categories
+        reason_key = reason_lower.title()
+        reasons_dict[reason_key] = reasons_dict.get(reason_key, 0) + 1
 
     # --- Processing function for a set of leads ---
     def process_leads(leads, is_spillover=False):
@@ -1020,10 +1009,7 @@ async def get_sales_operations_report(
         bank_tat_data = {}
         tat_data = {"l2l": [], "l2a": [], "a2d": [], "l2d": []}
         pipeline_data = {"pre_login": 0, "login": 0, "approved": 0}
-        rejection_data = {
-            "Low CIBIL": 0, "Low Income": 0, "High FOIR": 0,
-            "Documentation": 0, "Change of Mind": 0, "Delayed Process": 0, "Other": 0
-        }
+        rejection_data = {}
         total_rejections = 0
 
         for lead in leads:

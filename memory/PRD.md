@@ -751,11 +751,13 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
 ### Dashboard Stats Logic
 - **Total Leads**: Based on Lead Created date
 - **New**: Based on Lead Created date, currently in "new" status
-- **In Progress**: Based on Lead Created date, statuses: contacted, docs_collected, docs_pending, sent_for_eligibility, sent_for_login, login, underwriting, fi, fi_negative, fi_reinitiated, query_hold, sent_for_approval
-- **Login**: Based on Activity Date (eligibility login_done_at), includes spillover
-- **Approved**: Based on Activity Date (eligibility approved_at), includes spillover
-- **Disbursed**: Based on Activity Date (eligibility disbursed_at — user-entered disbursal date), includes spillover
-- **Rejected**: Based on Activity Date, lead-level statuses: rejected, not_eligible, customer_not_interested, customer_not_supporting, not_login
+- **In Progress**: Based on Lead Created date, statuses: contacted, docs_collected, docs_pending, sent_for_eligibility, sent_for_login, login, sent_for_approval, underwriting, fi, fi_reinitiated, query_hold
+- **Login**: Current status is login or beyond (login, approved, declined, not_disbursed, disbursed, etc.) + rejected leads that were previously in login stage (checked via activity log)
+- **Approved**: Based on Activity Date (eligibility approved_at), one count per lead
+- **Disbursed**: Based on Activity Date (eligibility disbursed_at — user-entered disbursal date), one count per lead
+- **Interim Rejects**: fi_negative, declined, customer_not_interested, customer_not_supporting — based on activity date
+- **Final Rejections**: rejected, not_eligible, not_login, not_disbursed — based on activity date
+- **Amt in Pipeline**: Sum of eligible_amount where login_done=yes AND application_id is not blank
      - Pipeline Health (Pre-Login, Login, Approved)
      - Rejection & Drop Analysis (reasons: Low CIBIL, Low Income, High FOIR, etc.)
    - Filterable by: Date range, Manager, Agent, Loan Type

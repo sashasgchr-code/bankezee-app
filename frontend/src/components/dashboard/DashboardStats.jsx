@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, CheckCircle, DollarSign, Clock, XCircle, TrendingUp, Banknote, LogIn } from 'lucide-react';
+import { FileText, CheckCircle, DollarSign, Clock, XCircle, TrendingUp, Banknote, LogIn, AlertTriangle, ShieldX } from 'lucide-react';
 
 const DashboardStats = ({ stats, earnings = {}, showEarnings = true, totalEligible = null }) => {
   const statCards = [
@@ -70,27 +70,36 @@ const DashboardStats = ({ stats, earnings = {}, showEarnings = true, totalEligib
       isAmount: true,
       subtitle: 'Based on activity date'
     },
+    {
+      title: 'Interim Rejects',
+      value: stats.interimRejects || 0,
+      icon: AlertTriangle,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+      current: stats.interimRejectCurrent,
+      spillover: stats.interimRejectSpillover
+    },
     { 
-      title: 'Rejected', 
-      value: stats.rejected || 0, 
+      title: 'Final Rejections', 
+      value: stats.finalRejections || 0, 
       icon: XCircle, 
       color: 'text-red-600',
       bgColor: 'bg-red-50',
-      current: stats.rejectedCurrent,
-      spillover: stats.rejectedSpillover
+      current: stats.finalRejectCurrent,
+      spillover: stats.finalRejectSpillover
     }
   ];
 
-  // Add Total Eligible (Login=Yes) if provided (for Admin/Ops dashboards)
+  // Add Amount in Pipeline (replaces Total Eligible) if provided
   if (totalEligible !== null) {
     statCards.push({
-      title: 'Total Eligible',
-      value: `₹${(totalEligible || 0).toLocaleString()}`,
+      title: 'Amt in Pipeline',
+      value: `₹${(stats.amountInPipeline || 0).toLocaleString()}`,
       icon: TrendingUp,
       color: 'text-cyan-600',
       bgColor: 'bg-cyan-50',
       isAmount: true,
-      subtitle: 'Eligible & Login = Yes'
+      subtitle: 'Login=Yes & App ID filled'
     });
   }
 
@@ -116,7 +125,7 @@ const DashboardStats = ({ stats, earnings = {}, showEarnings = true, totalEligib
     );
   }
 
-  const gridCols = showEarnings ? 'lg:grid-cols-5 xl:grid-cols-10' : 'lg:grid-cols-5 xl:grid-cols-9';
+  const gridCols = showEarnings ? 'lg:grid-cols-5 xl:grid-cols-10' : 'lg:grid-cols-5 xl:grid-cols-10';
 
   return (
     <div className={`grid grid-cols-2 md:grid-cols-3 ${gridCols} gap-4 mb-8`}>

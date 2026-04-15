@@ -61,8 +61,10 @@ export const STATUS_CATEGORIES = {
   new: ['new'],
   approved: ['approved'],
   disbursed: ['disbursed'],
-  in_progress: ['contacted', 'documents_collected', 'documents_pending', 'sent_for_eligibility', 'sent_for_login', 'login', 'sent_for_approval', 'underwriting', 'fi', 'fi_negative', 'fi_reinitiated', 'query_hold'],
-  rejected: ['rejected', 'not_eligible', 'customer_not_interested', 'customer_not_supporting', 'not_login']
+  in_progress: ['contacted', 'documents_collected', 'documents_pending', 'sent_for_eligibility', 'sent_for_login', 'login', 'sent_for_approval', 'underwriting', 'fi', 'fi_reinitiated', 'query_hold'],
+  interim_rejects: ['fi_negative', 'declined', 'customer_not_interested', 'customer_not_supporting'],
+  login_and_beyond: ['login', 'approved', 'declined', 'not_disbursed', 'disbursed', 'sent_for_approval', 'underwriting', 'fi', 'fi_negative', 'fi_reinitiated', 'query_hold'],
+  final_rejections: ['rejected', 'not_eligible', 'not_login', 'not_disbursed']
 };
 
 // Filter leads by time period (uses UTC to match backend)
@@ -274,22 +276,23 @@ export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'al
   const inProgress = inProgressLeads.filter(l => STATUS_CATEGORIES.in_progress.includes(l.status)).length;
 
   // For approved/disbursed: check eligibility-level timestamps
-  // For login: check login_done_at timestamps
-  // For rejected: check lead-level status + activity in range
+  // For login: based on current status (login_and_beyond)
   // Track current vs spillover for each
   let approved = 0, approvedCurrent = 0, approvedSpillover = 0;
   let disbursed = 0, disbursedCurrent = 0, disbursedSpillover = 0;
-  let rejected = 0, rejectedCurrent = 0, rejectedSpillover = 0;
+  let finalRejections = 0, finalRejectCurrent = 0, finalRejectSpillover = 0;
+  let interimRejects = 0, interimRejectCurrent = 0, interimRejectSpillover = 0;
   let loginCount = 0, loginCurrent = 0, loginSpillover = 0;
   let totalDisbursedAmount = 0;
   let totalApprovedAmount = 0;
+  let amountInPipeline = 0;
 
   leads.forEach(lead => {
     const eligibilities = lead.eligibilities || [];
     const isCurrent = isLeadCurrent(lead);
+    const leadStatus = (lead.status || '').toLowerCase();
 
     // Track per-lead flags (one count per file)
-    let leadHasLoginInRange = false;
     let leadHasApprovalInRange = false;
     let leadHasDisbursalInRange = false;
 
@@ -307,17 +310,14 @@ export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'al
         leadHasDisbursalInRange = true;
       }
 
-      // Login: check login_done_at timestamp in range (count per lead, not per eligibility)
+      // Amount in Pipeline: sum eligible amount where login_done=yes AND application_id is not blank
       const loginDone = String(elig.login_done || '').toLowerCase();
-      if ((loginDone === 'yes' || loginDone === 'true') && tsInRange(elig.login_done_at)) {
-        leadHasLoginInRange = true;
+      const appId = (elig.application_id || '').trim();
+      if ((loginDone === 'yes' || loginDone === 'true') && appId) {
+        amountInPipeline += parseFloat(elig.eligible_amount) || 0;
       }
     });
 
-    if (leadHasLoginInRange) {
-      loginCount++;
-      if (isCurrent) loginCurrent++; else loginSpillover++;
-    }
     if (leadHasApprovalInRange) {
       approved++;
       if (isCurrent) approvedCurrent++; else approvedSpillover++;
@@ -327,16 +327,41 @@ export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'al
       if (isCurrent) disbursedCurrent++; else disbursedSpillover++;
     }
 
-    // Rejected: check LEAD-LEVEL status (not eligibility-level)
-    // Only count leads with rejected statuses that have activity in the date range
-    if (STATUS_CATEGORIES.rejected.includes(lead.status)) {
-      const activities = lead.activities || [];
-      const hasActivityInRange = timeFilter === 'all' || activities.some(a => 
-        isDateInRange(a.timestamp, timeFilter, fromDate, toDate)
-      );
+    // Login: current status is in login_and_beyond, OR rejected but was previously in login stage
+    const hasActivityInRange = timeFilter === 'all' || (lead.activities || []).some(a => 
+      isDateInRange(a.timestamp, timeFilter, fromDate, toDate)
+    );
+
+    if (STATUS_CATEGORIES.login_and_beyond.includes(leadStatus)) {
       if (hasActivityInRange) {
-        rejected++;
-        if (isCurrent) rejectedCurrent++; else rejectedSpillover++;
+        loginCount++;
+        if (isCurrent) loginCurrent++; else loginSpillover++;
+      }
+    } else if (leadStatus === 'rejected') {
+      // Only count rejected leads that were in login stage at some point (check activity log)
+      const wasLogged = (lead.activities || []).some(a => {
+        const toStatus = (a.to_status || '').toLowerCase();
+        return STATUS_CATEGORIES.login_and_beyond.includes(toStatus);
+      });
+      if (wasLogged && hasActivityInRange) {
+        loginCount++;
+        if (isCurrent) loginCurrent++; else loginSpillover++;
+      }
+    }
+
+    // Interim Rejects: fi_negative, declined, customer_not_interested, customer_not_supporting
+    if (STATUS_CATEGORIES.interim_rejects.includes(leadStatus)) {
+      if (hasActivityInRange) {
+        interimRejects++;
+        if (isCurrent) interimRejectCurrent++; else interimRejectSpillover++;
+      }
+    }
+
+    // Final Rejections: rejected, not_eligible, not_login, not_disbursed
+    if (STATUS_CATEGORIES.final_rejections.includes(leadStatus)) {
+      if (hasActivityInRange) {
+        finalRejections++;
+        if (isCurrent) finalRejectCurrent++; else finalRejectSpillover++;
       }
     }
   });
@@ -351,14 +376,18 @@ export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'al
     disbursedCurrent,
     disbursedSpillover,
     inProgress,
-    rejected,
-    rejectedCurrent,
-    rejectedSpillover,
+    finalRejections,
+    finalRejectCurrent,
+    finalRejectSpillover,
+    interimRejects,
+    interimRejectCurrent,
+    interimRejectSpillover,
     loginCount,
     loginCurrent,
     loginSpillover,
     totalDisbursedAmount,
     totalApprovedAmount,
+    amountInPipeline,
     leadsWithActivity: inProgressLeads.length
   };
 };

@@ -13,7 +13,7 @@ const PerformanceOverview = ({ leads = [], stats = {} }) => {
     { name: 'In Progress', value: stats.inProgress || 0, color: '#f59e0b' },
     { name: 'Approved', value: stats.approved || 0, color: '#22c55e' },
     { name: 'Disbursed', value: stats.disbursed || 0, color: '#10b981' },
-    { name: 'Rejected', value: stats.rejected || 0, color: '#ef4444' }
+    { name: 'Rejected', value: (stats.finalRejections || 0) + (stats.interimRejects || 0), color: '#ef4444' }
   ].filter(d => d.value > 0);
 
   // Monthly trend data (last 6 months)

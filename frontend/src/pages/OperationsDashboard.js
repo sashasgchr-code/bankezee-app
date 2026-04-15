@@ -425,11 +425,11 @@ const OperationsDashboard = () => {
       yPos += 6;
       pdf.text(`New: ${stats.newLeads} | In Progress: ${stats.inProgress} | Approved: ${stats.approved}`, 20, yPos);
       yPos += 6;
-      pdf.text(`Disbursed: ${stats.disbursed} | Rejected: ${stats.rejected}`, 20, yPos);
+      pdf.text(`Disbursed: ${stats.disbursed} | Final Rejections: ${stats.finalRejections}`, 20, yPos);
       yPos += 6;
       pdf.text(`Total Disbursed Amount: ₹${(stats.totalDisbursedAmount || 0).toLocaleString()}`, 20, yPos);
       yPos += 6;
-      pdf.text(`Total Eligible (Login=Yes): ₹${(filteredTotalEligible || 0).toLocaleString()}`, 20, yPos);
+      pdf.text(`Amt in Pipeline: ₹${(stats.amountInPipeline || 0).toLocaleString()}`, 20, yPos);
       
       // Add charts image
       const chartStartY = yPos + 15;

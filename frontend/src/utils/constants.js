@@ -153,7 +153,7 @@ export const calculateDashboardStats = (leads) => {
   const approved = leads.filter(l => STATUS_CATEGORIES.approved.includes(l.status)).length;
   const disbursed = leads.filter(l => STATUS_CATEGORIES.disbursed.includes(l.status)).length;
   const inProgress = leads.filter(l => STATUS_CATEGORIES.in_progress.includes(l.status)).length;
-  const rejected = leads.filter(l => STATUS_CATEGORIES.rejected.includes(l.status)).length;
+  const rejected = leads.filter(l => STATUS_CATEGORIES.final_rejections.includes(l.status) || STATUS_CATEGORIES.interim_rejects.includes(l.status)).length;
   
   // Calculate total disbursed amount from eligibilities
   // Check for both string 'yes' and boolean true for backward compatibility

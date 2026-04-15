@@ -81,7 +81,7 @@ const DashboardStats = ({ stats, earnings = {}, showEarnings = true, totalEligib
     },
     { 
       title: 'Final Rejections', 
-      value: stats.finalRejections || 0, 
+      value: stats.finalRejections ?? stats.rejected ?? 0, 
       icon: XCircle, 
       color: 'text-red-600',
       bgColor: 'bg-red-50',

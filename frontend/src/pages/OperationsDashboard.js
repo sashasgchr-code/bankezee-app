@@ -215,6 +215,29 @@ const OperationsDashboard = () => {
     }
   };
 
+  // Export All Filtered Leads to CSV
+  const handleExportAllLeadsCSV = () => {
+    if (filteredLeads.length === 0) { toast.error('No leads to export'); return; }
+    const headers = ['Full Name','Mobile','Email','City','Loan Type','Status','Star Rating','Score','Created At','Agent/Partner','Loan Amount'];
+    const csvRows = [headers.join(',')];
+    for (const lead of filteredLeads) {
+      const ad = lead.additional_data || {};
+      csvRows.push([
+        `"${(lead.full_name || '').replace(/"/g, '""')}"`, lead.mobile || '', lead.email || '',
+        `"${(lead.city || '').replace(/"/g, '""')}"`, ad.type_of_loan || lead.requirement || '',
+        lead.status || '', lead.star_rating || 0, lead.star_score || 0,
+        lead.created_at ? new Date(lead.created_at).toLocaleDateString() : '',
+        `"${(lead.agent_name || lead.source || '').replace(/"/g, '""')}"`, ad.loan_amount_required || ''
+      ].join(','));
+    }
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url;
+    a.download = `bankezee_leads_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click(); window.URL.revokeObjectURL(url);
+    toast.success(`Exported ${filteredLeads.length} leads`);
+  };
+
   // Export Agent/Partner Stats
   const handleExportStats = async () => {
     setExportingStats(true);
@@ -747,9 +770,14 @@ const OperationsDashboard = () => {
 
         {/* Leads List */}
         <Card data-testid="assigned-leads-card">
-          <CardHeader>
-            <CardTitle>My Assigned Leads ({filteredLeads.length})</CardTitle>
-            <CardDescription>Leads assigned to you for processing</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>My Assigned Leads ({filteredLeads.length})</CardTitle>
+              <CardDescription>Leads assigned to you for processing</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={handleExportAllLeadsCSV} data-testid="export-all-leads-csv">
+              <FileDown className="w-3.5 h-3.5 mr-1" /> Export CSV
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-[500px] overflow-y-auto">

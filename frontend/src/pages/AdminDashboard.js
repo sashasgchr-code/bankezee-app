@@ -696,6 +696,51 @@ const AdminDashboard = () => {
     }
   };
 
+  // Export All Filtered Leads to CSV
+  const handleExportAllLeadsCSV = () => {
+    if (filteredLeads.length === 0) {
+      toast.error('No leads to export');
+      return;
+    }
+    const headers = [
+      'Full Name','Mobile','Email','City','Loan Type','Status','Star Rating','Score',
+      'Created At','Agent/Partner','Assigned To','Loan Amount','Net Salary','CIBIL Score',
+      'CIBIL Issues','FOIR %','Company Type'
+    ];
+    const csvRows = [headers.join(',')];
+    for (const lead of filteredLeads) {
+      const ad = lead.additional_data || {};
+      const row = [
+        `"${(lead.full_name || '').replace(/"/g, '""')}"`,
+        lead.mobile || '',
+        lead.email || '',
+        `"${(lead.city || '').replace(/"/g, '""')}"`,
+        ad.type_of_loan || lead.requirement || '',
+        lead.status || '',
+        lead.star_rating || 0,
+        lead.star_score || 0,
+        lead.created_at ? new Date(lead.created_at).toLocaleDateString() : '',
+        `"${(lead.agent_name || lead.source || '').replace(/"/g, '""')}"`,
+        `"${(lead.assigned_to_name || '').replace(/"/g, '""')}"`,
+        ad.loan_amount_required || '',
+        ad.net_salary || '',
+        ad.cibil_score || '',
+        ad.cibil_issues || '',
+        ad.foir || '',
+        ad.company_type || ''
+      ];
+      csvRows.push(row.join(','));
+    }
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bankezee_leads_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    toast.success(`Exported ${filteredLeads.length} leads to CSV`);
+  };
+
   // Export Agent/Partner Stats
   const handleExportStats = async () => {
     setExportingStats(true);
@@ -2265,11 +2310,16 @@ const AdminDashboard = () => {
         {/* Leads List */}
         <Card data-testid="recent-leads-card">
           <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Leads ({filteredLeads.length})</CardTitle>
-              <CardDescription>
-                {selectedLeads.length > 0 ? `${selectedLeads.length} selected` : 'All leads in the system'}
-              </CardDescription>
+            <div className="flex items-center gap-3">
+              <div>
+                <CardTitle>Leads ({filteredLeads.length})</CardTitle>
+                <CardDescription>
+                  {selectedLeads.length > 0 ? `${selectedLeads.length} selected` : 'All leads in the system'}
+                </CardDescription>
+              </div>
+              <Button variant="outline" size="sm" className="h-8 text-xs" onClick={handleExportAllLeadsCSV} data-testid="export-all-leads-csv">
+                <FileDown className="w-3.5 h-3.5 mr-1" /> Export CSV
+              </Button>
             </div>
             {/* Bulk Assignment Controls */}
             {selectedLeads.length > 0 && (

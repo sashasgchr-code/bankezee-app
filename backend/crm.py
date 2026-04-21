@@ -20,6 +20,94 @@ db = client[os.environ.get('DB_NAME', 'test_database')]
 
 router = APIRouter()
 
+
+def calculate_star_rating(additional_data):
+    """Calculate star rating score (0-100) and stars (1-5) from lead profile data"""
+    score = 0
+    ad = additional_data or {}
+
+    # 1. Income Score (Max 25) - based on net_salary
+    try:
+        salary = float(ad.get("net_salary") or 0)
+    except (ValueError, TypeError):
+        salary = 0
+    if salary >= 100000:
+        score += 25
+    elif salary >= 75000:
+        score += 20
+    elif salary >= 40000:
+        score += 15
+    elif salary >= 30000:
+        score += 10
+    elif salary > 0:
+        score += 5
+
+    # 2. CIBIL Score (Max 25)
+    try:
+        cibil = float(ad.get("cibil_score") or 0)
+    except (ValueError, TypeError):
+        cibil = 0
+    if cibil >= 730:
+        score += 25
+    elif cibil >= 710:
+        score += 20
+    elif cibil >= 701:
+        score += 15
+    elif cibil >= 670:
+        score += 10
+    elif cibil > 0:
+        score += 5
+
+    # 3. CIBIL Issues (Max 15)
+    cibil_issues = str(ad.get("cibil_issues") or "").lower()
+    if cibil_issues == "no":
+        score += 15
+    elif cibil_issues == "minor":
+        score += 8
+    # major or yes = 0
+
+    # 4. FOIR Score (Max 15)
+    try:
+        foir = float(ad.get("foir") or 0)
+    except (ValueError, TypeError):
+        foir = 0
+    if foir > 0:
+        if foir <= 50:
+            score += 15
+        elif foir <= 55:
+            score += 12
+        elif foir <= 60:
+            score += 10
+        elif foir <= 65:
+            score += 8
+        else:
+            score += 5
+
+    # 5. Company Type (Max 20)
+    company = str(ad.get("company_type") or "").lower()
+    if company in ("govt", "government", "psu"):
+        score += 20
+    elif company == "listed":
+        score += 18
+    elif company in ("non-listed", "non_listed", "nonlisted"):
+        score += 10
+
+    # Star mapping
+    if score >= 90:
+        stars = 5
+    elif score >= 75:
+        stars = 4
+    elif score >= 60:
+        stars = 3
+    elif score >= 45:
+        stars = 2
+    else:
+        stars = 1
+
+    return {"score": score, "stars": stars}
+
+
+
 class StatusUpdate(BaseModel):
     status: str
     application_id: Optional[str] = None
@@ -117,6 +205,47 @@ async def sync_loan_types(current_user: User = Depends(get_current_user)):
             await db.leads.update_one({"id": lead["id"]}, {"$set": {"requirement": tol}})
             synced += 1
     return {"message": f"Synced {synced} leads", "total": len(leads)}
+
+
+@router.post("/calculate-all-ratings")
+async def calculate_all_ratings(current_user: User = Depends(get_current_user)):
+    """Calculate star ratings for all existing leads based on their profile data"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    
+    leads = await db.leads.find({}, {"_id": 0, "id": 1, "additional_data": 1}).to_list(10000)
+    updated = 0
+    for lead in leads:
+        ad = lead.get("additional_data") or {}
+        rating = calculate_star_rating(ad)
+        await db.leads.update_one(
+            {"id": lead["id"]},
+            {"$set": {"star_score": rating["score"], "star_rating": rating["stars"]}}
+        )
+        updated += 1
+    return {"message": f"Calculated ratings for {updated} leads", "total": len(leads)}
+
+
+@router.put("/star-rating/{lead_id}")
+async def update_star_rating(
+    lead_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Override star rating for a lead - recalculates from current profile data"""
+    if current_user.role not in ["admin", "operations"]:
+        raise HTTPException(status_code=403, detail="Only admin or operations")
+    
+    lead = await db.leads.find_one({"id": lead_id}, {"_id": 0})
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    
+    ad = lead.get("additional_data") or {}
+    rating = calculate_star_rating(ad)
+    await db.leads.update_one(
+        {"id": lead_id},
+        {"$set": {"star_score": rating["score"], "star_rating": rating["stars"]}}
+    )
+    return {"star_score": rating["score"], "star_rating": rating["stars"]}
 
 
 # Static routes MUST be defined before dynamic routes like /{lead_id}
@@ -333,6 +462,12 @@ async def update_lead_details(
     
     if not update_dict:
         return {"message": "No changes to update"}
+    
+    # Auto-calculate star rating if additional_data changed
+    if "additional_data" in update_dict:
+        rating = calculate_star_rating(update_dict["additional_data"])
+        update_dict["star_score"] = rating["score"]
+        update_dict["star_rating"] = rating["stars"]
     
     update_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
     

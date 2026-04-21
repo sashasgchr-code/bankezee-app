@@ -748,7 +748,13 @@ Build a full-stack web application for a fintech company called BankEzee. The pl
      - Team Productivity (per-agent breakdown)
      - Bank/Lender Performance (logins, approvals, disbursals, disbursal amount per bank)
 
-### Dashboard Stats Logic
+### Star Rating System
+- Auto-calculated score (0-100) based on 5 parameters: Income (25pts), CIBIL Score (25pts), CIBIL Issues (15pts), FOIR (15pts), Company Type (20pts)
+- Maps to 1-5 stars: 90-100=5★, 75-89=4★, 60-74=3★, 45-59=2★, <45=1★
+- Displayed on lead cards, lead detail page header, and filterable via "All Stars" dropdown
+- Auto-recalculated when profile/details are saved
+- Admin can run `/api/crm/calculate-all-ratings` to recalculate all existing leads
+- CIBIL Issues field: No Issues (15pts), Minor Issues (8pts), Major Issues (0pts)
 - **Total Leads**: Based on Lead Created date
 - **New**: Based on Lead Created date, currently in "new" status
 - **In Progress**: Based on Lead Created date, statuses: contacted, docs_collected, docs_pending, sent_for_eligibility, sent_for_login, login, sent_for_approval, underwriting, fi, fi_reinitiated, query_hold

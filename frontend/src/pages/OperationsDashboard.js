@@ -8,6 +8,7 @@ import api from '@/utils/api';
 import { toast } from 'sonner';
 import { FileText, LogOut, LayoutDashboard, Eye, Download, BarChart3, Search, FileDown, AlertTriangle } from 'lucide-react';
 import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
+import StarRating from '@/components/StarRating';
 import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats, calculateTotalEligible, calculateDashboardStatsWithActivityDates, calculateTotalEligibleWithActivityDate, getLoanTypeLabel, STATUS_CATEGORIES } from '@/utils/constants';
 import { maskMobile, maskEmail } from '@/utils/masking';
 import { saveFilters, loadFilters, clearAllUserFilters, OPS_DEFAULT_FILTERS } from '@/utils/filterPersistence';
@@ -43,6 +44,7 @@ const OperationsDashboard = () => {
   const [activityTimeFilter, setActivityTimeFilter] = useState(savedFilters.activityTimeFilter);
   const [activityFromDate, setActivityFromDate] = useState(savedFilters.activityFromDate);
   const [activityToDate, setActivityToDate] = useState(savedFilters.activityToDate);
+  const [starFilter, setStarFilter] = useState('all');
   const [showStatsExportModal, setShowStatsExportModal] = useState(false);
   const [statsExportFromDate, setStatsExportFromDate] = useState('');
   const [statsExportToDate, setStatsExportToDate] = useState('');
@@ -365,6 +367,11 @@ const OperationsDashboard = () => {
       (l.full_name && l.full_name.toLowerCase().includes(query)) ||
       (l.mobile && l.mobile.includes(query))
     );
+  }
+  // Apply star rating filter
+  if (starFilter && starFilter !== 'all') {
+    const minStars = parseInt(starFilter);
+    baseFilteredLeads = baseFilteredLeads.filter(l => (l.star_rating || 0) >= minStars);
   }
 
   // Calculate activity-based stats using ACTIVITY TIME FILTER (Approved, Disbursed, Rejected, Total Eligible)
@@ -718,6 +725,9 @@ const OperationsDashboard = () => {
           onManagerFilterChange={setManagerFilter}
           managers={allManagers}
           showManagerFilter={true}
+          starFilter={starFilter}
+          onStarFilterChange={setStarFilter}
+          showStarFilter={true}
           activityTimeFilter={activityTimeFilter}
           onActivityTimeFilterChange={setActivityTimeFilter}
           activityFromDate={activityFromDate}
@@ -765,6 +775,7 @@ const OperationsDashboard = () => {
                           <span className="ml-2 text-green-600">• ₹{parseInt(lead.additional_data.loan_amount_required).toLocaleString('en-IN')}</span>
                         )}
                       </p>
+                      <div className="mt-1"><StarRating stars={lead.star_rating || 0} score={lead.star_score || 0} size="sm" showScore={false} /></div>
                       {/* Duplicate Warning */}
                       {lead.has_duplicates && lead.duplicate_entries?.length > 0 && (
                         <div className="mt-2 p-2 bg-amber-100 rounded text-xs">

@@ -111,7 +111,11 @@ const DashboardFilters = ({
   managerFilter,
   onManagerFilterChange,
   managers = [],
-  showManagerFilter = false
+  showManagerFilter = false,
+  // Star rating filter
+  starFilter,
+  onStarFilterChange,
+  showStarFilter = false
 }) => {
   return (
     <div className="flex flex-wrap gap-3 mb-6 items-end">
@@ -289,6 +293,23 @@ const DashboardFilters = ({
             </Select>
           )}
         </>
+      )}
+
+      {/* Star Rating Filter */}
+      {showStarFilter && (
+        <Select value={starFilter || 'all'} onValueChange={onStarFilterChange}>
+          <SelectTrigger className="w-32" data-testid="star-filter">
+            <SelectValue placeholder="Stars" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Stars</SelectItem>
+            <SelectItem value="5">5 Stars</SelectItem>
+            <SelectItem value="4">4+ Stars</SelectItem>
+            <SelectItem value="3">3+ Stars</SelectItem>
+            <SelectItem value="2">2+ Stars</SelectItem>
+            <SelectItem value="1">1 Star</SelectItem>
+          </SelectContent>
+        </Select>
       )}
     </div>
   );

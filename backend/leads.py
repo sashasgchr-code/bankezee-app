@@ -143,7 +143,9 @@ async def get_leads(
         "updated_at": 1,
         "eligibilities": 1,  # Needed for disbursed amount calculation
         "activities": 1,  # Needed for activity-based date filtering on dashboard
-        "additional_data": 1  # Needed for loan type filtering
+        "additional_data": 1,  # Needed for loan type filtering
+        "star_rating": 1,
+        "star_score": 1
     }
     
     leads = await db.leads.find(query, list_projection).sort("created_at", -1).to_list(1000)

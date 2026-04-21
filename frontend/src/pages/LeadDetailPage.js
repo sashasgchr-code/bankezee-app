@@ -20,6 +20,7 @@ import {
   ActivityLog
 } from '@/components/lead-detail';
 import VehiclePreVerification from '@/components/lead-detail/VehiclePreVerification';
+import StarRating from '@/components/StarRating';
 
 const EMPTY_ELIGIBILITY = {
   bank_name: '',
@@ -410,6 +411,11 @@ const LeadDetailPage = () => {
           Back
         </Button>
         <h1 className="text-2xl font-bold" style={{ fontFamily: 'Manrope, sans-serif' }}>Lead Details</h1>
+        {lead && (
+          <div className="ml-4 flex items-center gap-2">
+            <StarRating stars={lead.star_rating || 0} score={lead.star_score || 0} size="md" />
+          </div>
+        )}
       </nav>
 
       <div className="px-6 md:px-12 lg:px-24 py-12">
@@ -491,13 +497,14 @@ const LeadDetailPage = () => {
                       <Select value={profileAnalysis.cibil_issues || undefined} onValueChange={(v) => setProfileAnalysis(prev => ({ ...prev, cibil_issues: v }))}>
                         <SelectTrigger className="h-9 bg-white" data-testid="cibil-issues-select"><SelectValue placeholder="Select" /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="yes">Yes</SelectItem>
-                          <SelectItem value="no">No</SelectItem>
+                          <SelectItem value="no">No Issues</SelectItem>
+                          <SelectItem value="minor">Minor Issues</SelectItem>
+                          <SelectItem value="major">Major Issues</SelectItem>
                         </SelectContent>
                       </Select>
                     ) : (
-                      <p className={`font-medium ${profileAnalysis.cibil_issues === 'yes' ? 'text-red-600' : profileAnalysis.cibil_issues === 'no' ? 'text-green-600' : ''}`}>
-                        {profileAnalysis.cibil_issues === 'yes' ? 'Yes' : profileAnalysis.cibil_issues === 'no' ? 'No' : '-'}
+                      <p className={`font-medium ${profileAnalysis.cibil_issues === 'major' ? 'text-red-600' : profileAnalysis.cibil_issues === 'no' ? 'text-green-600' : profileAnalysis.cibil_issues === 'minor' ? 'text-orange-600' : ''}`}>
+                        {profileAnalysis.cibil_issues === 'no' ? 'No Issues' : profileAnalysis.cibil_issues === 'minor' ? 'Minor Issues' : profileAnalysis.cibil_issues === 'major' ? 'Major Issues' : '-'}
                       </p>
                     )}
                   </div>

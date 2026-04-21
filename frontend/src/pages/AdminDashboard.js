@@ -13,6 +13,7 @@ import api from '@/utils/api';
 import { toast } from 'sonner';
 import { Users, LogOut, LayoutDashboard, Eye, UserPlus, CheckSquare, X, Trash2, UserCog, Building, Briefcase, Download, FileText, Clock, CheckCircle, XCircle, ChevronDown, ChevronUp, CreditCard, User, MapPin, Phone, Mail, Hash, Building2, BarChart3, Key, Copy, Search, FileDown, AlertTriangle, Pencil } from 'lucide-react';
 import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
+import StarRating from '@/components/StarRating';
 import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats, calculateTotalEligible, calculateDashboardStatsWithActivityDates, calculateTotalEligibleWithActivityDate, LOAN_TYPES, TIME_FILTERS, getLoanTypeLabel, STATUS_CATEGORIES } from '@/utils/constants';
 import { maskMobile, maskEmail } from '@/utils/masking';
 import { saveFilters, loadFilters, clearAllUserFilters, ADMIN_DEFAULT_FILTERS } from '@/utils/filterPersistence';
@@ -300,6 +301,7 @@ const AdminDashboard = () => {
   const [activityTimeFilter, setActivityTimeFilter] = useState(savedFilters.activityTimeFilter);
   const [activityFromDate, setActivityFromDate] = useState(savedFilters.activityFromDate);
   const [activityToDate, setActivityToDate] = useState(savedFilters.activityToDate);
+  const [starFilter, setStarFilter] = useState('all');
   // Stats export modal
   const [showStatsExportModal, setShowStatsExportModal] = useState(false);
   const [statsExportFromDate, setStatsExportFromDate] = useState('');
@@ -1265,6 +1267,11 @@ const AdminDashboard = () => {
       (l.mobile && l.mobile.includes(query))
     );
   }
+  // Apply star rating filter
+  if (starFilter && starFilter !== 'all') {
+    const minStars = parseInt(starFilter);
+    baseFilteredLeads = baseFilteredLeads.filter(l => (l.star_rating || 0) >= minStars);
+  }
 
   // For the leads list & "Total Leads"/"New" stats, apply LEAD TIME FILTER (based on lead creation date)
   let filteredLeads = filterByTimePeriod(baseFilteredLeads, timeFilter, filterFromDate, filterToDate);
@@ -2225,6 +2232,9 @@ const AdminDashboard = () => {
               onManagerFilterChange={setManagerFilter}
               managers={allManagers}
               showManagerFilter={true}
+              starFilter={starFilter}
+              onStarFilterChange={setStarFilter}
+              showStarFilter={true}
               activityTimeFilter={activityTimeFilter}
               onActivityTimeFilterChange={setActivityTimeFilter}
               activityFromDate={activityFromDate}
@@ -2325,6 +2335,7 @@ const AdminDashboard = () => {
                           )}
                           {lead.assigned_to && <span className="ml-2 text-primary">• Assigned</span>}
                         </p>
+                        <div className="mt-1"><StarRating stars={lead.star_rating || 0} score={lead.star_score || 0} size="sm" showScore={false} /></div>
                         {/* Duplicate Warning */}
                         {lead.has_duplicates && lead.duplicate_entries?.length > 0 && (
                           <div className="mt-2 p-2 bg-amber-100 rounded text-xs">

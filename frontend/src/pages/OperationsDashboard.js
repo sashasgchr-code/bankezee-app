@@ -375,12 +375,29 @@ const OperationsDashboard = () => {
   // For the leads list & "Total Leads"/"New" stats, apply LEAD TIME FILTER (based on lead creation date)
   let filteredLeads = filterByTimePeriod(baseFilteredLeads, timeFilter, filterFromDate, filterToDate);
   
-  // Override total, newLeads, and inProgress in stats to use lead creation date filter
+  // Override total, newLeads, inProgress, and amountInPipeline to use lead creation date filter
+  let pipelineAmount = 0;
+  const pipelineExcludeStatuses = ['rejected', 'not_eligible', 'not_login', 'not_disbursed', 'declined', 'disbursed'];
+  filteredLeads.forEach(lead => {
+    const leadStatus = (lead.status || '').toLowerCase();
+    if (pipelineExcludeStatuses.includes(leadStatus)) return;
+    (lead.eligibilities || []).forEach(elig => {
+      const loginDone = String(elig.login_done || '').toLowerCase();
+      const appId = (elig.application_id || '').trim();
+      const eligDisbursed = String(elig.disbursed || '').toLowerCase();
+      const eligDeclined = (elig.approval_status || '').toLowerCase() === 'declined';
+      if ((loginDone === 'yes' || loginDone === 'true') && appId && eligDisbursed !== 'yes' && !eligDeclined) {
+        pipelineAmount += parseFloat(elig.eligible_amount) || 0;
+      }
+    });
+  });
+
   const leadsStats = {
     ...stats,
     total: filteredLeads.length,
     newLeads: filteredLeads.filter(l => ['new', 'fresh'].includes(l.status)).length,
     inProgress: filteredLeads.filter(l => STATUS_CATEGORIES.in_progress.includes(l.status)).length,
+    amountInPipeline: pipelineAmount,
   };
 
   // Export Dashboard to PDF

@@ -1277,13 +1277,32 @@ const AdminDashboard = () => {
   // Use baseFilteredLeads (not filteredLeads) so it's not affected by Lead Created filter
   const filteredTotalEligible = calculateTotalEligibleWithActivityDate(baseFilteredLeads, activityTimeFilter, activityFromDate, activityToDate);
   
-  // Only Total Leads, New, and In Progress stats use the Lead Created date filter
-  // All other stats (Login, Approved, Disbursed, Rejected, Total Eligible) use Activity Date filter
+  // Only Total Leads, New, In Progress, and Amt in Pipeline use the Lead Created date filter
+  // All other stats (Login, Approved, Disbursed, Rejected) use Activity Date filter
+  
+  // Calculate Amt in Pipeline from created-date-filtered leads
+  let pipelineAmount = 0;
+  const pipelineExcludeStatuses = ['rejected', 'not_eligible', 'not_login', 'not_disbursed', 'declined', 'disbursed'];
+  filteredLeads.forEach(lead => {
+    const leadStatus = (lead.status || '').toLowerCase();
+    if (pipelineExcludeStatuses.includes(leadStatus)) return;
+    (lead.eligibilities || []).forEach(elig => {
+      const loginDone = String(elig.login_done || '').toLowerCase();
+      const appId = (elig.application_id || '').trim();
+      const eligDisbursed = String(elig.disbursed || '').toLowerCase();
+      const eligDeclined = (elig.approval_status || '').toLowerCase() === 'declined';
+      if ((loginDone === 'yes' || loginDone === 'true') && appId && eligDisbursed !== 'yes' && !eligDeclined) {
+        pipelineAmount += parseFloat(elig.eligible_amount) || 0;
+      }
+    });
+  });
+
   const leadsStats = {
     ...stats,
     total: filteredLeads.length,
     newLeads: filteredLeads.filter(l => ['new', 'fresh'].includes(l.status)).length,
     inProgress: filteredLeads.filter(l => STATUS_CATEGORIES.in_progress.includes(l.status)).length,
+    amountInPipeline: pipelineAmount,
   };
 
   if (loading) {

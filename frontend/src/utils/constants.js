@@ -311,10 +311,17 @@ export const calculateDashboardStatsWithActivityDates = (leads, timeFilter = 'al
       }
 
       // Amount in Pipeline: sum eligible amount where login_done=yes AND application_id is not blank
+      // Exclude if the eligibility is disbursed, declined, or the lead is rejected
       const loginDone = String(elig.login_done || '').toLowerCase();
       const appId = (elig.application_id || '').trim();
-      if ((loginDone === 'yes' || loginDone === 'true') && appId) {
-        amountInPipeline += parseFloat(elig.eligible_amount) || 0;
+      const eligDisbursed = String(elig.disbursed || '').toLowerCase();
+      const eligDeclined = (elig.approval_status || '').toLowerCase() === 'declined';
+      if ((loginDone === 'yes' || loginDone === 'true') && appId && eligDisbursed !== 'yes' && !eligDeclined) {
+        // Also exclude if lead status is rejected/not_eligible/not_login/not_disbursed
+        const excludeStatuses = ['rejected', 'not_eligible', 'not_login', 'not_disbursed', 'declined', 'disbursed'];
+        if (!excludeStatuses.includes(leadStatus)) {
+          amountInPipeline += parseFloat(elig.eligible_amount) || 0;
+        }
       }
     });
 

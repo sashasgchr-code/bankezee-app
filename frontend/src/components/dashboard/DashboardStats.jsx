@@ -135,31 +135,40 @@ const DashboardStats = ({ stats, earnings = {}, showEarnings = true, totalEligib
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 mb-8">
-      {statCards.map((stat, index) => (
-        <Card key={index} className="hover-lift min-w-0" data-testid={`stat-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
-            <CardTitle className="text-[11px] font-medium text-slate-600 leading-tight">{stat.title}</CardTitle>
-            <div className={`p-1 rounded-full ${stat.bgColor} shrink-0`}>
-              <stat.icon className={`h-3 w-3 ${stat.color}`} />
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0 px-3 pb-3">
-            <div className={`text-lg font-bold truncate ${stat.isAmount ? stat.color : ''}`}>
-              {stat.value}
-            </div>
-            {(stat.current !== undefined || stat.spillover !== undefined) ? (
-              <div className="text-[9px] mt-0.5 leading-tight">
-                <span className="text-blue-600">C: {stat.current || 0}</span>
-                {' '}
-                <span className="text-orange-600">S: {stat.spillover || 0}</span>
+    <div className="mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+        {statCards.map((stat, index) => (
+          <Card key={index} className="hover-lift min-w-0" data-testid={`stat-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-3 pt-3">
+              <CardTitle className="text-[11px] font-medium text-slate-600 leading-tight">{stat.title}</CardTitle>
+              <div className={`p-1 rounded-full ${stat.bgColor} shrink-0`}>
+                <stat.icon className={`h-3 w-3 ${stat.color}`} />
               </div>
-            ) : stat.subtitle ? (
-              <p className="text-[9px] text-slate-400 mt-0.5 leading-tight">{stat.subtitle}</p>
-            ) : null}
-          </CardContent>
-        </Card>
-      ))}
+            </CardHeader>
+            <CardContent className="pt-0 px-3 pb-3">
+              <div className={`text-lg font-bold truncate ${stat.isAmount ? stat.color : ''}`}>
+                {stat.value}
+              </div>
+              {(stat.current !== undefined || stat.spillover !== undefined) ? (
+                <div className="text-[9px] mt-0.5 leading-tight">
+                  <span className="text-blue-600">C: {stat.current || 0}</span>
+                  {' '}
+                  <span className="text-orange-600">S: {stat.spillover || 0}</span>
+                </div>
+              ) : stat.subtitle ? (
+                <p className="text-[9px] text-slate-400 mt-0.5 leading-tight">{stat.subtitle}</p>
+              ) : null}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <div className="mt-3 px-1 text-[10px] text-slate-400 leading-relaxed flex flex-wrap gap-x-4 gap-y-0.5" data-testid="stat-definitions">
+        <span><b className="text-slate-500">In Progress:</b> Contacted to Query/Hold (created date)</span>
+        <span><b className="text-slate-500">Login:</b> Login + Approved + Declined + Not Disbursed + Rejected-after-login</span>
+        <span><b className="text-slate-500">Interim Rejects:</b> FI Negative + Declined + Cust. Not Interested/Supporting</span>
+        <span><b className="text-slate-500">Final Rejections:</b> Rejected + Not Eligible + Not Login + Not Disbursed</span>
+        {totalEligible !== null && <span><b className="text-slate-500">Amt in Pipeline:</b> Eligible Amt where Login=Yes & App ID filled, excl. disbursed/declined/rejected</span>}
+      </div>
     </div>
   );
 };

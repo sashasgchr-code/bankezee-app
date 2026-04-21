@@ -1221,10 +1221,10 @@ async def get_sales_operations_report(
                 # Normalize bank name: uppercase, strip whitespace
                 bank = raw_bank.strip().upper() if raw_bank.strip() else "UNKNOWN"
 
-                # For spillover, only count activities that happened in the date range
-                login_in_range = not is_spillover or in_range(elig.get("login_done_at"))
-                approval_in_range = not is_spillover or in_range(elig.get("approved_at"))
-                disbursal_in_range = not is_spillover or in_range(elig.get("disbursed_at"))
+                # Always check activity timestamps for approvals and disbursals
+                # This ensures consistency with dashboard stats
+                approval_in_range = in_range(elig.get("approved_at"))
+                disbursal_in_range = in_range(elig.get("disbursed_at"))
 
                 # Eligible/Not eligible
                 if elig.get("is_eligible") == "no":

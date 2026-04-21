@@ -226,12 +226,16 @@ async def calculate_all_ratings(current_user: User = Depends(get_current_user)):
     return {"message": f"Calculated ratings for {updated} leads", "total": len(leads)}
 
 
+class ManualStarRating(BaseModel):
+    stars: int
+
 @router.put("/star-rating/{lead_id}")
 async def update_star_rating(
     lead_id: str,
+    body: Optional[ManualStarRating] = None,
     current_user: User = Depends(get_current_user)
 ):
-    """Override star rating for a lead - recalculates from current profile data"""
+    """Manually set or recalculate star rating for a lead"""
     if current_user.role not in ["admin", "operations"]:
         raise HTTPException(status_code=403, detail="Only admin or operations")
     
@@ -239,13 +243,26 @@ async def update_star_rating(
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
     
-    ad = lead.get("additional_data") or {}
-    rating = calculate_star_rating(ad)
-    await db.leads.update_one(
-        {"id": lead_id},
-        {"$set": {"star_score": rating["score"], "star_rating": rating["stars"]}}
-    )
-    return {"star_score": rating["score"], "star_rating": rating["stars"]}
+    if body and body.stars:
+        # Manual override
+        stars = max(1, min(5, body.stars))
+        # Map stars back to approximate score
+        score_map = {1: 20, 2: 50, 3: 65, 4: 80, 5: 95}
+        score = score_map.get(stars, 0)
+        await db.leads.update_one(
+            {"id": lead_id},
+            {"$set": {"star_score": score, "star_rating": stars, "star_manual": True}}
+        )
+        return {"star_score": score, "star_rating": stars}
+    else:
+        # Recalculate from profile data
+        ad = lead.get("additional_data") or {}
+        rating = calculate_star_rating(ad)
+        await db.leads.update_one(
+            {"id": lead_id},
+            {"$set": {"star_score": rating["score"], "star_rating": rating["stars"], "star_manual": False}}
+        )
+        return {"star_score": rating["score"], "star_rating": rating["stars"]}
 
 
 # Static routes MUST be defined before dynamic routes like /{lead_id}

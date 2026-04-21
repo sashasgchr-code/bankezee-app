@@ -413,7 +413,19 @@ const LeadDetailPage = () => {
         <h1 className="text-2xl font-bold" style={{ fontFamily: 'Manrope, sans-serif' }}>Lead Details</h1>
         {lead && (
           <div className="ml-4 flex items-center gap-2">
-            <StarRating stars={lead.star_rating || 0} score={lead.star_score || 0} size="md" />
+            <StarRating
+              stars={lead.star_rating || 0}
+              score={lead.star_score || 0}
+              size="md"
+              editable={canEdit}
+              onRate={async (newStars) => {
+                try {
+                  const res = await api.put(`/crm/star-rating/${leadId}`, { stars: newStars });
+                  setLead(prev => ({ ...prev, star_rating: res.data.star_rating, star_score: res.data.star_score }));
+                  toast.success(`Rating updated to ${newStars} stars`);
+                } catch { toast.error('Failed to update rating'); }
+              }}
+            />
           </div>
         )}
       </nav>

@@ -246,11 +246,24 @@ export default function SalesOperationsReport() {
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
                   <MetricBox label="Total Files Generated" value={r.business_volume.total_files_generated} />
-                  <SplitMetric label="Files Logged" data={r.business_volume.files_logged} />
+                  <SplitMetric label="In Progress" data={r.business_volume.in_progress} />
+                  <SplitMetric label="Files Logged (Login)" data={r.business_volume.files_logged} />
                   <SplitMetric label="Total Approvals" data={r.business_volume.approvals} />
                   <SplitMetric label="Total Disbursals" data={r.business_volume.disbursals} highlight />
                   <SplitMetric label="Disbursal Value" data={r.business_volume.disbursal_value} prefix="₹" isCurrency highlight />
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
                   <MetricBox label="Avg Loan Value" value={`₹${formatCurrency(r.business_volume.avg_loan_value)}`} />
+                  <SplitMetric label="Interim Rejects" data={r.business_volume.interim_rejects} />
+                  <SplitMetric label="Final Rejections" data={r.business_volume.final_rejections} />
+                  <MetricBox label="Amt in Pipeline" value={`₹${formatCurrency(r.business_volume.amt_in_pipeline)}`} highlight />
+                </div>
+                <div className="mt-2 px-1 text-[10px] text-slate-400 leading-relaxed flex flex-wrap gap-x-4 gap-y-0.5">
+                  <span><b className="text-slate-500">In Progress:</b> Contacted to Query/Hold (created date)</span>
+                  <span><b className="text-slate-500">Login:</b> Login + Approved + Declined + Not Disbursed + Rejected-after-login</span>
+                  <span><b className="text-slate-500">Interim Rejects:</b> FI Negative + Declined + Cust. Not Interested/Supporting</span>
+                  <span><b className="text-slate-500">Final Rejections:</b> Rejected + Not Eligible + Not Login + Not Disbursed</span>
+                  <span><b className="text-slate-500">Amt in Pipeline:</b> Eligible Amt where Login=Yes & App ID filled, excl. disbursed/declined/rejected</span>
                 </div>
 
                 <p className="text-xs font-semibold text-slate-600 mb-2 mt-4">CONVERSION METRICS (Current Month Only)</p>

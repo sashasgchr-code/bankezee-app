@@ -1003,6 +1003,8 @@ async def get_sales_operations_report(
             "files": len(leads) if not is_spillover else 0,
             "logged": 0, "approvals": 0, "disbursals": 0,
             "disbursal_value": 0,
+            "in_progress": 0, "interim_rejects": 0, "final_rejections": 0,
+            "amt_in_pipeline": 0,
         }
         agent_data = {}
         bank_data = {}
@@ -1059,6 +1061,43 @@ async def get_sales_operations_report(
             if lead_status in login_and_beyond:
                 lead_has_login = True
                 result["logged"] += 1
+            # Also count rejected leads that were in login stage (check activity log)
+            elif lead_status == 'rejected':
+                was_logged = any(
+                    (act.get("to_status") or "").lower() in login_and_beyond
+                    for act in lead.get("activities", [])
+                )
+                if was_logged:
+                    lead_has_login = True
+                    result["logged"] += 1
+
+            # In Progress: based on current status
+            in_progress_statuses = {'contacted', 'documents_collected', 'documents_pending',
+                                    'sent_for_eligibility', 'sent_for_login', 'login',
+                                    'sent_for_approval', 'underwriting', 'fi', 'fi_reinitiated', 'query_hold'}
+            if lead_status in in_progress_statuses:
+                result["in_progress"] += 1
+
+            # Interim Rejects: fi_negative, declined, customer_not_interested, customer_not_supporting
+            interim_reject_statuses = {'fi_negative', 'declined', 'customer_not_interested', 'customer_not_supporting'}
+            if lead_status in interim_reject_statuses:
+                result["interim_rejects"] += 1
+
+            # Final Rejections: rejected, not_eligible, not_login, not_disbursed
+            final_reject_statuses = {'rejected', 'not_eligible', 'not_login', 'not_disbursed'}
+            if lead_status in final_reject_statuses:
+                result["final_rejections"] += 1
+
+            # Amt in Pipeline: eligible_amount where login_done=yes & app_id filled, excl disbursed/declined/rejected
+            pipeline_exclude = {'rejected', 'not_eligible', 'not_login', 'not_disbursed', 'declined', 'disbursed'}
+            if lead_status not in pipeline_exclude:
+                for elig in eligibilities:
+                    ld = str(elig.get("login_done") or "").lower()
+                    app_id = (elig.get("application_id") or "").strip()
+                    ed = str(elig.get("disbursed") or "").lower()
+                    edc = (elig.get("approval_status") or "").lower()
+                    if ld == "yes" and app_id and ed != "yes" and edc != "declined":
+                        result["amt_in_pipeline"] += float(elig.get("eligible_amount") or 0)
 
             for elig in eligibilities:
                 raw_bank = elig.get("bank_name") or elig.get("login_bank") or ""
@@ -1256,6 +1295,10 @@ async def get_sales_operations_report(
             "disbursals": m(cm["disbursals"], sm["disbursals"]),
             "disbursal_value": m(cm["disbursal_value"], sm["disbursal_value"]),
             "avg_loan_value": avg_loan_value,
+            "in_progress": m(cm["in_progress"], sm["in_progress"]),
+            "interim_rejects": m(cm["interim_rejects"], sm["interim_rejects"]),
+            "final_rejections": m(cm["final_rejections"], sm["final_rejections"]),
+            "amt_in_pipeline": cm["amt_in_pipeline"] + sm["amt_in_pipeline"],
         },
         "conversion_metrics": {
             "lead_to_login": pct(cm["logged"], cm["files"]),

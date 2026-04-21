@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { ArrowLeft, Save, Edit2 } from 'lucide-react';
+import { ArrowLeft, Save, Edit2, UserCheck } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 
 import {
   CustomerDetailsSection,
@@ -67,6 +69,8 @@ const LeadDetailPage = () => {
   const [sourceInfo, setSourceInfo] = useState(null);
   const [vehiclePreVerification, setVehiclePreVerification] = useState({ tvr_done: '', emi_ok: '', tvr_not_done_reason: '', emi_not_ok_reason: '' });
   const [savingPreVerification, setSavingPreVerification] = useState(false);
+  const [profileAnalysis, setProfileAnalysis] = useState({ cibil_issues: '', foir: '', company_type: '' });
+  const [savingProfile, setSavingProfile] = useState(false);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const canEdit = ['admin', 'operations'].includes(user.role);
 
@@ -104,6 +108,11 @@ const LeadDetailPage = () => {
         emi_ok: additionalData.emi_ok || '',
         tvr_not_done_reason: additionalData.tvr_not_done_reason || '',
         emi_not_ok_reason: additionalData.emi_not_ok_reason || '',
+      });
+      setProfileAnalysis({
+        cibil_issues: additionalData.cibil_issues || '',
+        foir: additionalData.foir || '',
+        company_type: additionalData.company_type || '',
       });
       setEditedDetails({
         full_name: leadData.full_name || '',
@@ -209,6 +218,25 @@ const LeadDetailPage = () => {
       toast.error('Failed to save pre-verification');
     } finally {
       setSavingPreVerification(false);
+    }
+  };
+
+  const saveProfileAnalysis = async () => {
+    setSavingProfile(true);
+    try {
+      await api.put(`/crm/${leadId}/details`, {
+        additional_data: {
+          cibil_issues: profileAnalysis.cibil_issues,
+          foir: profileAnalysis.foir,
+          company_type: profileAnalysis.company_type,
+        }
+      });
+      toast.success('Profile analysis saved');
+      fetchLead();
+    } catch (error) {
+      toast.error('Failed to save profile analysis');
+    } finally {
+      setSavingProfile(false);
     }
   };
 
@@ -436,6 +464,67 @@ const LeadDetailPage = () => {
                   sourceInfo={sourceInfo}
                   canEdit={canEdit}
                 />
+              </CardContent>
+            </Card>
+
+            {/* Profile Analysis - Admin/Ops can edit, others view only */}
+            <Card data-testid="profile-analysis-section">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base font-semibold flex items-center gap-2 text-primary">
+                    <UserCheck className="w-4 h-4" />
+                    Profile Analysis
+                  </CardTitle>
+                  {canEdit && (
+                    <Button size="sm" onClick={saveProfileAnalysis} disabled={savingProfile} data-testid="save-profile-btn">
+                      <Save className="w-3 h-3 mr-1" />
+                      {savingProfile ? 'Saving...' : 'Save'}
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">CIBIL Issues</p>
+                    {canEdit ? (
+                      <Select value={profileAnalysis.cibil_issues || undefined} onValueChange={(v) => setProfileAnalysis(prev => ({ ...prev, cibil_issues: v }))}>
+                        <SelectTrigger className="h-9 bg-white" data-testid="cibil-issues-select"><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="yes">Yes</SelectItem>
+                          <SelectItem value="no">No</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className={`font-medium ${profileAnalysis.cibil_issues === 'yes' ? 'text-red-600' : profileAnalysis.cibil_issues === 'no' ? 'text-green-600' : ''}`}>
+                        {profileAnalysis.cibil_issues === 'yes' ? 'Yes' : profileAnalysis.cibil_issues === 'no' ? 'No' : '-'}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">FOIR %</p>
+                    {canEdit ? (
+                      <Input type="number" step="0.01" value={profileAnalysis.foir || ''} onChange={(e) => setProfileAnalysis(prev => ({ ...prev, foir: e.target.value }))} className="h-9 bg-white" placeholder="e.g., 65" data-testid="foir-input" />
+                    ) : (
+                      <p className="font-medium">{profileAnalysis.foir ? `${profileAnalysis.foir}%` : '-'}</p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Company Type</p>
+                    {canEdit ? (
+                      <Select value={profileAnalysis.company_type || undefined} onValueChange={(v) => setProfileAnalysis(prev => ({ ...prev, company_type: v }))}>
+                        <SelectTrigger className="h-9 bg-white" data-testid="company-type-select"><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="govt">Govt</SelectItem>
+                          <SelectItem value="listed">Listed</SelectItem>
+                          <SelectItem value="non-listed">Non-Listed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="font-medium capitalize">{profileAnalysis.company_type || '-'}</p>
+                    )}
+                  </div>
+                </div>
               </CardContent>
             </Card>
 

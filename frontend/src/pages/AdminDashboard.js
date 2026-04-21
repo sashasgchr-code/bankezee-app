@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { MaskedField } from '@/components/ui/masked-field';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { Users, LogOut, LayoutDashboard, Eye, UserPlus, CheckSquare, X, Trash2, UserCog, Building, Briefcase, Download, FileText, Clock, CheckCircle, XCircle, ChevronDown, ChevronUp, CreditCard, User, MapPin, Phone, Mail, Hash, Building2, BarChart3, Key, Copy, Search, FileDown, AlertTriangle, Pencil } from 'lucide-react';
+import { Users, LogOut, LayoutDashboard, Eye, UserPlus, CheckSquare, X, Trash2, UserCog, Building, Briefcase, Download, FileText, Clock, CheckCircle, XCircle, ChevronDown, ChevronUp, CreditCard, User, MapPin, Phone, Mail, Hash, Building2, BarChart3, Key, Copy, Search, FileDown, AlertTriangle, Pencil, Star } from 'lucide-react';
 import { DashboardStats, PerformanceOverview, DashboardFilters } from '@/components/dashboard';
 import StarRating from '@/components/StarRating';
 import { filterByTimePeriod, filterByLoanType, filterBySource, calculateDashboardStats, calculateTotalEligible, calculateDashboardStatsWithActivityDates, calculateTotalEligibleWithActivityDate, LOAN_TYPES, TIME_FILTERS, getLoanTypeLabel, STATUS_CATEGORIES } from '@/utils/constants';
@@ -1429,6 +1429,16 @@ const AdminDashboard = () => {
           >
             <BarChart3 className="w-4 h-4 mr-1" />
             Sales & Ops Report
+          </Button>
+          <Button
+            onClick={() => navigate('/reports/quality')}
+            variant="outline"
+            size="sm"
+            className="text-yellow-600 border-yellow-300 hover:bg-yellow-50"
+            data-testid="quality-report-btn"
+          >
+            <Star className="w-4 h-4 mr-1" />
+            Quality Report
           </Button>
           <Button
             onClick={() => setShowExportModal(true)}

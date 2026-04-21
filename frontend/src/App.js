@@ -22,6 +22,7 @@ import DailyReportPage from './pages/DailyReportPage';
 import RejectedCasesReport from './pages/RejectedCasesReport';
 import AgentPerformanceReport from './pages/AgentPerformanceReport';
 import SalesOperationsReport from './pages/SalesOperationsReport';
+import QualityReport from './pages/QualityReport';
 
 function ProtectedRoute({ children, allowedRoles }) {
   const token = localStorage.getItem('token');
@@ -180,6 +181,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin', 'operations']}>
                 <SalesOperationsReport />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports/quality"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'operations']}>
+                <QualityReport />
               </ProtectedRoute>
             }
           />

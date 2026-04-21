@@ -6,6 +6,114 @@ from auth import get_current_user, User, db
 router = APIRouter(prefix="/reports", tags=["reports"])
 
 
+@router.get("/quality-report")
+async def get_quality_report(
+    from_date: str = Query(..., description="Start date (YYYY-MM-DD)"),
+    to_date: str = Query(..., description="End date (YYYY-MM-DD)"),
+    manager_id: Optional[str] = Query(None),
+    loan_type: Optional[str] = Query(None),
+    current_user: User = Depends(get_current_user)
+):
+    """Quality Report: Agent-wise star rating distribution"""
+    if current_user.role not in ["admin", "operations"]:
+        raise HTTPException(status_code=403, detail="Only admin or operations can access reports")
+
+    try:
+        start_date = datetime.strptime(from_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        end_date = datetime.strptime(to_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59, tzinfo=timezone.utc)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format")
+
+    start_iso = start_date.isoformat()
+    end_iso = end_date.isoformat()
+
+    # Build filter
+    query = {"created_at": {"$gte": start_iso, "$lte": end_iso}}
+    if loan_type:
+        loan_types = loan_type.split(",")
+        query["$or"] = [
+            {"requirement": {"$in": loan_types}},
+            {"additional_data.type_of_loan": {"$in": loan_types}}
+        ]
+
+    leads = await db.leads.find(query, {"_id": 0, "id": 1, "source_id": 1, "source": 1,
+                                         "star_rating": 1, "star_score": 1, "status": 1,
+                                         "additional_data": 1}).to_list(10000)
+
+    # Filter by manager if specified
+    if manager_id:
+        agents = await db.agents.find({}, {"_id": 0, "id": 1, "manager_id": 1}).to_list(1000)
+        partners = await db.partners.find({}, {"_id": 0, "id": 1, "manager_id": 1}).to_list(1000)
+        users = await db.users.find({}, {"_id": 0, "id": 1, "manager_id": 1}).to_list(1000)
+        valid_ids = set()
+        for a in agents:
+            if a.get("manager_id") == manager_id:
+                valid_ids.add(a["id"])
+        for p in partners:
+            if p.get("manager_id") == manager_id:
+                valid_ids.add(p["id"])
+        for u in users:
+            if u.get("manager_id") == manager_id:
+                valid_ids.add(u["id"])
+        leads = [l for l in leads if l.get("source_id") in valid_ids]
+
+    # Fetch all users for name lookup
+    all_users = await db.users.find({}, {"_id": 0, "id": 1, "full_name": 1, "role": 1}).to_list(5000)
+    name_map = {u["id"]: u["full_name"] for u in all_users}
+
+    # Build per-agent star distribution
+    agent_data = {}
+    for lead in leads:
+        source_id = lead.get("source_id") or ""
+        if not source_id:
+            continue
+        agent_name = name_map.get(source_id, source_id[:8])
+        stars = lead.get("star_rating") or 1
+
+        if agent_name not in agent_data:
+            agent_data[agent_name] = {
+                "agent_id": source_id,
+                "agent_name": agent_name,
+                "total": 0,
+                "star_5": 0, "star_4": 0, "star_3": 0, "star_2": 0, "star_1": 0,
+                "avg_score": 0, "scores_sum": 0
+            }
+        ad = agent_data[agent_name]
+        ad["total"] += 1
+        ad[f"star_{stars}"] += 1
+        ad["scores_sum"] += (lead.get("star_score") or 0)
+
+    # Calculate averages and sort
+    agents_list = []
+    totals = {"total": 0, "star_5": 0, "star_4": 0, "star_3": 0, "star_2": 0, "star_1": 0, "scores_sum": 0}
+    for ad in agent_data.values():
+        ad["avg_score"] = round(ad["scores_sum"] / ad["total"], 1) if ad["total"] > 0 else 0
+        del ad["scores_sum"]
+        agents_list.append(ad)
+        for k in totals:
+            totals[k] += ad.get(k, 0) if k != "scores_sum" else 0
+        totals["scores_sum"] += ad.get("avg_score", 0) * ad["total"]
+
+    totals["avg_score"] = round(totals["scores_sum"] / totals["total"], 1) if totals["total"] > 0 else 0
+    del totals["scores_sum"]
+
+    agents_list.sort(key=lambda x: x["avg_score"], reverse=True)
+
+    # Overall distribution
+    overall = {"star_5": 0, "star_4": 0, "star_3": 0, "star_2": 0, "star_1": 0, "total": len(leads)}
+    for lead in leads:
+        s = lead.get("star_rating") or 1
+        overall[f"star_{s}"] += 1
+
+    return {
+        "agents": agents_list,
+        "totals": totals,
+        "overall": overall,
+        "date_range": {"from": from_date, "to": to_date}
+    }
+
+
+
 @router.get("/daily-report")
 async def get_daily_report(
     from_date: str = Query(..., description="Start date (YYYY-MM-DD)"),

@@ -310,6 +310,72 @@ export default function SalesOperationsReport() {
               </CardContent>
             </Card>
 
+            {/* TAT Distribution Table */}
+            {r.tat_distribution && (
+            <Card data-testid="tat-distribution-section">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-blue-600" />
+                  TAT Distribution (Number of forms per day)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  const stages = [
+                    { label: 'Lead → Login', data: r.tat_distribution.lead_to_login },
+                    { label: 'Login → Approval', data: r.tat_distribution.login_to_approval },
+                    { label: 'Approval → Disbursal', data: r.tat_distribution.approval_to_disbursal },
+                    { label: 'Lead → Disbursal (E2E)', data: r.tat_distribution.lead_to_disbursal_e2e },
+                  ];
+                  // Find max day across all stages
+                  let maxDay = 0;
+                  stages.forEach(s => {
+                    Object.keys(s.data || {}).forEach(d => {
+                      const day = parseInt(d);
+                      if (day > maxDay) maxDay = day;
+                    });
+                  });
+                  if (maxDay === 0) return <p className="text-center text-slate-400 py-4">No TAT data available</p>;
+                  const days = Array.from({ length: maxDay }, (_, i) => i + 1);
+                  return (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm border-collapse" data-testid="tat-distribution-table">
+                        <thead>
+                          <tr className="bg-slate-100">
+                            <th className="text-left p-2 border text-xs font-semibold whitespace-nowrap">Stage</th>
+                            <th className="text-center p-2 border text-xs font-semibold">Total</th>
+                            {days.map(d => (
+                              <th key={d} className="text-center p-2 border text-xs font-semibold whitespace-nowrap">{d}d</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {stages.map((stage, i) => {
+                            const total = Object.values(stage.data || {}).reduce((s, v) => s + v, 0);
+                            return (
+                              <tr key={i} className="hover:bg-slate-50">
+                                <td className="p-2 border font-medium whitespace-nowrap">{stage.label}</td>
+                                <td className="p-2 border text-center font-semibold">{total || '-'}</td>
+                                {days.map(d => {
+                                  const count = (stage.data || {})[String(d)] || 0;
+                                  return (
+                                    <td key={d} className={`p-2 border text-center ${count > 0 ? 'font-semibold text-blue-700' : 'text-slate-300'}`}>
+                                      {count || '-'}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+            )}
+
             {/* Section 2: Team Productivity */}
             <Card data-testid="team-productivity-section">
               <CardHeader className="pb-2">

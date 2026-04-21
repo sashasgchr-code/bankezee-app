@@ -1097,6 +1097,15 @@ async def get_sales_operations_report(
             "count": len(values)
         }
 
+    def tat_distribution(values):
+        """Return count of forms per rounded day bucket: {1: 3, 2: 5, ...}"""
+        if not values:
+            return {}
+        from collections import Counter
+        rounded = [max(1, round(v)) if v > 0 else 0 for v in values]
+        rounded = [r for r in rounded if r > 0]  # exclude 0d
+        return dict(sorted(Counter(rounded).items()))
+
     def categorize_rejection(reason_text, reasons_dict):
         reason_lower = (reason_text or "").strip()
         if not reason_lower:
@@ -1420,6 +1429,12 @@ async def get_sales_operations_report(
             "login_to_approval": tat_stats(merged_tat["l2a"]),
             "approval_to_disbursal": tat_stats(merged_tat["a2d"]),
             "lead_to_disbursal_e2e": tat_stats(merged_tat["l2d"]),
+        },
+        "tat_distribution": {
+            "lead_to_login": tat_distribution(merged_tat["l2l"]),
+            "login_to_approval": tat_distribution(merged_tat["l2a"]),
+            "approval_to_disbursal": tat_distribution(merged_tat["a2d"]),
+            "lead_to_disbursal_e2e": tat_distribution(merged_tat["l2d"]),
         },
         "team_productivity": {
             "num_agents": num_agents,

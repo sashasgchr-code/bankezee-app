@@ -1034,6 +1034,11 @@ async def get_sales_operations_report(
     start_iso = start_date.isoformat()
     end_iso = end_date.isoformat()
 
+    # Use both formats for date boundary to handle varied created_at formats
+    # Some leads may have "YYYY-MM-DD" format, others "YYYY-MM-DDTHH:MM:SS+00:00"
+    start_date_str = from_date  # "YYYY-MM-DD" 
+    end_date_str = to_date + "T23:59:59.999999"  # ensure we capture everything up to end of day
+
     # Build base filter (agent, manager, loan type)
     base_filter = {}
     if manager_id:
@@ -1048,11 +1053,11 @@ async def get_sales_operations_report(
         ]
 
     # Query 1: Current month leads (created within date range)
-    current_query = {**base_filter, "created_at": {"$gte": start_iso, "$lte": end_iso}}
+    current_query = {**base_filter, "created_at": {"$gte": start_date_str, "$lte": end_date_str}}
     current_leads = await db.leads.find(current_query, {"_id": 0}).to_list(10000)
 
     # Query 2: Spillover leads (created BEFORE date range - activity might be in range)
-    spillover_query = {**base_filter, "created_at": {"$lt": start_iso}}
+    spillover_query = {**base_filter, "created_at": {"$lt": start_date_str}}
     older_leads = await db.leads.find(spillover_query, {"_id": 0}).to_list(10000)
 
     # Fetch ALL users for name lookup (leads can be assigned to any role)
@@ -1208,11 +1213,11 @@ async def get_sales_operations_report(
                     lead_has_login = True
                     result["logged"] += 1
 
-            # In Progress: based on current status (created date only, no activity check needed)
+            # In Progress: based on current status and CREATED DATE ONLY (no spillover)
             in_progress_statuses = {'contacted', 'documents_collected', 'documents_pending',
                                     'sent_for_eligibility', 'sent_for_login', 'login',
                                     'sent_for_approval', 'underwriting', 'fi', 'fi_reinitiated', 'query_hold'}
-            if lead_status in in_progress_statuses:
+            if lead_status in in_progress_statuses and not is_spillover:
                 result["in_progress"] += 1
 
             # Interim Rejects: fi_negative, declined, customer_not_interested, customer_not_supporting

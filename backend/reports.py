@@ -1178,7 +1178,9 @@ async def get_sales_operations_report(
 
             if agent_name not in agent_data:
                 agent_data[agent_name] = {"files": 0, "logins": 0, "approvals": 0, "disbursals": 0, "disbursal_value": 0}
-            agent_data[agent_name]["files"] += 1
+            # Files count based on created date only (not spillover)
+            if not is_spillover:
+                agent_data[agent_name]["files"] += 1
 
             lead_has_login = False
             lead_has_approval = False

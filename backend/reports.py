@@ -1148,16 +1148,33 @@ async def get_sales_operations_report(
                             in_range(elig.get("disbursed_at"))):
                         has_activity_in_range = True
                         break
-                # Also check activity log for status changes in range
+                # Also check activity log for ANY activity in range (not just status_change)
                 if not has_activity_in_range:
                     for act in lead.get("activities", []):
-                        if act.get("type") == "status_change" and in_range(act.get("timestamp")):
+                        if in_range(act.get("timestamp")):
                             has_activity_in_range = True
                             break
                 if not has_activity_in_range:
                     continue
                 # Count spillover lead as a "file" in this context
                 result["files"] += 1
+
+            # Check if lead has any activity in the date range (used for status-based stats)
+            # This matches the dashboard's hasActivityInRange logic
+            lead_has_activity = True  # current leads always have activity (they were created in range)
+            if is_spillover:
+                lead_has_activity = True  # already verified above
+
+            # For current leads, also verify activity in range (to match dashboard exactly)
+            if not is_spillover:
+                lead_has_activity = False
+                for act in lead.get("activities", []):
+                    if in_range(act.get("timestamp")):
+                        lead_has_activity = True
+                        break
+                # If no activities but lead was created in range, check created_at as activity
+                if not lead_has_activity:
+                    lead_has_activity = in_range(lead.get("created_at"))
 
             if agent_name not in agent_data:
                 agent_data[agent_name] = {"files": 0, "logins": 0, "approvals": 0, "disbursals": 0, "disbursal_value": 0}
@@ -1176,19 +1193,20 @@ async def get_sales_operations_report(
                                 'declined', 'not_disbursed'}
             lead_status = (lead.get("status") or "").lower()
             if lead_status in login_and_beyond:
-                lead_has_login = True
-                result["logged"] += 1
+                if lead_has_activity:
+                    lead_has_login = True
+                    result["logged"] += 1
             # Also count rejected leads that were in login stage (check activity log)
             elif lead_status == 'rejected':
                 was_logged = any(
                     (act.get("to_status") or "").lower() in login_and_beyond
                     for act in lead.get("activities", [])
                 )
-                if was_logged:
+                if was_logged and lead_has_activity:
                     lead_has_login = True
                     result["logged"] += 1
 
-            # In Progress: based on current status
+            # In Progress: based on current status (created date only, no activity check needed)
             in_progress_statuses = {'contacted', 'documents_collected', 'documents_pending',
                                     'sent_for_eligibility', 'sent_for_login', 'login',
                                     'sent_for_approval', 'underwriting', 'fi', 'fi_reinitiated', 'query_hold'}
@@ -1197,12 +1215,12 @@ async def get_sales_operations_report(
 
             # Interim Rejects: fi_negative, declined, customer_not_interested, customer_not_supporting
             interim_reject_statuses = {'fi_negative', 'declined', 'customer_not_interested', 'customer_not_supporting'}
-            if lead_status in interim_reject_statuses:
+            if lead_status in interim_reject_statuses and lead_has_activity:
                 result["interim_rejects"] += 1
 
             # Final Rejections: rejected, not_eligible, not_login, not_disbursed
             final_reject_statuses = {'rejected', 'not_eligible', 'not_login', 'not_disbursed'}
-            if lead_status in final_reject_statuses:
+            if lead_status in final_reject_statuses and lead_has_activity:
                 result["final_rejections"] += 1
 
             # Amt in Pipeline: eligible_amount where login_done=yes & app_id filled, excl disbursed/declined/rejected

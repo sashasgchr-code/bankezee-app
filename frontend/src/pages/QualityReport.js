@@ -208,13 +208,13 @@ export default function QualityReport() {
 
             {/* Agent-wise Table */}
             <div>
-              <h3 className="text-sm font-semibold text-slate-700 mb-3">Agent-wise Quality Breakdown</h3>
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Growth Partner Quality Breakdown</h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm border-collapse" data-testid="quality-table">
                   <thead>
                     <tr className="bg-slate-100">
                       <th className="text-left p-2 border text-xs font-semibold">#</th>
-                      <th className="text-left p-2 border text-xs font-semibold">Agent</th>
+                      <th className="text-left p-2 border text-xs font-semibold">Growth Partner</th>
                       <th className="text-center p-2 border text-xs font-semibold">Total Files</th>
                       <th className="text-center p-2 border text-xs font-semibold"><Stars count={5} /></th>
                       <th className="text-center p-2 border text-xs font-semibold"><Stars count={4} /></th>

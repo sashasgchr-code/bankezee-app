@@ -105,7 +105,7 @@ const LoginPage = () => {
                 onClick={() => navigate('/agent-registration')}
                 className="text-primary hover:underline"
               >
-                Register as Agent
+                Register as Growth Partner
               </button>
               <span className="text-slate-300">|</span>
               <button

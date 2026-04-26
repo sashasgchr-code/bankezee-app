@@ -267,7 +267,7 @@ const DashboardFilters = ({
                 <SelectValue placeholder="Select Agent" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Agents</SelectItem>
+                <SelectItem value="all">All Growth Partners</SelectItem>
                 {agents.map(agent => (
                   <SelectItem key={agent.id} value={agent.id}>
                     {agent.full_name} ({agent.agent_code})

@@ -908,7 +908,7 @@ const AdminDashboard = () => {
       // Add agent stats
       Object.values(agentStats).forEach(stats => {
         csvRows.push([
-          'Agent',
+          'Growth Partner',
           `"${stats.name}"`,
           stats.code,
           stats.phone,
@@ -1463,7 +1463,7 @@ const AdminDashboard = () => {
             data-testid="agent-performance-btn"
           >
             <BarChart3 className="w-4 h-4 mr-1" />
-            Agent Performance
+            Growth Partner Performance
           </Button>
           <Button
             onClick={() => navigate('/reports/sales-operations')}
@@ -1691,7 +1691,7 @@ const AdminDashboard = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-primary" />
-                Assign {mappingUserType === 'agent' ? 'Agent' : 'Partner'} to Hierarchy
+                Assign {mappingUserType === 'agent' ? 'Growth Partner' : 'Partner'} to Hierarchy
               </CardTitle>
               <CardDescription>
                 Map {mappingUser.full_name || mappingUser.name} to a Manager and optionally a Team Leader

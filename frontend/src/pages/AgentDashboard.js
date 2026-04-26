@@ -49,7 +49,7 @@ const AgentDashboard = () => {
     } catch (error) {
       console.error('Failed to load agent data:', error);
       if (error.response?.status === 404) {
-        toast.error('Agent profile not found');
+        toast.error('Growth Partner profile not found');
       } else {
         toast.error('Failed to load dashboard');
       }
@@ -101,7 +101,7 @@ const AgentDashboard = () => {
       <nav className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
         <div className="flex items-center gap-3">
           <LayoutDashboard className="w-6 h-6 text-primary" />
-          <h1 className="text-2xl font-bold" style={{ fontFamily: 'Manrope, sans-serif' }}>Agent Dashboard</h1>
+          <h1 className="text-2xl font-bold" style={{ fontFamily: 'Manrope, sans-serif' }}>Growth Partner Dashboard</h1>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-slate-600">Welcome, {user.full_name}</span>

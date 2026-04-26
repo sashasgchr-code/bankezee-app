@@ -45,7 +45,7 @@ const AgentLeadCreate = () => {
       setAgent(response.data);
     } catch (error) {
       console.error('Failed to fetch agent:', error);
-      toast.error('Agent profile not found');
+      toast.error('Growth Partner profile not found');
     }
   };
 
@@ -71,7 +71,7 @@ const AgentLeadCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!agent) {
-      toast.error('Agent data not loaded');
+      toast.error('Growth Partner data not loaded');
       return;
     }
     
@@ -161,7 +161,7 @@ const AgentLeadCreate = () => {
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Dashboard
         </Button>
-        <h1 className="text-2xl font-bold" style={{ fontFamily: 'Manrope, sans-serif' }}>Agent Lead Application Form</h1>
+        <h1 className="text-2xl font-bold" style={{ fontFamily: 'Manrope, sans-serif' }}>Growth Partner Lead Application Form</h1>
       </nav>
 
       <div className="px-6 py-12 max-w-6xl mx-auto">

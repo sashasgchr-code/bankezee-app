@@ -183,14 +183,14 @@ const LeadDetailPage = () => {
     try {
       if (sourceType === 'agent') {
         const response = await api.get(`/agents/${sourceId}`);
-        setSourceInfo({ type: 'Agent', ...response.data });
+        setSourceInfo({ type: 'Growth Partner', ...response.data });
       } else if (sourceType === 'partner' || sourceType === 'retail_qr') {
         const response = await api.get(`/partners/${sourceId}`);
         setSourceInfo({ type: 'Partner', ...response.data });
       }
     } catch (error) {
       console.error('Failed to fetch source info:', error);
-      setSourceInfo({ type: sourceType === 'agent' ? 'Agent' : 'Partner', id: sourceId });
+      setSourceInfo({ type: sourceType === 'agent' ? 'Growth Partner' : 'Partner', id: sourceId });
     }
   };
 

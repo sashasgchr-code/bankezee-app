@@ -81,7 +81,7 @@ const AgentRegistration = () => {
                 <UserPlus className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-3xl font-bold" style={{ fontFamily: 'Manrope, sans-serif' }}>Agent Registration</CardTitle>
+                <CardTitle className="text-3xl font-bold" style={{ fontFamily: 'Manrope, sans-serif' }}>Growth Partner Registration</CardTitle>
                 <CardDescription>Join our team of sales professionals</CardDescription>
               </div>
             </div>

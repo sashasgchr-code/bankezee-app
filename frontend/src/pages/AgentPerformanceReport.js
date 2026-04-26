@@ -132,7 +132,7 @@ const AgentPerformanceReport = () => {
 
     // Build headers dynamically based on visible columns
     const headers = [
-      'Agent Name', 'Agent Code', 'Phone', 'Total Leads',
+      'Growth Partner Name', 'Growth Partner Code', 'Phone', 'Total Leads',
       ...visibleStatusColumns.map(col => col.label),
       'Total Approved Amount', 'Total Disbursed Amount'
     ];
@@ -206,7 +206,7 @@ const AgentPerformanceReport = () => {
       // Add title
       pdf.setFontSize(16);
       pdf.setTextColor(30, 41, 59);
-      pdf.text('Agent Performance Report', 14, 15);
+      pdf.text('Growth Partner Performance Report', 14, 15);
       
       // Add date range
       pdf.setFontSize(10);
@@ -290,7 +290,7 @@ const AgentPerformanceReport = () => {
               </Button>
               <div className="flex items-center gap-2">
                 <BarChart3 className="h-6 w-6 text-blue-600" />
-                <h1 className="text-xl font-bold text-slate-800">Agent Performance Report</h1>
+                <h1 className="text-xl font-bold text-slate-800">Growth Partner Performance Report</h1>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -447,7 +447,7 @@ const AgentPerformanceReport = () => {
             </div>
           )}
 
-          {/* Agent Performance Table */}
+          {/* Growth Partner Performance Table */}
           {reportData?.agents?.length > 0 ? (
           <Card>
             <CardHeader className="py-3">
@@ -461,7 +461,7 @@ const AgentPerformanceReport = () => {
                 <table className="w-full" style={{ fontSize: '10px' }}>
                   <thead className="bg-slate-100 text-slate-700 sticky top-0">
                     <tr>
-                      <th className="px-1.5 py-1.5 text-left font-semibold border-b" style={{ minWidth: '100px' }}>Agent</th>
+                      <th className="px-1.5 py-1.5 text-left font-semibold border-b" style={{ minWidth: '100px' }}>Growth Partner</th>
                       <th className="px-1 py-1.5 text-left font-semibold border-b" style={{ fontSize: '9px', maxWidth: '60px' }}>Code</th>
                       <th className="px-1 py-1.5 text-center font-semibold border-b bg-slate-200">Total</th>
                       {visibleStatusColumns.map(col => (

@@ -43,7 +43,7 @@ const LandingPage = () => {
           </h2>
           <p className="text-lg leading-relaxed text-slate-600 mb-8 max-w-2xl">
             Merge multiple loans, reduce EMIs, or get fresh credit — all in one place.
-            Bankezee connects you with the best loan solutions backed by expert agents.
+            Bankezee connects you with the best loan solutions backed by expert growth partners.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Button
@@ -121,17 +121,17 @@ const LandingPage = () => {
           </div>
           <div className="md:col-span-7">
             <h3 className="text-4xl md:text-5xl font-bold tracking-tight mb-6" style={{ fontFamily: 'Manrope, sans-serif' }}>
-              Join as Agent
+              Join as Growth Partner
             </h3>
             <p className="text-lg leading-relaxed text-slate-600 mb-6">
-              Join our network of sales agents and start earning competitive commissions.
+              Join our network of growth partners and start earning competitive commissions.
               Get your own QR code, generate leads, and track your earnings in real-time.
             </p>
             <ul className="space-y-4 mb-8">
               <li className="flex items-start gap-3">
                 <Users className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
                 <div>
-                  <strong className="text-secondary">Sales Agents:</strong>
+                  <strong className="text-secondary">Growth Partners:</strong>
                   <span className="text-slate-600 ml-2">Generate detailed leads and earn commission</span>
                 </div>
               </li>
@@ -149,7 +149,7 @@ const LandingPage = () => {
                 className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300 rounded-full px-8 py-6 text-lg font-semibold"
                 data-testid="partner-agent-btn"
               >
-                Register as Agent
+                Register as Growth Partner
               </Button>
               <Button
                 onClick={() => navigate('/partner-registration')}

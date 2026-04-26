@@ -328,7 +328,7 @@ const OperationsDashboard = () => {
 
       Object.values(agentStats).forEach(stats => {
         csvRows.push([
-          'Agent', `"${stats.name}"`, stats.code, stats.totalLeads,
+          'Growth Partner', `"${stats.name}"`, stats.code, stats.totalLeads,
           stats.new, stats.contacted, stats.documents_collected, stats.documents_pending, stats.sent_for_eligibility,
           stats.sent_for_login, stats.login, stats.sent_for_approval, stats.underwriting,
           stats.fi, stats.fi_negative, stats.fi_reinitiated, stats.query_hold,
@@ -547,7 +547,7 @@ const OperationsDashboard = () => {
             data-testid="agent-performance-btn"
           >
             <BarChart3 className="w-4 h-4 mr-1" />
-            Agent Performance
+            Growth Partner Performance
           </Button>
           <Button
             onClick={() => navigate('/reports/sales-operations')}

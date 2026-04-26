@@ -198,11 +198,11 @@ export default function SalesOperationsReport() {
                 </Select>
               </div>
               <div>
-                <p className="text-xs text-slate-500 mb-1">Agent</p>
+                <p className="text-xs text-slate-500 mb-1">Growth Partner</p>
                 <Select value={selectedAgent} onValueChange={setSelectedAgent}>
                   <SelectTrigger className="w-44 h-9" data-testid="agent-filter"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Agents</SelectItem>
+                    <SelectItem value="all">All Growth Partners</SelectItem>
                     {agents.map(a => <SelectItem key={a.id} value={a.id}>{a.full_name}</SelectItem>)}
                   </SelectContent>
                 </Select>
@@ -386,16 +386,16 @@ export default function SalesOperationsReport() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-3 gap-3 mb-4">
-                  <MetricBox label="Active Agents" value={r.team_productivity.num_agents} />
-                  <MetricBox label="Files per Agent" value={r.team_productivity.files_per_agent} />
-                  <MetricBox label="Disbursals per Agent" value={r.team_productivity.disbursals_per_agent} />
+                  <MetricBox label="Active Growth Partners" value={r.team_productivity.num_agents} />
+                  <MetricBox label="Files per GP" value={r.team_productivity.files_per_agent} />
+                  <MetricBox label="Disbursals per GP" value={r.team_productivity.disbursals_per_agent} />
                 </div>
                 {r.team_productivity.agent_breakdown.length > 0 && (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm border-collapse" data-testid="agent-breakdown-table">
                       <thead>
                         <tr className="bg-slate-100">
-                          <th className="text-left p-2 border text-xs font-semibold">Agent</th>
+                          <th className="text-left p-2 border text-xs font-semibold">Growth Partner</th>
                           <th className="text-center p-2 border text-xs font-semibold">Files</th>
                           <th className="text-center p-2 border text-xs font-semibold">Logins</th>
                           <th className="text-center p-2 border text-xs font-semibold">Approvals</th>

@@ -182,6 +182,7 @@ const AgentPerformanceReport = () => {
                     <th className="p-1 border text-center font-semibold bg-red-50" colSpan="2">Final Rej.</th>
                     <th className="p-1 border text-center font-semibold" rowSpan="2">Appr. ₹</th>
                     <th className="p-1 border text-center font-semibold" rowSpan="2">Disb. ₹</th>
+                    <th className="p-1 border text-center font-semibold" rowSpan="2">Pipeline ₹</th>
                   </tr>
                   <tr className="bg-slate-50 text-[9px]">
                     <th className="p-0.5 border text-center bg-yellow-50">Cont</th>
@@ -238,6 +239,7 @@ const AgentPerformanceReport = () => {
                       <td className="p-1 border text-center text-orange-500">{a.final_s || '-'}</td>
                       <td className="p-1 border text-center text-purple-600">{a.appr_amt ? formatAmt(a.appr_amt) : '-'}</td>
                       <td className="p-1 border text-center text-green-700 font-semibold">{a.disb_amt ? formatAmt(a.disb_amt) : '-'}</td>
+                      <td className="p-1 border text-center text-cyan-600">{a.pipeline_amt ? formatAmt(a.pipeline_amt) : '-'}</td>
                     </tr>
                   ))}
                   {/* Totals Row */}
@@ -267,6 +269,7 @@ const AgentPerformanceReport = () => {
                     <td className="p-1 border text-center text-orange-500">{r.totals.final_s}</td>
                     <td className="p-1 border text-center text-purple-600">{formatAmt(r.totals.appr_amt)}</td>
                     <td className="p-1 border text-center text-green-700">{formatAmt(r.totals.disb_amt)}</td>
+                    <td className="p-1 border text-center text-cyan-600">{formatAmt(r.totals.pipeline_amt)}</td>
                   </tr>
                 </tbody>
               </table>
@@ -277,8 +280,11 @@ const AgentPerformanceReport = () => {
               <span><b className="text-blue-600">C</b> = Current (created in period)</span>
               <span><b className="text-orange-500">S</b> = Spillover (created before, activity in period)</span>
               <span><b className="text-slate-500">Files Gen.</b> = Leads created in date range</span>
-              <span><b className="text-slate-500">Login</b> = Current status at login or beyond</span>
-              <span><b className="text-slate-500">Conv %</b> = Disbursed / Files Generated</span>
+              <span><b className="text-slate-500">In Progress:</b> Contacted to Query/Hold (created date)</span>
+              <span><b className="text-slate-500">Login:</b> Login + Approved + Declined + Not Disbursed + Rejected-after-login</span>
+              <span><b className="text-slate-500">Interim Rej:</b> FI Negative + Declined + Cust. Not Interested/Supporting</span>
+              <span><b className="text-slate-500">Final Rej:</b> Rejected + Not Eligible + Not Login + Not Disbursed</span>
+              <span><b className="text-slate-500">Pipeline ₹:</b> Eligible Amt where Login=Yes & App ID filled, excl. disbursed/declined/rejected</span>
             </div>
           </div>
         )}

@@ -858,7 +858,7 @@ async def get_agent_performance_report(
                 "disbursed_c": 0, "disbursed_s": 0,
                 "interim_c": 0, "interim_s": 0,
                 "final_c": 0, "final_s": 0,
-                "appr_amt": 0, "disb_amt": 0,
+                "appr_amt": 0, "disb_amt": 0, "pipeline_amt": 0,
             }
 
         perf = agent_perf[source_id]
@@ -874,25 +874,25 @@ async def get_agent_performance_report(
         is_current = lead_created_in_range
         suffix = "_c" if is_current else "_s"
 
-        # Check activity in range (for spillover filtering)
+        # Check activity in range (matches dashboard hasActivityInRange)
         has_activity = False
         activities = lead.get("activities", [])
-        if is_current:
-            has_activity = True
-        else:
-            for act in activities:
-                if is_in_range(act.get("timestamp")):
+        for act in activities:
+            if is_in_range(act.get("timestamp")):
+                has_activity = True
+                break
+        if not has_activity:
+            for elig in lead.get("eligibilities", []):
+                if (is_in_range(elig.get("login_done_at")) or
+                    is_in_range(elig.get("approved_at")) or
+                    is_in_range(elig.get("disbursed_at"))):
                     has_activity = True
                     break
-            if not has_activity:
-                for elig in lead.get("eligibilities", []):
-                    if (is_in_range(elig.get("login_done_at")) or
-                        is_in_range(elig.get("approved_at")) or
-                        is_in_range(elig.get("disbursed_at"))):
-                        has_activity = True
-                        break
+        # For current leads with no activity, check created_at
+        if not has_activity and is_current:
+            has_activity = is_in_range(created_at)
         
-        if not has_activity:
+        if not has_activity and not is_current:
             continue
 
         # In Progress: individual status columns (created date only)
@@ -907,10 +907,10 @@ async def get_agent_performance_report(
             if lead_status in status_col_map:
                 perf[status_col_map[lead_status]] += 1
 
-        # Login (current status based)
-        if lead_status in login_and_beyond:
+        # Login (current status based + activity in range — matches dashboard)
+        if lead_status in login_and_beyond and has_activity:
             perf[f"login{suffix}"] += 1
-        elif lead_status == 'rejected':
+        elif lead_status == 'rejected' and has_activity:
             was_logged = any((act.get("to_status") or "").lower() in login_and_beyond for act in activities)
             if was_logged:
                 perf[f"login{suffix}"] += 1
@@ -933,13 +933,24 @@ async def get_agent_performance_report(
                     perf[f"disbursed{suffix}"] += 1
                 perf["disb_amt"] += float(elig.get("disbursed_amount") or 0)
 
-        # Interim Rejects (status based, activity date filtered)
-        if lead_status in interim_reject_statuses:
+        # Interim Rejects (status based + activity date filtered)
+        if lead_status in interim_reject_statuses and has_activity:
             perf[f"interim{suffix}"] += 1
 
-        # Final Rejections (status based, activity date filtered)
-        if lead_status in final_reject_statuses:
+        # Final Rejections (status based + activity date filtered)
+        if lead_status in final_reject_statuses and has_activity:
             perf[f"final{suffix}"] += 1
+
+        # Amt in Pipeline: eligible_amount where login_done=yes & app_id filled, excl. disbursed/declined/rejected
+        pipeline_exclude = {'rejected', 'not_eligible', 'not_login', 'not_disbursed', 'declined', 'disbursed'}
+        if lead_status not in pipeline_exclude and is_current:
+            for elig in lead.get("eligibilities", []):
+                ld = str(elig.get("login_done") or "").lower()
+                app_id = (elig.get("application_id") or "").strip()
+                ed = str(elig.get("disbursed") or "").lower()
+                edc = (elig.get("approval_status") or "").lower()
+                if ld == "yes" and app_id and ed != "yes" and edc != "declined":
+                    perf["pipeline_amt"] += float(elig.get("eligible_amount") or 0)
 
     # Filter and sort
     agents_list = [p for p in agent_perf.values() if p["files_generated"] > 0 or 
@@ -966,6 +977,7 @@ async def get_agent_performance_report(
         "interim_c": sum_field("interim_c"), "interim_s": sum_field("interim_s"),
         "final_c": sum_field("final_c"), "final_s": sum_field("final_s"),
         "appr_amt": sum_field("appr_amt"), "disb_amt": sum_field("disb_amt"),
+        "pipeline_amt": sum_field("pipeline_amt"),
     }
 
     return {

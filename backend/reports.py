@@ -850,7 +850,9 @@ async def get_agent_performance_report(
                 "agent_name": source_info.get("full_name") or source_info.get("name", "Unknown"),
                 "agent_code": source_info.get("agent_code") or source_info.get("referral_code", ""),
                 "files_generated": 0,
-                "in_progress_c": 0, "in_progress_s": 0,
+                "contacted": 0, "docs_collected": 0, "docs_pending": 0,
+                "sent_elig": 0, "sent_login": 0, "login": 0,
+                "sent_appr": 0, "uw": 0, "fi": 0, "fi_reinit": 0, "q_hold": 0,
                 "login_c": 0, "login_s": 0,
                 "approved_c": 0, "approved_s": 0,
                 "disbursed_c": 0, "disbursed_s": 0,
@@ -893,9 +895,17 @@ async def get_agent_performance_report(
         if not has_activity:
             continue
 
-        # In Progress (created date only — no spillover)
-        if lead_status in in_progress_statuses and is_current:
-            perf["in_progress_c"] += 1
+        # In Progress: individual status columns (created date only)
+        if is_current:
+            status_col_map = {
+                'contacted': 'contacted', 'documents_collected': 'docs_collected',
+                'documents_pending': 'docs_pending', 'sent_for_eligibility': 'sent_elig',
+                'sent_for_login': 'sent_login', 'login': 'login',
+                'sent_for_approval': 'sent_appr', 'underwriting': 'uw',
+                'fi': 'fi', 'fi_reinitiated': 'fi_reinit', 'query_hold': 'q_hold'
+            }
+            if lead_status in status_col_map:
+                perf[status_col_map[lead_status]] += 1
 
         # Login (current status based)
         if lead_status in login_and_beyond:
@@ -945,7 +955,11 @@ async def get_agent_performance_report(
     totals = {
         "total_agents": len(agents_list),
         "files_generated": sum_field("files_generated"),
-        "in_progress_c": sum_field("in_progress_c"),
+        "contacted": sum_field("contacted"), "docs_collected": sum_field("docs_collected"),
+        "docs_pending": sum_field("docs_pending"), "sent_elig": sum_field("sent_elig"),
+        "sent_login": sum_field("sent_login"), "login": sum_field("login"),
+        "sent_appr": sum_field("sent_appr"), "uw": sum_field("uw"),
+        "fi": sum_field("fi"), "fi_reinit": sum_field("fi_reinit"), "q_hold": sum_field("q_hold"),
         "login_c": sum_field("login_c"), "login_s": sum_field("login_s"),
         "approved_c": sum_field("approved_c"), "approved_s": sum_field("approved_s"),
         "disbursed_c": sum_field("disbursed_c"), "disbursed_s": sum_field("disbursed_s"),

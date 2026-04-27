@@ -169,82 +169,104 @@ const AgentPerformanceReport = () => {
 
             {/* Main Table */}
             <div className="overflow-x-auto">
-              <table className="w-full text-[11px] border-collapse" data-testid="gp-performance-table">
+              <table className="w-full text-[10px] border-collapse" data-testid="gp-performance-table">
                 <thead>
                   <tr className="bg-slate-50">
-                    <th className="p-1.5 border text-left font-semibold" rowSpan="2">Growth Partner</th>
-                    <th className="p-1.5 border text-center font-semibold bg-blue-50" rowSpan="2">Files<br/>Gen.</th>
-                    <th className="p-1.5 border text-center font-semibold" rowSpan="2">In Prog.</th>
-                    <th className="p-1.5 border text-center font-semibold bg-indigo-50" colSpan="2">Login</th>
-                    <th className="p-1.5 border text-center font-semibold bg-green-50" colSpan="2">Approved</th>
-                    <th className="p-1.5 border text-center font-semibold bg-emerald-50" colSpan="2">Disbursed</th>
-                    <th className="p-1.5 border text-center font-semibold bg-orange-50" colSpan="2">Interim Rej.</th>
-                    <th className="p-1.5 border text-center font-semibold bg-red-50" colSpan="2">Final Rej.</th>
-                    <th className="p-1.5 border text-center font-semibold" rowSpan="2">Appr. ₹</th>
-                    <th className="p-1.5 border text-center font-semibold" rowSpan="2">Disb. ₹</th>
-                    <th className="p-1.5 border text-center font-semibold" rowSpan="2">Conv %</th>
+                    <th className="p-1 border text-left font-semibold" rowSpan="2">Growth Partner</th>
+                    <th className="p-1 border text-center font-semibold bg-blue-50" rowSpan="2">Files<br/>Gen.</th>
+                    <th className="p-1 border text-center font-semibold bg-yellow-50" colSpan="11">In Progress (Created Date)</th>
+                    <th className="p-1 border text-center font-semibold bg-indigo-50" colSpan="2">Login</th>
+                    <th className="p-1 border text-center font-semibold bg-green-50" colSpan="2">Approved</th>
+                    <th className="p-1 border text-center font-semibold bg-emerald-50" colSpan="2">Disbursed</th>
+                    <th className="p-1 border text-center font-semibold bg-orange-50" colSpan="2">Interim Rej.</th>
+                    <th className="p-1 border text-center font-semibold bg-red-50" colSpan="2">Final Rej.</th>
+                    <th className="p-1 border text-center font-semibold" rowSpan="2">Appr. ₹</th>
+                    <th className="p-1 border text-center font-semibold" rowSpan="2">Disb. ₹</th>
                   </tr>
-                  <tr className="bg-slate-50">
-                    <th className="p-1 border text-center text-[9px] text-blue-600 bg-indigo-50">C</th>
-                    <th className="p-1 border text-center text-[9px] text-orange-600 bg-indigo-50">S</th>
-                    <th className="p-1 border text-center text-[9px] text-blue-600 bg-green-50">C</th>
-                    <th className="p-1 border text-center text-[9px] text-orange-600 bg-green-50">S</th>
-                    <th className="p-1 border text-center text-[9px] text-blue-600 bg-emerald-50">C</th>
-                    <th className="p-1 border text-center text-[9px] text-orange-600 bg-emerald-50">S</th>
-                    <th className="p-1 border text-center text-[9px] text-blue-600 bg-orange-50">C</th>
-                    <th className="p-1 border text-center text-[9px] text-orange-600 bg-orange-50">S</th>
-                    <th className="p-1 border text-center text-[9px] text-blue-600 bg-red-50">C</th>
-                    <th className="p-1 border text-center text-[9px] text-orange-600 bg-red-50">S</th>
+                  <tr className="bg-slate-50 text-[9px]">
+                    <th className="p-0.5 border text-center bg-yellow-50">Cont</th>
+                    <th className="p-0.5 border text-center bg-yellow-50">D.Col</th>
+                    <th className="p-0.5 border text-center bg-yellow-50">D.Pen</th>
+                    <th className="p-0.5 border text-center bg-yellow-50">S.Elg</th>
+                    <th className="p-0.5 border text-center bg-yellow-50">S.Log</th>
+                    <th className="p-0.5 border text-center bg-yellow-50">Login</th>
+                    <th className="p-0.5 border text-center bg-yellow-50">S.Apr</th>
+                    <th className="p-0.5 border text-center bg-yellow-50">UW</th>
+                    <th className="p-0.5 border text-center bg-yellow-50">FI</th>
+                    <th className="p-0.5 border text-center bg-yellow-50">FI.R</th>
+                    <th className="p-0.5 border text-center bg-yellow-50">Q.H</th>
+                    <th className="p-0.5 border text-center text-blue-600 bg-indigo-50">C</th>
+                    <th className="p-0.5 border text-center text-orange-600 bg-indigo-50">S</th>
+                    <th className="p-0.5 border text-center text-blue-600 bg-green-50">C</th>
+                    <th className="p-0.5 border text-center text-orange-600 bg-green-50">S</th>
+                    <th className="p-0.5 border text-center text-blue-600 bg-emerald-50">C</th>
+                    <th className="p-0.5 border text-center text-orange-600 bg-emerald-50">S</th>
+                    <th className="p-0.5 border text-center text-blue-600 bg-orange-50">C</th>
+                    <th className="p-0.5 border text-center text-orange-600 bg-orange-50">S</th>
+                    <th className="p-0.5 border text-center text-blue-600 bg-red-50">C</th>
+                    <th className="p-0.5 border text-center text-orange-600 bg-red-50">S</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {r.agents.map((a, i) => {
-                    const totalDisb = a.disbursed_c + a.disbursed_s;
-                    const conv = a.files_generated > 0 ? ((totalDisb / a.files_generated) * 100).toFixed(1) : '0.0';
-                    return (
-                      <tr key={i} className="hover:bg-slate-50">
-                        <td className="p-1.5 border font-medium whitespace-nowrap">
-                          <div>{a.agent_name}</div>
-                          <div className="text-[9px] text-slate-400">{a.agent_code}</div>
-                        </td>
-                        <td className="p-1.5 border text-center font-bold bg-blue-50">{a.files_generated || '-'}</td>
-                        <td className="p-1.5 border text-center text-yellow-700">{a.in_progress_c || '-'}</td>
-                        <td className="p-1.5 border text-center text-blue-600">{a.login_c || '-'}</td>
-                        <td className="p-1.5 border text-center text-orange-500">{a.login_s || '-'}</td>
-                        <td className="p-1.5 border text-center text-blue-600">{a.approved_c || '-'}</td>
-                        <td className="p-1.5 border text-center text-orange-500">{a.approved_s || '-'}</td>
-                        <td className="p-1.5 border text-center text-blue-600 font-semibold">{a.disbursed_c || '-'}</td>
-                        <td className="p-1.5 border text-center text-orange-500">{a.disbursed_s || '-'}</td>
-                        <td className="p-1.5 border text-center text-blue-600">{a.interim_c || '-'}</td>
-                        <td className="p-1.5 border text-center text-orange-500">{a.interim_s || '-'}</td>
-                        <td className="p-1.5 border text-center text-blue-600">{a.final_c || '-'}</td>
-                        <td className="p-1.5 border text-center text-orange-500">{a.final_s || '-'}</td>
-                        <td className="p-1.5 border text-center text-purple-600">{a.appr_amt ? formatAmt(a.appr_amt) : '-'}</td>
-                        <td className="p-1.5 border text-center text-green-700 font-semibold">{a.disb_amt ? formatAmt(a.disb_amt) : '-'}</td>
-                        <td className="p-1.5 border text-center font-semibold">{conv}%</td>
-                      </tr>
-                    );
-                  })}
+                  {r.agents.map((a, i) => (
+                    <tr key={i} className="hover:bg-slate-50">
+                      <td className="p-1 border font-medium whitespace-nowrap">
+                        <div>{a.agent_name}</div>
+                        <div className="text-[8px] text-slate-400">{a.agent_code}</div>
+                      </td>
+                      <td className="p-1 border text-center font-bold bg-blue-50">{a.files_generated || '-'}</td>
+                      <td className="p-1 border text-center">{a.contacted || '-'}</td>
+                      <td className="p-1 border text-center">{a.docs_collected || '-'}</td>
+                      <td className="p-1 border text-center">{a.docs_pending || '-'}</td>
+                      <td className="p-1 border text-center">{a.sent_elig || '-'}</td>
+                      <td className="p-1 border text-center">{a.sent_login || '-'}</td>
+                      <td className="p-1 border text-center">{a.login || '-'}</td>
+                      <td className="p-1 border text-center">{a.sent_appr || '-'}</td>
+                      <td className="p-1 border text-center">{a.uw || '-'}</td>
+                      <td className="p-1 border text-center">{a.fi || '-'}</td>
+                      <td className="p-1 border text-center">{a.fi_reinit || '-'}</td>
+                      <td className="p-1 border text-center">{a.q_hold || '-'}</td>
+                      <td className="p-1 border text-center text-blue-600">{a.login_c || '-'}</td>
+                      <td className="p-1 border text-center text-orange-500">{a.login_s || '-'}</td>
+                      <td className="p-1 border text-center text-blue-600">{a.approved_c || '-'}</td>
+                      <td className="p-1 border text-center text-orange-500">{a.approved_s || '-'}</td>
+                      <td className="p-1 border text-center text-blue-600 font-semibold">{a.disbursed_c || '-'}</td>
+                      <td className="p-1 border text-center text-orange-500">{a.disbursed_s || '-'}</td>
+                      <td className="p-1 border text-center text-blue-600">{a.interim_c || '-'}</td>
+                      <td className="p-1 border text-center text-orange-500">{a.interim_s || '-'}</td>
+                      <td className="p-1 border text-center text-blue-600">{a.final_c || '-'}</td>
+                      <td className="p-1 border text-center text-orange-500">{a.final_s || '-'}</td>
+                      <td className="p-1 border text-center text-purple-600">{a.appr_amt ? formatAmt(a.appr_amt) : '-'}</td>
+                      <td className="p-1 border text-center text-green-700 font-semibold">{a.disb_amt ? formatAmt(a.disb_amt) : '-'}</td>
+                    </tr>
+                  ))}
                   {/* Totals Row */}
-                  <tr className="bg-slate-100 font-bold">
-                    <td className="p-1.5 border">TOTAL</td>
-                    <td className="p-1.5 border text-center bg-blue-50">{r.totals.files_generated}</td>
-                    <td className="p-1.5 border text-center">{r.totals.in_progress_c}</td>
-                    <td className="p-1.5 border text-center text-blue-600">{r.totals.login_c}</td>
-                    <td className="p-1.5 border text-center text-orange-500">{r.totals.login_s}</td>
-                    <td className="p-1.5 border text-center text-blue-600">{r.totals.approved_c}</td>
-                    <td className="p-1.5 border text-center text-orange-500">{r.totals.approved_s}</td>
-                    <td className="p-1.5 border text-center text-blue-600">{r.totals.disbursed_c}</td>
-                    <td className="p-1.5 border text-center text-orange-500">{r.totals.disbursed_s}</td>
-                    <td className="p-1.5 border text-center text-blue-600">{r.totals.interim_c}</td>
-                    <td className="p-1.5 border text-center text-orange-500">{r.totals.interim_s}</td>
-                    <td className="p-1.5 border text-center text-blue-600">{r.totals.final_c}</td>
-                    <td className="p-1.5 border text-center text-orange-500">{r.totals.final_s}</td>
-                    <td className="p-1.5 border text-center text-purple-600">{formatAmt(r.totals.appr_amt)}</td>
-                    <td className="p-1.5 border text-center text-green-700">{formatAmt(r.totals.disb_amt)}</td>
-                    <td className="p-1.5 border text-center">
-                      {r.totals.files_generated > 0 ? (((r.totals.disbursed_c + r.totals.disbursed_s) / r.totals.files_generated) * 100).toFixed(1) : '0.0'}%
-                    </td>
+                  <tr className="bg-slate-100 font-bold text-[10px]">
+                    <td className="p-1 border">TOTAL</td>
+                    <td className="p-1 border text-center bg-blue-50">{r.totals.files_generated}</td>
+                    <td className="p-1 border text-center">{r.totals.contacted || '-'}</td>
+                    <td className="p-1 border text-center">{r.totals.docs_collected || '-'}</td>
+                    <td className="p-1 border text-center">{r.totals.docs_pending || '-'}</td>
+                    <td className="p-1 border text-center">{r.totals.sent_elig || '-'}</td>
+                    <td className="p-1 border text-center">{r.totals.sent_login || '-'}</td>
+                    <td className="p-1 border text-center">{r.totals.login || '-'}</td>
+                    <td className="p-1 border text-center">{r.totals.sent_appr || '-'}</td>
+                    <td className="p-1 border text-center">{r.totals.uw || '-'}</td>
+                    <td className="p-1 border text-center">{r.totals.fi || '-'}</td>
+                    <td className="p-1 border text-center">{r.totals.fi_reinit || '-'}</td>
+                    <td className="p-1 border text-center">{r.totals.q_hold || '-'}</td>
+                    <td className="p-1 border text-center text-blue-600">{r.totals.login_c}</td>
+                    <td className="p-1 border text-center text-orange-500">{r.totals.login_s}</td>
+                    <td className="p-1 border text-center text-blue-600">{r.totals.approved_c}</td>
+                    <td className="p-1 border text-center text-orange-500">{r.totals.approved_s}</td>
+                    <td className="p-1 border text-center text-blue-600">{r.totals.disbursed_c}</td>
+                    <td className="p-1 border text-center text-orange-500">{r.totals.disbursed_s}</td>
+                    <td className="p-1 border text-center text-blue-600">{r.totals.interim_c}</td>
+                    <td className="p-1 border text-center text-orange-500">{r.totals.interim_s}</td>
+                    <td className="p-1 border text-center text-blue-600">{r.totals.final_c}</td>
+                    <td className="p-1 border text-center text-orange-500">{r.totals.final_s}</td>
+                    <td className="p-1 border text-center text-purple-600">{formatAmt(r.totals.appr_amt)}</td>
+                    <td className="p-1 border text-center text-green-700">{formatAmt(r.totals.disb_amt)}</td>
                   </tr>
                 </tbody>
               </table>

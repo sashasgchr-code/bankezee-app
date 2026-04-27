@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -167,140 +167,97 @@ const AgentPerformanceReport = () => {
               </div>
             </div>
 
-            {/* Main Table - 2 rows per GP */}
+            {/* Main Table */}
             {(() => {
               // Determine which in-progress columns have any data (hide all-zero columns)
               const ipCols = [
-                { key: 'contacted', label: 'Contacted' },
-                { key: 'docs_collected', label: 'Docs Collected' },
-                { key: 'docs_pending', label: 'Docs Pending' },
-                { key: 'sent_elig', label: 'Sent Eligibility' },
-                { key: 'sent_login', label: 'Sent Login' },
-                { key: 'login', label: 'Login Done' },
-                { key: 'sent_appr', label: 'Sent Approval' },
-                { key: 'uw', label: 'Underwriting' },
+                { key: 'contacted', label: 'Cont' },
+                { key: 'docs_collected', label: 'D.Col' },
+                { key: 'docs_pending', label: 'D.Pen' },
+                { key: 'sent_elig', label: 'S.Elg' },
+                { key: 'sent_login', label: 'S.Log' },
+                { key: 'login', label: 'Login' },
+                { key: 'sent_appr', label: 'S.Apr' },
+                { key: 'uw', label: 'UW' },
                 { key: 'fi', label: 'FI' },
-                { key: 'fi_reinit', label: 'FI Reinitiated' },
-                { key: 'q_hold', label: 'Query/Hold' },
+                { key: 'fi_reinit', label: 'FI.R' },
+                { key: 'q_hold', label: 'Q.H' },
               ];
-              const activeCols = ipCols.filter(col => 
-                r.agents.some(a => (a[col.key] || 0) > 0)
-              );
+              const activeCols = ipCols.filter(col => r.agents.some(a => (a[col.key] || 0) > 0));
 
-              // Check which activity columns have data
               const hasLoginS = r.agents.some(a => a.login_s > 0);
               const hasApprS = r.agents.some(a => a.approved_s > 0);
               const hasDisbS = r.agents.some(a => a.disbursed_s > 0);
-              const hasInterimC = r.agents.some(a => a.interim_c > 0);
-              const hasInterimS = r.agents.some(a => a.interim_s > 0);
-              const hasFinalC = r.agents.some(a => a.final_c > 0);
-              const hasFinalS = r.agents.some(a => a.final_s > 0);
+              const hasInterim = r.agents.some(a => (a.interim_c + a.interim_s) > 0);
+              const hasFinal = r.agents.some(a => (a.final_c + a.final_s) > 0);
               const hasApprAmt = r.agents.some(a => a.appr_amt > 0);
               const hasDisbAmt = r.agents.some(a => a.disb_amt > 0);
               const hasPipeline = r.agents.some(a => a.pipeline_amt > 0);
 
               return (
               <div className="overflow-x-auto">
-                <table className="w-full text-[11px] border-collapse" data-testid="gp-performance-table">
+                <table className="w-full text-[10px] border-collapse" data-testid="gp-performance-table">
+                  <thead>
+                    <tr className="bg-slate-50">
+                      <th className="p-1 border text-left font-semibold" rowSpan="2">Growth Partner</th>
+                      <th className="p-1 border text-center font-semibold bg-blue-50" rowSpan="2">Files<br/>Gen.</th>
+                      {activeCols.length > 0 && <th className="p-1 border text-center font-semibold bg-yellow-50" colSpan={activeCols.length}>In Progress (Created Date)</th>}
+                      <th className="p-1 border text-center font-semibold bg-indigo-50" colSpan={hasLoginS ? 2 : 1}>Login</th>
+                      <th className="p-1 border text-center font-semibold bg-green-50" colSpan={hasApprS ? 2 : 1}>Approved</th>
+                      <th className="p-1 border text-center font-semibold bg-emerald-50" colSpan={hasDisbS ? 2 : 1}>Disbursed</th>
+                      {hasInterim && <th className="p-1 border text-center font-semibold bg-orange-50" colSpan="2">Interim Rej.</th>}
+                      {hasFinal && <th className="p-1 border text-center font-semibold bg-red-50" colSpan="2">Final Rej.</th>}
+                      {hasApprAmt && <th className="p-1 border text-center font-semibold" rowSpan="2">Appr. ₹</th>}
+                      {hasDisbAmt && <th className="p-1 border text-center font-semibold" rowSpan="2">Disb. ₹</th>}
+                      {hasPipeline && <th className="p-1 border text-center font-semibold" rowSpan="2">Pipeline ₹</th>}
+                    </tr>
+                    <tr className="bg-slate-50 text-[9px]">
+                      {activeCols.map(col => <th key={col.key} className="p-0.5 border text-center bg-yellow-50">{col.label}</th>)}
+                      <th className="p-0.5 border text-center text-blue-600 bg-indigo-50">C</th>
+                      {hasLoginS && <th className="p-0.5 border text-center text-orange-600 bg-indigo-50">S</th>}
+                      <th className="p-0.5 border text-center text-blue-600 bg-green-50">C</th>
+                      {hasApprS && <th className="p-0.5 border text-center text-orange-600 bg-green-50">S</th>}
+                      <th className="p-0.5 border text-center text-blue-600 bg-emerald-50">C</th>
+                      {hasDisbS && <th className="p-0.5 border text-center text-orange-600 bg-emerald-50">S</th>}
+                      {hasInterim && <><th className="p-0.5 border text-center text-blue-600 bg-orange-50">C</th><th className="p-0.5 border text-center text-orange-600 bg-orange-50">S</th></>}
+                      {hasFinal && <><th className="p-0.5 border text-center text-blue-600 bg-red-50">C</th><th className="p-0.5 border text-center text-orange-600 bg-red-50">S</th></>}
+                    </tr>
+                  </thead>
                   <tbody>
-                    {r.agents.map((a, i) => {
-                      const totalLogin = a.login_c + a.login_s;
-                      const totalAppr = a.approved_c + a.approved_s;
-                      const totalDisb = a.disbursed_c + a.disbursed_s;
-                      const totalInterim = a.interim_c + a.interim_s;
-                      const totalFinal = a.final_c + a.final_s;
-                      return (
-                      <React.Fragment key={i}>
-                        {/* Row 1: Summary stats */}
-                        <tr className={`${i > 0 ? 'border-t-2 border-slate-300' : ''} bg-slate-50`}>
-                          <td className="p-1.5 border font-semibold text-sm" rowSpan="2" style={{ verticalAlign: 'top', minWidth: '140px' }}>
-                            <div>{a.agent_name}</div>
-                            <div className="text-[9px] text-slate-400 font-normal">{a.agent_code}</div>
-                          </td>
-                          <td className="p-1 border text-center bg-blue-50">
-                            <div className="font-bold text-base">{a.files_generated}</div>
-                            <div className="text-[8px] text-slate-400">Files Gen.</div>
-                          </td>
-                          <td className="p-1 border text-center bg-indigo-50">
-                            <div className="font-bold text-blue-600">{a.login_c}</div>
-                            {a.login_s > 0 && <div className="text-[8px] text-orange-500">+{a.login_s} spill</div>}
-                            <div className="text-[8px] text-slate-400">Login</div>
-                          </td>
-                          <td className="p-1 border text-center bg-green-50">
-                            <div className="font-bold text-green-600">{a.approved_c}</div>
-                            {a.approved_s > 0 && <div className="text-[8px] text-orange-500">+{a.approved_s} spill</div>}
-                            <div className="text-[8px] text-slate-400">Approved</div>
-                          </td>
-                          <td className="p-1 border text-center bg-emerald-50">
-                            <div className="font-bold text-green-700">{a.disbursed_c}</div>
-                            {a.disbursed_s > 0 && <div className="text-[8px] text-orange-500">+{a.disbursed_s} spill</div>}
-                            <div className="text-[8px] text-slate-400">Disbursed</div>
-                          </td>
-                          {(hasInterimC || hasInterimS) && (
-                          <td className="p-1 border text-center bg-orange-50">
-                            <div className="font-bold text-orange-600">{a.interim_c}</div>
-                            {a.interim_s > 0 && <div className="text-[8px] text-orange-500">+{a.interim_s} spill</div>}
-                            <div className="text-[8px] text-slate-400">Interim Rej</div>
-                          </td>
-                          )}
-                          {(hasFinalC || hasFinalS) && (
-                          <td className="p-1 border text-center bg-red-50">
-                            <div className="font-bold text-red-600">{a.final_c}</div>
-                            {a.final_s > 0 && <div className="text-[8px] text-orange-500">+{a.final_s} spill</div>}
-                            <div className="text-[8px] text-slate-400">Final Rej</div>
-                          </td>
-                          )}
-                          {hasApprAmt && (
-                          <td className="p-1 border text-center">
-                            <div className="font-bold text-purple-600">{a.appr_amt ? formatAmt(a.appr_amt) : '-'}</div>
-                            <div className="text-[8px] text-slate-400">Appr. ₹</div>
-                          </td>
-                          )}
-                          {hasDisbAmt && (
-                          <td className="p-1 border text-center">
-                            <div className="font-bold text-green-700">{a.disb_amt ? formatAmt(a.disb_amt) : '-'}</div>
-                            <div className="text-[8px] text-slate-400">Disb. ₹</div>
-                          </td>
-                          )}
-                          {hasPipeline && (
-                          <td className="p-1 border text-center">
-                            <div className="font-bold text-cyan-600">{a.pipeline_amt ? formatAmt(a.pipeline_amt) : '-'}</div>
-                            <div className="text-[8px] text-slate-400">Pipeline ₹</div>
-                          </td>
-                          )}
-                        </tr>
-                        {/* Row 2: In-progress breakdown */}
-                        <tr className="bg-white">
-                          <td colSpan={2 + (hasInterimC||hasInterimS?1:0) + (hasFinalC||hasFinalS?1:0) + (hasApprAmt?1:0) + (hasDisbAmt?1:0) + (hasPipeline?1:0) + 3} className="p-1 border">
-                            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px]">
-                              {activeCols.map(col => (
-                                a[col.key] > 0 && <span key={col.key} className="text-slate-600"><span className="text-slate-400">{col.label}:</span> <b>{a[col.key]}</b></span>
-                              ))}
-                              {activeCols.every(col => !a[col.key]) && <span className="text-slate-300 italic">No in-progress files</span>}
-                            </div>
-                          </td>
-                        </tr>
-                      </React.Fragment>
-                      );
-                    })}
-                    {/* Totals */}
-                    <tr className="border-t-2 border-slate-400 bg-slate-100 font-bold">
-                      <td className="p-1.5 border text-sm">TOTAL</td>
+                    {r.agents.map((a, i) => (
+                      <tr key={i} className="hover:bg-slate-50">
+                        <td className="p-1 border font-medium whitespace-nowrap">
+                          <div>{a.agent_name}</div>
+                          <div className="text-[8px] text-slate-400">{a.agent_code}</div>
+                        </td>
+                        <td className="p-1 border text-center font-bold bg-blue-50">{a.files_generated || '-'}</td>
+                        {activeCols.map(col => <td key={col.key} className="p-1 border text-center">{a[col.key] || '-'}</td>)}
+                        <td className="p-1 border text-center text-blue-600">{a.login_c || '-'}</td>
+                        {hasLoginS && <td className="p-1 border text-center text-orange-500">{a.login_s || '-'}</td>}
+                        <td className="p-1 border text-center text-blue-600">{a.approved_c || '-'}</td>
+                        {hasApprS && <td className="p-1 border text-center text-orange-500">{a.approved_s || '-'}</td>}
+                        <td className="p-1 border text-center text-blue-600 font-semibold">{a.disbursed_c || '-'}</td>
+                        {hasDisbS && <td className="p-1 border text-center text-orange-500">{a.disbursed_s || '-'}</td>}
+                        {hasInterim && <><td className="p-1 border text-center text-blue-600">{a.interim_c || '-'}</td><td className="p-1 border text-center text-orange-500">{a.interim_s || '-'}</td></>}
+                        {hasFinal && <><td className="p-1 border text-center text-blue-600">{a.final_c || '-'}</td><td className="p-1 border text-center text-orange-500">{a.final_s || '-'}</td></>}
+                        {hasApprAmt && <td className="p-1 border text-center text-purple-600">{a.appr_amt ? formatAmt(a.appr_amt) : '-'}</td>}
+                        {hasDisbAmt && <td className="p-1 border text-center text-green-700 font-semibold">{a.disb_amt ? formatAmt(a.disb_amt) : '-'}</td>}
+                        {hasPipeline && <td className="p-1 border text-center text-cyan-600">{a.pipeline_amt ? formatAmt(a.pipeline_amt) : '-'}</td>}
+                      </tr>
+                    ))}
+                    {/* Totals Row */}
+                    <tr className="bg-slate-100 font-bold text-[10px]">
+                      <td className="p-1 border">TOTAL</td>
                       <td className="p-1 border text-center bg-blue-50">{r.totals.files_generated}</td>
-                      <td className="p-1 border text-center bg-indigo-50">
-                        <span className="text-blue-600">{r.totals.login_c}</span>
-                        {r.totals.login_s > 0 && <span className="text-orange-500 text-[9px]"> +{r.totals.login_s}</span>}
-                      </td>
-                      <td className="p-1 border text-center bg-green-50">
-                        <span className="text-green-600">{r.totals.approved_c}</span>
-                        {r.totals.approved_s > 0 && <span className="text-orange-500 text-[9px]"> +{r.totals.approved_s}</span>}
-                      </td>
-                      <td className="p-1 border text-center bg-emerald-50">
-                        <span className="text-green-700">{r.totals.disbursed_c}</span>
-                        {r.totals.disbursed_s > 0 && <span className="text-orange-500 text-[9px]"> +{r.totals.disbursed_s}</span>}
-                      </td>
-                      {(hasInterimC || hasInterimS) && <td className="p-1 border text-center text-orange-600 bg-orange-50">{r.totals.interim_c}{r.totals.interim_s > 0 && <span className="text-orange-500 text-[9px]"> +{r.totals.interim_s}</span>}</td>}
-                      {(hasFinalC || hasFinalS) && <td className="p-1 border text-center text-red-600 bg-red-50">{r.totals.final_c}{r.totals.final_s > 0 && <span className="text-orange-500 text-[9px]"> +{r.totals.final_s}</span>}</td>}
+                      {activeCols.map(col => <td key={col.key} className="p-1 border text-center">{r.totals[col.key] || '-'}</td>)}
+                      <td className="p-1 border text-center text-blue-600">{r.totals.login_c}</td>
+                      {hasLoginS && <td className="p-1 border text-center text-orange-500">{r.totals.login_s}</td>}
+                      <td className="p-1 border text-center text-blue-600">{r.totals.approved_c}</td>
+                      {hasApprS && <td className="p-1 border text-center text-orange-500">{r.totals.approved_s}</td>}
+                      <td className="p-1 border text-center text-blue-600">{r.totals.disbursed_c}</td>
+                      {hasDisbS && <td className="p-1 border text-center text-orange-500">{r.totals.disbursed_s}</td>}
+                      {hasInterim && <><td className="p-1 border text-center text-blue-600">{r.totals.interim_c}</td><td className="p-1 border text-center text-orange-500">{r.totals.interim_s}</td></>}
+                      {hasFinal && <><td className="p-1 border text-center text-blue-600">{r.totals.final_c}</td><td className="p-1 border text-center text-orange-500">{r.totals.final_s}</td></>}
                       {hasApprAmt && <td className="p-1 border text-center text-purple-600">{formatAmt(r.totals.appr_amt)}</td>}
                       {hasDisbAmt && <td className="p-1 border text-center text-green-700">{formatAmt(r.totals.disb_amt)}</td>}
                       {hasPipeline && <td className="p-1 border text-center text-cyan-600">{formatAmt(r.totals.pipeline_amt)}</td>}

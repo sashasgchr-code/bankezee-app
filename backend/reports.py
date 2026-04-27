@@ -782,7 +782,7 @@ async def get_agent_performance_report(
     manager_id: Optional[str] = Query(None, description="Filter by manager ID"),
     current_user: User = Depends(get_current_user)
 ):
-    """Get agent-wise performance summary based on lead STATUS (not bank eligibilities)"""
+    """Growth Partner performance: Files Generated (created date) + activity-based stats with current/spillover"""
     if current_user.role not in ["admin", "operations"]:
         raise HTTPException(status_code=403, detail="Only admin or operations can access reports")
     
@@ -790,225 +790,174 @@ async def get_agent_performance_report(
         start_date = datetime.strptime(from_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
         end_date = datetime.strptime(to_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59, tzinfo=timezone.utc)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+        raise HTTPException(status_code=400, detail="Invalid date format")
     
+    start_str = from_date
+    end_str = to_date + "T23:59:59.999999"
+
+    def is_in_range(ts_str):
+        if not ts_str:
+            return False
+        try:
+            dt = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+            return start_date <= dt <= end_date
+        except:
+            return False
+
+    def is_created_in_range(created_at):
+        if not created_at:
+            return False
+        return created_at >= start_str and created_at <= end_str
+
     # Get all data
     all_leads = await db.leads.find({}, {"_id": 0}).to_list(10000)
     agents = await db.agents.find({}, {"_id": 0}).to_list(1000)
     partners = await db.partners.find({}, {"_id": 0}).to_list(1000)
     users = await db.users.find({}, {"_id": 0}).to_list(1000)
     
-    # Build lookup maps
     agents_map = {a["id"]: a for a in agents}
     partners_map = {p["id"]: p for p in partners}
     managers_map = {u["id"]: u for u in users if u.get("role") == "manager"}
-    team_leaders_map = {u["id"]: u for u in users if u.get("role") == "team_leader"}
     
-    # Filter agents by manager if specified
     filtered_agents = agents
     filtered_partners = partners
     if manager_id:
         filtered_agents = [a for a in agents if a.get("manager_id") == manager_id]
         filtered_partners = [p for p in partners if p.get("manager_id") == manager_id]
     
-    # Get valid source IDs for filtering
     valid_source_ids = set([a["id"] for a in filtered_agents] + [p["id"] for p in filtered_partners])
-    
-    # Helper function to check if date is in range
-    def is_date_in_range(date_str):
-        if not date_str:
-            return False
-        try:
-            dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
-            return start_date <= dt <= end_date
-        except:
-            return False
-    
-    # Build agent performance data
-    agent_performance = {}
-    
-    # Process all leads
+
+    # Status groups matching dashboard
+    login_and_beyond = {'login', 'sent_for_approval', 'underwriting', 'fi', 'fi_negative',
+                        'fi_reinitiated', 'query_hold', 'approved', 'disbursed', 'declined', 'not_disbursed'}
+    in_progress_statuses = {'contacted', 'documents_collected', 'documents_pending',
+                            'sent_for_eligibility', 'sent_for_login', 'login',
+                            'sent_for_approval', 'underwriting', 'fi', 'fi_reinitiated', 'query_hold'}
+    interim_reject_statuses = {'fi_negative', 'declined', 'customer_not_interested', 'customer_not_supporting'}
+    final_reject_statuses = {'rejected', 'not_eligible', 'not_login', 'not_disbursed'}
+
+    # Build per-agent data
+    agent_perf = {}
+
     for lead in all_leads:
         source_id = lead.get("source_id")
         if not source_id or source_id not in valid_source_ids:
             continue
-        
-        # Initialize agent performance if not exists
-        if source_id not in agent_performance:
+
+        if source_id not in agent_perf:
             source_info = agents_map.get(source_id) or partners_map.get(source_id) or {}
-            source_type = "agent" if source_id in agents_map else "partner"
-            
-            agent_performance[source_id] = {
-                "agent_id": source_id,
+            agent_perf[source_id] = {
                 "agent_name": source_info.get("full_name") or source_info.get("name", "Unknown"),
-                "agent_type": source_type,
                 "agent_code": source_info.get("agent_code") or source_info.get("referral_code", ""),
-                "phone": source_info.get("phone") or source_info.get("mobile", ""),
-                "manager_id": source_info.get("manager_id"),
-                "manager_name": managers_map.get(source_info.get("manager_id"), {}).get("full_name", ""),
-                "total_leads": 0,  # Leads CREATED in date range
-                "new": 0,
-                "contacted": 0,
-                "documents_collected": 0,
-                "documents_pending": 0,
-                "sent_for_eligibility": 0,
-                "sent_for_login": 0,
-                "login": 0,
-                "sent_for_approval": 0,
-                "underwriting": 0,
-                "fi": 0,
-                "fi_negative": 0,
-                "fi_reinitiated": 0,
-                "query_hold": 0,
-                "customer_not_interested": 0,
-                "customer_not_supporting": 0,
-                "approved": 0,
-                "disbursed": 0,
-                "not_eligible": 0,
-                "not_login": 0,
-                "declined": 0,
-                "not_disbursed": 0,
-                "rejected": 0,
-                "total_approved_amount": 0,
-                "total_disbursed_amount": 0
+                "files_generated": 0,
+                "in_progress_c": 0, "in_progress_s": 0,
+                "login_c": 0, "login_s": 0,
+                "approved_c": 0, "approved_s": 0,
+                "disbursed_c": 0, "disbursed_s": 0,
+                "interim_c": 0, "interim_s": 0,
+                "final_c": 0, "final_s": 0,
+                "appr_amt": 0, "disb_amt": 0,
             }
-        
-        perf = agent_performance[source_id]
-        
-        # Check if lead was created in date range - for Total Leads count
+
+        perf = agent_perf[source_id]
         created_at = lead.get("created_at", "")
-        lead_created_in_range = is_date_in_range(created_at)
-        
-        # Count total_leads based on CREATION DATE only
+        lead_created_in_range = is_created_in_range(created_at)
+        lead_status = (lead.get("status") or "new").lower()
+
+        # Files Generated = created in date range
         if lead_created_in_range:
-            perf["total_leads"] += 1
-        
-        # For STATUS COLUMNS: Only count the CURRENT status of the lead
-        # and only if that status was SET within the time period
+            perf["files_generated"] += 1
+
+        # Determine current vs spillover for this lead
+        is_current = lead_created_in_range
+        suffix = "_c" if is_current else "_s"
+
+        # Check activity in range (for spillover filtering)
+        has_activity = False
         activities = lead.get("activities", [])
-        current_status = (lead.get("status") or "new").lower()
-        
-        # Find when the CURRENT status was set
-        current_status_timestamp = None
-        for activity in reversed(activities):
-            to_status = activity.get("to_status") or activity.get("new_status", "")
-            if to_status and to_status.lower() == current_status:
-                current_status_timestamp = activity.get("timestamp")
-                break
-        
-        # If no activity found for current status (e.g., "new" status), use created_at
-        if current_status_timestamp is None and current_status in ["new", "fresh"]:
-            current_status_timestamp = created_at
-        
-        # Only count this lead's current status if it was set in the date range
-        if current_status_timestamp and is_date_in_range(current_status_timestamp):
-            # Map status to the correct counter
-            status_map = {
-                "new": "new",
-                "fresh": "new",
-                "contacted": "contacted",
-                "documents_collected": "documents_collected",
-                "documents_pending": "documents_pending",
-                "sent_for_eligibility": "sent_for_eligibility",
-                "sent_for_login": "sent_for_login",
-                "login": "login",
-                "sent_for_approval": "sent_for_approval",
-                "underwriting": "underwriting",
-                "fi": "fi",
-                "fi_negative": "fi_negative",
-                "fi_reinitiated": "fi_reinitiated",
-                "query_hold": "query_hold",
-                "customer_not_interested": "customer_not_interested",
-                "customer_not_supporting": "customer_not_supporting",
-                "approved": "approved",
-                "disbursed": "disbursed",
-                "not_eligible": "not_eligible",
-                "not_login": "not_login",
-                "declined": "declined",
-                "not_disbursed": "not_disbursed",
-                "rejected": "rejected"
-            }
-            
-            if current_status in status_map:
-                perf[status_map[current_status]] += 1
-            
-            # Sum approved amounts if current status is approved and was set in date range
-            if current_status == "approved":
+        if is_current:
+            has_activity = True
+        else:
+            for act in activities:
+                if is_in_range(act.get("timestamp")):
+                    has_activity = True
+                    break
+            if not has_activity:
                 for elig in lead.get("eligibilities", []):
-                    if str(elig.get("approval_status", "")).lower() == "approved":
-                        try:
-                            perf["total_approved_amount"] += float(elig.get("approved_amount") or 0)
-                        except:
-                            pass
-            
-            # Sum disbursed amounts if current status is disbursed and was set in date range
-            if current_status == "disbursed":
-                for elig in lead.get("eligibilities", []):
-                    if str(elig.get("disbursed", "")).lower() == "yes":
-                        try:
-                            perf["total_disbursed_amount"] += float(elig.get("disbursed_amount") or 0)
-                        except:
-                            pass
+                    if (is_in_range(elig.get("login_done_at")) or
+                        is_in_range(elig.get("approved_at")) or
+                        is_in_range(elig.get("disbursed_at"))):
+                        has_activity = True
+                        break
+        
+        if not has_activity:
+            continue
+
+        # In Progress (created date only — no spillover)
+        if lead_status in in_progress_statuses and is_current:
+            perf["in_progress_c"] += 1
+
+        # Login (current status based)
+        if lead_status in login_and_beyond:
+            perf[f"login{suffix}"] += 1
+        elif lead_status == 'rejected':
+            was_logged = any((act.get("to_status") or "").lower() in login_and_beyond for act in activities)
+            if was_logged:
+                perf[f"login{suffix}"] += 1
+
+        # Approved (activity date based)
+        lead_has_approval = False
+        for elig in lead.get("eligibilities", []):
+            if elig.get("approval_status") == "approved" and is_in_range(elig.get("approved_at")):
+                if not lead_has_approval:
+                    lead_has_approval = True
+                    perf[f"approved{suffix}"] += 1
+                perf["appr_amt"] += float(elig.get("approved_amount") or 0)
+
+        # Disbursed (activity date based)
+        lead_has_disbursal = False
+        for elig in lead.get("eligibilities", []):
+            if str(elig.get("disbursed", "")).lower() == "yes" and is_in_range(elig.get("disbursed_at")):
+                if not lead_has_disbursal:
+                    lead_has_disbursal = True
+                    perf[f"disbursed{suffix}"] += 1
+                perf["disb_amt"] += float(elig.get("disbursed_amount") or 0)
+
+        # Interim Rejects (status based, activity date filtered)
+        if lead_status in interim_reject_statuses:
+            perf[f"interim{suffix}"] += 1
+
+        # Final Rejections (status based, activity date filtered)
+        if lead_status in final_reject_statuses:
+            perf[f"final{suffix}"] += 1
+
+    # Filter and sort
+    agents_list = [p for p in agent_perf.values() if p["files_generated"] > 0 or 
+                   (p["login_c"] + p["login_s"] + p["approved_c"] + p["approved_s"] + 
+                    p["disbursed_c"] + p["disbursed_s"] + p["interim_c"] + p["interim_s"] + 
+                    p["final_c"] + p["final_s"]) > 0]
+    agents_list.sort(key=lambda x: x["files_generated"], reverse=True)
+
+    # Totals
+    def sum_field(field):
+        return sum(a.get(field, 0) for a in agents_list)
     
-    # Filter out agents with no activity in the date range
-    # Include agents who have leads created OR status changes in the period
-    def has_any_activity(perf):
-        # Check if any leads were created
-        if perf["total_leads"] > 0:
-            return True
-        # Check if any status columns have counts (status changes in period)
-        status_keys = ["new", "contacted", "documents_collected", "documents_pending", 
-                       "sent_for_eligibility", "sent_for_login", "login", "sent_for_approval",
-                       "underwriting", "fi", "fi_negative", "fi_reinitiated", "query_hold",
-                       "customer_not_interested", "customer_not_supporting", "approved", 
-                       "disbursed", "not_eligible", "not_login", "declined", "not_disbursed", "rejected"]
-        for key in status_keys:
-            if perf.get(key, 0) > 0:
-                return True
-        return False
-    
-    agents_with_activity = [p for p in agent_performance.values() if has_any_activity(p)]
-    
-    # Sort by total leads descending
-    agents_with_activity.sort(key=lambda x: x["total_leads"], reverse=True)
-    
-    # Calculate totals
     totals = {
-        "total_agents": len(agents_with_activity),
-        "total_leads": sum(a["total_leads"] for a in agents_with_activity),
-        "new": sum(a["new"] for a in agents_with_activity),
-        "contacted": sum(a["contacted"] for a in agents_with_activity),
-        "documents_collected": sum(a["documents_collected"] for a in agents_with_activity),
-        "documents_pending": sum(a["documents_pending"] for a in agents_with_activity),
-        "sent_for_eligibility": sum(a["sent_for_eligibility"] for a in agents_with_activity),
-        "sent_for_login": sum(a["sent_for_login"] for a in agents_with_activity),
-        "login": sum(a["login"] for a in agents_with_activity),
-        "sent_for_approval": sum(a["sent_for_approval"] for a in agents_with_activity),
-        "underwriting": sum(a["underwriting"] for a in agents_with_activity),
-        "fi": sum(a["fi"] for a in agents_with_activity),
-        "fi_negative": sum(a["fi_negative"] for a in agents_with_activity),
-        "fi_reinitiated": sum(a["fi_reinitiated"] for a in agents_with_activity),
-        "query_hold": sum(a["query_hold"] for a in agents_with_activity),
-        "customer_not_interested": sum(a["customer_not_interested"] for a in agents_with_activity),
-        "customer_not_supporting": sum(a["customer_not_supporting"] for a in agents_with_activity),
-        "approved": sum(a["approved"] for a in agents_with_activity),
-        "disbursed": sum(a["disbursed"] for a in agents_with_activity),
-        "not_eligible": sum(a["not_eligible"] for a in agents_with_activity),
-        "not_login": sum(a["not_login"] for a in agents_with_activity),
-        "declined": sum(a["declined"] for a in agents_with_activity),
-        "not_disbursed": sum(a["not_disbursed"] for a in agents_with_activity),
-        "rejected": sum(a["rejected"] for a in agents_with_activity),
-        "total_approved_amount": sum(a["total_approved_amount"] for a in agents_with_activity),
-        "total_disbursed_amount": sum(a["total_disbursed_amount"] for a in agents_with_activity)
+        "total_agents": len(agents_list),
+        "files_generated": sum_field("files_generated"),
+        "in_progress_c": sum_field("in_progress_c"),
+        "login_c": sum_field("login_c"), "login_s": sum_field("login_s"),
+        "approved_c": sum_field("approved_c"), "approved_s": sum_field("approved_s"),
+        "disbursed_c": sum_field("disbursed_c"), "disbursed_s": sum_field("disbursed_s"),
+        "interim_c": sum_field("interim_c"), "interim_s": sum_field("interim_s"),
+        "final_c": sum_field("final_c"), "final_s": sum_field("final_s"),
+        "appr_amt": sum_field("appr_amt"), "disb_amt": sum_field("disb_amt"),
     }
-    
+
     return {
-        "agents": agents_with_activity,
+        "agents": agents_list,
         "totals": totals,
-        "date_range": {
-            "from": from_date,
-            "to": to_date
-        }
+        "date_range": {"from": from_date, "to": to_date}
     }
 
 

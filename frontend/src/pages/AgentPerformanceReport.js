@@ -4,12 +4,19 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { Users, Download, ArrowLeft, Calendar, Filter, BarChart3, TrendingUp, FileText } from 'lucide-react';
+import { Users, ArrowLeft, Printer } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+
+const formatAmt = (v) => {
+  if (!v) return '₹0';
+  const n = Number(v);
+  if (n >= 10000000) return `₹${(n / 10000000).toFixed(2)}Cr`;
+  if (n >= 100000) return `₹${(n / 100000).toFixed(2)}L`;
+  return `₹${n.toLocaleString('en-IN')}`;
+};
 
 const AgentPerformanceReport = () => {
   const navigate = useNavigate();
@@ -19,518 +26,241 @@ const AgentPerformanceReport = () => {
   const [managers, setManagers] = useState([]);
   const reportRef = useRef(null);
   
-  // Filters
-  const [timeFilter, setTimeFilter] = useState('all');
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  const now = new Date();
+  const firstDay = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+  const today = now.toISOString().split('T')[0];
+
+  const [fromDate, setFromDate] = useState(firstDay);
+  const [toDate, setToDate] = useState(today);
   const [managerId, setManagerId] = useState('all');
-  
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
-    fetchManagers();
+    api.get('/reports/managers-list').then(r => setManagers(r.data)).catch(() => {});
   }, []);
 
-  const fetchManagers = async () => {
-    try {
-      const response = await api.get('/reports/managers-list');
-      setManagers(response.data);
-    } catch (error) {
-      console.error('Failed to fetch managers');
-    }
-  };
-
-  const getDateRange = () => {
-    const now = new Date();
-    let start, end;
-    
-    switch (timeFilter) {
-      case 'today':
-        start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-        end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59));
-        break;
-      case 'yesterday':
-        start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1));
-        end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1, 23, 59, 59));
-        break;
-      case 'this_week':
-        const dayOfWeek = now.getUTCDay();
-        start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - dayOfWeek));
-        end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59));
-        break;
-      case 'last_week':
-        const lastWeekDay = now.getUTCDay();
-        const lastWeekStart = now.getUTCDate() - lastWeekDay - 7;
-        const lastWeekEnd = now.getUTCDate() - lastWeekDay - 1;
-        start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), lastWeekStart));
-        end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), lastWeekEnd, 23, 59, 59));
-        break;
-      case 'this_month':
-        start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-        end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59));
-        break;
-      case 'last_month':
-        start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
-        end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0, 23, 59, 59));
-        break;
-      case 'custom':
-        if (fromDate && toDate) {
-          start = new Date(fromDate + 'T00:00:00Z');
-          end = new Date(toDate + 'T23:59:59Z');
-        } else {
-          start = new Date('2020-01-01T00:00:00Z');
-          end = now;
-        }
-        break;
-      default: // 'all'
-        start = new Date('2020-01-01T00:00:00Z');
-        end = now;
-    }
-    
-    // Format as YYYY-MM-DD
-    const formatDate = (d) => {
-      const year = d.getUTCFullYear();
-      const month = String(d.getUTCMonth() + 1).padStart(2, '0');
-      const day = String(d.getUTCDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
-    
-    return {
-      from: formatDate(start),
-      to: formatDate(end)
-    };
-  };
-
-  const generateReport = async () => {
+  const fetchReport = async () => {
+    if (!fromDate || !toDate) { toast.error('Select date range'); return; }
     setLoading(true);
     try {
-      const dateRange = getDateRange();
-      const params = new URLSearchParams({
-        from_date: dateRange.from,
-        to_date: dateRange.to
-      });
-      
-      if (managerId !== 'all') {
-        params.append('manager_id', managerId);
-      }
-      
-      const response = await api.get(`/reports/agent-performance?${params.toString()}`);
-      setReportData(response.data);
-      toast.success(`Found ${response.data.agents?.length || 0} agents with leads`);
-    } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to generate report');
-    } finally {
-      setLoading(false);
-    }
+      const params = new URLSearchParams({ from_date: fromDate, to_date: toDate });
+      if (managerId !== 'all') params.append('manager_id', managerId);
+      const res = await api.get(`/reports/agent-performance?${params}`);
+      setReportData(res.data);
+    } catch { toast.error('Failed to fetch report'); }
+    finally { setLoading(false); }
   };
 
-  const exportToCSV = () => {
-    if (!reportData?.agents?.length) {
-      toast.error('No data to export');
-      return;
-    }
-
-    // Build headers dynamically based on visible columns
-    const headers = [
-      'Growth Partner Name', 'Growth Partner Code', 'Phone', 'Total Leads',
-      ...visibleStatusColumns.map(col => col.label),
-      'Total Approved Amount', 'Total Disbursed Amount'
-    ];
-
-    const rows = reportData.agents.map(agent => [
-      agent.agent_name,
-      agent.agent_code,
-      agent.phone,
-      agent.total_leads,
-      ...visibleStatusColumns.map(col => agent[col.key] || 0),
-      agent.total_approved_amount,
-      agent.total_disbursed_amount
-    ]);
-
-    // Add totals row
-    const totals = reportData.totals || {};
-    rows.push([
-      'TOTAL', '', '',
-      totals.total_leads || 0,
-      ...visibleStatusColumns.map(col => totals[col.key] || 0),
-      totals.total_approved_amount || 0,
-      totals.total_disbursed_amount || 0
-    ]);
-
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${String(cell || '').replace(/"/g, '""')}"`).join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `Agent_Performance_Report_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-    toast.success('Report exported successfully');
-  };
-
-  const exportToPDF = async () => {
-    if (!reportData?.agents?.length || !reportRef.current) {
-      toast.error('No data to export');
-      return;
-    }
-
+  const exportPDF = async () => {
+    if (!reportRef.current) return;
     setExporting(true);
     toast.info('Generating PDF...');
-
     try {
-      // Capture the report section
-      const element = reportRef.current;
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff'
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff'
       });
-
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-
-      // Calculate PDF dimensions (landscape for wide tables)
-      const pdfWidth = imgWidth > imgHeight ? 297 : 210; // A4 landscape or portrait
-      const pdfHeight = imgWidth > imgHeight ? 210 : 297;
-      
-      const pdf = new jsPDF({
-        orientation: imgWidth > imgHeight ? 'landscape' : 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      // Add title
-      pdf.setFontSize(16);
-      pdf.setTextColor(30, 41, 59);
-      pdf.text('Growth Partner Performance Report', 14, 15);
-      
-      // Add date range
-      pdf.setFontSize(10);
-      pdf.setTextColor(100, 116, 139);
-      const dateRange = getDateRange();
-      pdf.text(`Period: ${dateRange.from} to ${dateRange.to}`, 14, 22);
-      pdf.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 27);
-
-      // Calculate image dimensions to fit on page
-      const pageWidth = pdfWidth - 28; // margins
-      const pageHeight = pdfHeight - 40; // margins + header
-      const ratio = Math.min(pageWidth / (imgWidth * 0.264583), pageHeight / (imgHeight * 0.264583));
-      
-      const scaledWidth = imgWidth * 0.264583 * ratio;
-      const scaledHeight = imgHeight * 0.264583 * ratio;
-
-      // Add the captured image
-      pdf.addImage(imgData, 'PNG', 14, 32, scaledWidth, scaledHeight);
-
-      // Save the PDF
-      pdf.save(`Agent_Performance_Report_${new Date().toISOString().split('T')[0]}.pdf`);
-      toast.success('PDF exported successfully');
-    } catch (error) {
-      console.error('PDF export error:', error);
-      toast.error('Failed to export PDF');
-    } finally {
-      setExporting(false);
-    }
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const pdf = new jsPDF('l', 'mm', 'a4');
+      const pdfW = pdf.internal.pageSize.getWidth();
+      const pdfH = pdf.internal.pageSize.getHeight();
+      const ratio = Math.min(pdfW / canvas.width, pdfH / canvas.height);
+      const w = canvas.width * ratio;
+      const h = canvas.height * ratio;
+      pdf.addImage(imgData, 'JPEG', (pdfW - w) / 2, 3, w, h);
+      pdf.save(`GP_Performance_${fromDate}_to_${toDate}.pdf`);
+      toast.success('PDF exported');
+    } catch { toast.error('PDF export failed'); }
+    finally { setExporting(false); }
   };
 
-  const formatCurrency = (amount) => {
-    if (!amount) return '₹0';
-    return `₹${parseFloat(amount).toLocaleString('en-IN')}`;
-  };
-
-  // Define all status columns with their properties
-  const allStatusColumns = [
-    { key: 'new', label: 'New', headerBg: 'bg-blue-50', cellBg: 'bg-blue-50/50' },
-    { key: 'contacted', label: 'Contacted', headerBg: 'bg-yellow-50', cellBg: 'bg-yellow-50/50' },
-    { key: 'documents_collected', label: 'Docs Coll', headerBg: 'bg-indigo-50', cellBg: 'bg-indigo-50/50' },
-    { key: 'documents_pending', label: 'Docs Pend', headerBg: 'bg-orange-50', cellBg: 'bg-orange-50/50' },
-    { key: 'sent_for_eligibility', label: 'Snt Elig', headerBg: 'bg-cyan-50', cellBg: 'bg-cyan-50/50' },
-    { key: 'sent_for_login', label: 'Snt Login', headerBg: 'bg-cyan-100', cellBg: 'bg-cyan-50/50' },
-    { key: 'login', label: 'Login', headerBg: 'bg-green-50', cellBg: 'bg-green-50/50' },
-    { key: 'sent_for_approval', label: 'Snt Appr', headerBg: 'bg-green-100', cellBg: 'bg-green-50/50' },
-    { key: 'underwriting', label: 'UW', headerBg: 'bg-purple-50', cellBg: 'bg-purple-50/50' },
-    { key: 'fi', label: 'FI', headerBg: 'bg-purple-100', cellBg: 'bg-purple-50/50' },
-    { key: 'fi_negative', label: 'FI -ve', headerBg: 'bg-red-100', cellBg: 'bg-red-50/50' },
-    { key: 'fi_reinitiated', label: 'FI Reinit', headerBg: 'bg-amber-50', cellBg: 'bg-amber-50/50' },
-    { key: 'query_hold', label: 'Q.Hold', headerBg: 'bg-amber-100', cellBg: 'bg-amber-50/50' },
-    { key: 'customer_not_interested', label: 'Cust Not Int', headerBg: 'bg-pink-50', cellBg: 'bg-pink-50/50' },
-    { key: 'customer_not_supporting', label: 'Cust Not Supp', headerBg: 'bg-pink-100', cellBg: 'bg-pink-50/50' },
-    { key: 'approved', label: 'Approved', headerBg: 'bg-emerald-100', cellBg: 'bg-emerald-50/50', textClass: 'text-emerald-700 font-medium' },
-    { key: 'disbursed', label: 'Disbursed', headerBg: 'bg-teal-100', cellBg: 'bg-teal-50/50', textClass: 'text-teal-700 font-bold' },
-    { key: 'not_eligible', label: 'Not Elig', headerBg: 'bg-red-50', cellBg: 'bg-red-50/50', textClass: 'text-red-600' },
-    { key: 'not_login', label: 'Not Login', headerBg: 'bg-red-100', cellBg: 'bg-red-50/50', textClass: 'text-red-600' },
-    { key: 'declined', label: 'Declined', headerBg: 'bg-red-200', cellBg: 'bg-red-50/50', textClass: 'text-red-600' },
-    { key: 'not_disbursed', label: 'Not Disb', headerBg: 'bg-red-300', cellBg: 'bg-red-50/50', textClass: 'text-red-600' },
-    { key: 'rejected', label: 'Rejected', headerBg: 'bg-red-400 text-white', cellBg: 'bg-red-100/50', textClass: 'text-red-700 font-medium' },
-  ];
-
-  // Get visible status columns (only those with at least one non-zero value)
-  const getVisibleStatusColumns = () => {
-    if (!reportData?.agents?.length) return [];
-    return allStatusColumns.filter(col => {
-      return reportData.agents.some(agent => (agent[col.key] || 0) > 0);
-    });
-  };
-
-  const visibleStatusColumns = reportData ? getVisibleStatusColumns() : [];
+  const r = reportData;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div className="flex items-center gap-2">
-                <BarChart3 className="h-6 w-6 text-blue-600" />
-                <h1 className="text-xl font-bold text-slate-800">Growth Partner Performance Report</h1>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {reportData?.agents?.length > 0 && (
-                <>
-                  <Button onClick={exportToPDF} variant="outline" className="gap-2" disabled={exporting}>
-                    <FileText className="h-4 w-4" />
-                    {exporting ? 'Exporting...' : 'Export PDF'}
-                  </Button>
-                  <Button onClick={exportToCSV} variant="outline" className="gap-2">
-                    <Download className="h-4 w-4" />
-                    Export CSV
-                  </Button>
-                </>
-              )}
-            </div>
+    <div className="min-h-screen bg-slate-50">
+      <div className="bg-white border-b sticky top-0 z-10 print:static">
+        <div className="max-w-[1400px] mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="print:hidden">
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <h1 className="text-lg font-bold text-slate-800">Growth Partner Performance Report</h1>
+          </div>
+          <div className="flex gap-2 print:hidden">
+            {r && <Button variant="outline" size="sm" onClick={exportPDF} disabled={exporting}>
+              {exporting ? 'Exporting...' : 'Export PDF'}
+            </Button>}
+            <Button variant="outline" size="sm" onClick={() => window.print()}>
+              <Printer className="w-4 h-4 mr-1" /> Print
+            </Button>
           </div>
         </div>
-      </header>
+      </div>
 
-      <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        {/* Filters Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Filter className="h-5 w-5" />
-              Report Filters
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Time Filter */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Time Period
-                </Label>
-                <Select value={timeFilter} onValueChange={setTimeFilter}>
-                  <SelectTrigger data-testid="time-filter">
-                    <SelectValue placeholder="Select time period" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Time</SelectItem>
-                    <SelectItem value="today">Today</SelectItem>
-                    <SelectItem value="yesterday">Yesterday</SelectItem>
-                    <SelectItem value="this_week">This Week</SelectItem>
-                    <SelectItem value="last_week">Last Week</SelectItem>
-                    <SelectItem value="this_month">This Month</SelectItem>
-                    <SelectItem value="last_month">Last Month</SelectItem>
-                    <SelectItem value="custom">Custom Range</SelectItem>
-                  </SelectContent>
-                </Select>
+      <div className="max-w-[1400px] mx-auto px-4 py-4">
+        {/* Filters */}
+        <Card className="mb-4 print:hidden">
+          <CardContent className="pt-4">
+            <div className="flex flex-wrap gap-3 items-end">
+              <div>
+                <p className="text-xs text-slate-500 mb-1">From</p>
+                <Input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="w-40 h-9" />
               </div>
-
-              {/* Custom Date Range */}
-              {timeFilter === 'custom' && (
-                <>
-                  <div className="space-y-2">
-                    <Label>From Date</Label>
-                    <Input
-                      type="date"
-                      value={fromDate}
-                      onChange={(e) => setFromDate(e.target.value)}
-                      data-testid="from-date-input"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>To Date</Label>
-                    <Input
-                      type="date"
-                      value={toDate}
-                      onChange={(e) => setToDate(e.target.value)}
-                      data-testid="to-date-input"
-                    />
-                  </div>
-                </>
-              )}
-
-              {/* Manager Filter */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  Manager
-                </Label>
+              <div>
+                <p className="text-xs text-slate-500 mb-1">To</p>
+                <Input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="w-40 h-9" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 mb-1">Manager</p>
                 <Select value={managerId} onValueChange={setManagerId}>
-                  <SelectTrigger data-testid="manager-filter">
-                    <SelectValue placeholder="Select manager" />
-                  </SelectTrigger>
+                  <SelectTrigger className="w-44 h-9"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Managers</SelectItem>
-                    {managers.map(m => (
-                      <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
-                    ))}
+                    {managers.map(m => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-
-              {/* Generate Button */}
-              <div className="flex items-end">
-                <Button
-                  onClick={generateReport}
-                  disabled={loading}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
-                  data-testid="generate-report-btn"
-                >
-                  {loading ? 'Generating...' : 'Generate Report'}
-                </Button>
-              </div>
+              <Button onClick={fetchReport} disabled={loading} className="h-9">
+                {loading ? 'Generating...' : 'Generate Report'}
+              </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Summary Cards and Table - wrapped for PDF export */}
-        <div ref={reportRef}>
-          {/* Summary Cards */}
-          {reportData && (
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
-              <Card className="bg-blue-50">
-                <CardContent className="pt-4 text-center">
-                  <p className="text-2xl font-bold text-blue-600">{reportData.totals?.total_agents || 0}</p>
-                  <p className="text-sm text-blue-800">Total Agents</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-slate-50">
-                <CardContent className="pt-4 text-center">
-                  <p className="text-2xl font-bold text-slate-600">{reportData.totals?.total_leads || 0}</p>
-                  <p className="text-sm text-slate-800">Total Leads</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-emerald-50">
-                <CardContent className="pt-4 text-center">
-                  <p className="text-2xl font-bold text-emerald-600">{reportData.totals?.approved || 0}</p>
-                  <p className="text-sm text-emerald-800">Approved</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-teal-50">
-                <CardContent className="pt-4 text-center">
-                  <p className="text-2xl font-bold text-teal-600">{reportData.totals?.disbursed || 0}</p>
-                  <p className="text-sm text-teal-800">Disbursed</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-red-50">
-                <CardContent className="pt-4 text-center">
-                  <p className="text-2xl font-bold text-red-600">{reportData.totals?.rejected || 0}</p>
-                  <p className="text-sm text-red-800">Rejected</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-amber-50">
-                <CardContent className="pt-4 text-center">
-                  <p className="text-2xl font-bold text-amber-600">{formatCurrency(reportData.totals?.total_disbursed_amount)}</p>
-                  <p className="text-sm text-amber-800">Total Disbursed</p>
-                </CardContent>
-              </Card>
+        {!r && !loading && (
+          <div className="text-center py-20 text-slate-400">
+            <Users className="w-16 h-16 mx-auto mb-4 opacity-30" />
+            <p className="text-lg font-medium">Select filters and click Generate Report</p>
+          </div>
+        )}
+
+        {r && (
+          <div ref={reportRef} className="bg-white p-5 rounded-lg">
+            <div className="text-center pb-3 border-b mb-4">
+              <h2 className="text-lg font-bold text-slate-800">BANKEZEE - GROWTH PARTNER PERFORMANCE</h2>
+              <p className="text-sm text-slate-500">{fromDate} to {toDate} | {r.totals.total_agents} Growth Partners</p>
             </div>
-          )}
 
-          {/* Growth Partner Performance Table */}
-          {reportData?.agents?.length > 0 ? (
-          <Card>
-            <CardHeader className="py-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <TrendingUp className="h-4 w-4" />
-                Agent-wise Performance ({reportData.agents.length} agents)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="w-full">
-                <table className="w-full" style={{ fontSize: '10px' }}>
-                  <thead className="bg-slate-100 text-slate-700 sticky top-0">
-                    <tr>
-                      <th className="px-1.5 py-1.5 text-left font-semibold border-b" style={{ minWidth: '100px' }}>Growth Partner</th>
-                      <th className="px-1 py-1.5 text-left font-semibold border-b" style={{ fontSize: '9px', maxWidth: '60px' }}>Code</th>
-                      <th className="px-1 py-1.5 text-center font-semibold border-b bg-slate-200">Total</th>
-                      {visibleStatusColumns.map(col => (
-                        <th key={col.key} className={`px-1 py-1.5 text-center font-semibold border-b ${col.headerBg}`} style={{ fontSize: '9px' }}>
-                          {col.label}
-                        </th>
-                      ))}
-                      <th className="px-1 py-1.5 text-right font-semibold border-b bg-emerald-200" style={{ fontSize: '9px' }}>Appr.₹</th>
-                      <th className="px-1 py-1.5 text-right font-semibold border-b bg-teal-200" style={{ fontSize: '9px' }}>Disb.₹</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {reportData.agents.map((agent, index) => (
-                      <tr key={agent.agent_id || index} className="border-b hover:bg-slate-50">
-                        <td className="px-1.5 py-1 font-medium truncate" style={{ maxWidth: '120px' }} title={agent.agent_name}>{agent.agent_name}</td>
-                        <td className="px-1 py-1 text-slate-600" style={{ fontSize: '8px', maxWidth: '60px' }} title={agent.agent_code}>{agent.agent_code || '-'}</td>
-                        <td className="px-1 py-1 text-center font-bold bg-slate-50">{agent.total_leads}</td>
-                        {visibleStatusColumns.map(col => (
-                          <td key={col.key} className={`px-1 py-1 text-center ${col.cellBg} ${col.textClass || ''}`}>
-                            {agent[col.key] || 0}
-                          </td>
-                        ))}
-                        <td className="px-1 py-1 text-right bg-emerald-50/50 text-emerald-800" style={{ fontSize: '9px' }}>{formatCurrency(agent.total_approved_amount)}</td>
-                        <td className="px-1 py-1 text-right bg-teal-50/50 text-teal-800 font-bold" style={{ fontSize: '9px' }}>{formatCurrency(agent.total_disbursed_amount)}</td>
-                      </tr>
-                    ))}
-                    {/* Totals Row */}
-                    <tr className="bg-slate-200 font-bold border-t-2 border-slate-400">
-                      <td className="px-1.5 py-1.5" colSpan={2}>TOTAL</td>
-                      <td className="px-1 py-1.5 text-center">{reportData.totals?.total_leads || 0}</td>
-                      {visibleStatusColumns.map(col => (
-                        <td key={col.key} className={`px-1 py-1.5 text-center ${col.textClass || ''}`}>
-                          {reportData.totals?.[col.key] || 0}
+            {/* Summary Cards */}
+            <div className="grid grid-cols-6 gap-3 mb-4">
+              <div className="text-center p-3 rounded-lg border">
+                <p className="text-2xl font-bold text-blue-700">{r.totals.total_agents}</p>
+                <p className="text-[10px] text-slate-500">Growth Partners</p>
+              </div>
+              <div className="text-center p-3 rounded-lg border">
+                <p className="text-2xl font-bold">{r.totals.files_generated}</p>
+                <p className="text-[10px] text-slate-500">Files Generated</p>
+              </div>
+              <div className="text-center p-3 rounded-lg border">
+                <p className="text-2xl font-bold text-indigo-600">{r.totals.login_c + r.totals.login_s}</p>
+                <p className="text-[10px] text-slate-500">Logged In</p>
+              </div>
+              <div className="text-center p-3 rounded-lg border">
+                <p className="text-2xl font-bold text-green-600">{r.totals.approved_c + r.totals.approved_s}</p>
+                <p className="text-[10px] text-slate-500">Approved</p>
+              </div>
+              <div className="text-center p-3 rounded-lg border bg-green-50">
+                <p className="text-2xl font-bold text-green-700">{r.totals.disbursed_c + r.totals.disbursed_s}</p>
+                <p className="text-[10px] text-slate-500">Disbursed</p>
+              </div>
+              <div className="text-center p-3 rounded-lg border bg-green-50">
+                <p className="text-xl font-bold text-green-700">{formatAmt(r.totals.disb_amt)}</p>
+                <p className="text-[10px] text-slate-500">Total Disbursed</p>
+              </div>
+            </div>
+
+            {/* Main Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-[11px] border-collapse" data-testid="gp-performance-table">
+                <thead>
+                  <tr className="bg-slate-50">
+                    <th className="p-1.5 border text-left font-semibold" rowSpan="2">Growth Partner</th>
+                    <th className="p-1.5 border text-center font-semibold bg-blue-50" rowSpan="2">Files<br/>Gen.</th>
+                    <th className="p-1.5 border text-center font-semibold" rowSpan="2">In Prog.</th>
+                    <th className="p-1.5 border text-center font-semibold bg-indigo-50" colSpan="2">Login</th>
+                    <th className="p-1.5 border text-center font-semibold bg-green-50" colSpan="2">Approved</th>
+                    <th className="p-1.5 border text-center font-semibold bg-emerald-50" colSpan="2">Disbursed</th>
+                    <th className="p-1.5 border text-center font-semibold bg-orange-50" colSpan="2">Interim Rej.</th>
+                    <th className="p-1.5 border text-center font-semibold bg-red-50" colSpan="2">Final Rej.</th>
+                    <th className="p-1.5 border text-center font-semibold" rowSpan="2">Appr. ₹</th>
+                    <th className="p-1.5 border text-center font-semibold" rowSpan="2">Disb. ₹</th>
+                    <th className="p-1.5 border text-center font-semibold" rowSpan="2">Conv %</th>
+                  </tr>
+                  <tr className="bg-slate-50">
+                    <th className="p-1 border text-center text-[9px] text-blue-600 bg-indigo-50">C</th>
+                    <th className="p-1 border text-center text-[9px] text-orange-600 bg-indigo-50">S</th>
+                    <th className="p-1 border text-center text-[9px] text-blue-600 bg-green-50">C</th>
+                    <th className="p-1 border text-center text-[9px] text-orange-600 bg-green-50">S</th>
+                    <th className="p-1 border text-center text-[9px] text-blue-600 bg-emerald-50">C</th>
+                    <th className="p-1 border text-center text-[9px] text-orange-600 bg-emerald-50">S</th>
+                    <th className="p-1 border text-center text-[9px] text-blue-600 bg-orange-50">C</th>
+                    <th className="p-1 border text-center text-[9px] text-orange-600 bg-orange-50">S</th>
+                    <th className="p-1 border text-center text-[9px] text-blue-600 bg-red-50">C</th>
+                    <th className="p-1 border text-center text-[9px] text-orange-600 bg-red-50">S</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {r.agents.map((a, i) => {
+                    const totalDisb = a.disbursed_c + a.disbursed_s;
+                    const conv = a.files_generated > 0 ? ((totalDisb / a.files_generated) * 100).toFixed(1) : '0.0';
+                    return (
+                      <tr key={i} className="hover:bg-slate-50">
+                        <td className="p-1.5 border font-medium whitespace-nowrap">
+                          <div>{a.agent_name}</div>
+                          <div className="text-[9px] text-slate-400">{a.agent_code}</div>
                         </td>
-                      ))}
-                      <td className="px-1 py-1.5 text-right text-emerald-800" style={{ fontSize: '9px' }}>{formatCurrency(reportData.totals?.total_approved_amount)}</td>
-                      <td className="px-1 py-1.5 text-right text-teal-800" style={{ fontSize: '9px' }}>{formatCurrency(reportData.totals?.total_disbursed_amount)}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        ) : reportData && (
-          <Card>
-            <CardContent className="py-12">
-              <div className="text-center text-slate-500">
-                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">No agent data found for the selected filters</p>
-                <p className="text-sm mt-2">Try adjusting your date range or manager filter</p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        </div> {/* End of reportRef wrapper */}
+                        <td className="p-1.5 border text-center font-bold bg-blue-50">{a.files_generated || '-'}</td>
+                        <td className="p-1.5 border text-center text-yellow-700">{a.in_progress_c || '-'}</td>
+                        <td className="p-1.5 border text-center text-blue-600">{a.login_c || '-'}</td>
+                        <td className="p-1.5 border text-center text-orange-500">{a.login_s || '-'}</td>
+                        <td className="p-1.5 border text-center text-blue-600">{a.approved_c || '-'}</td>
+                        <td className="p-1.5 border text-center text-orange-500">{a.approved_s || '-'}</td>
+                        <td className="p-1.5 border text-center text-blue-600 font-semibold">{a.disbursed_c || '-'}</td>
+                        <td className="p-1.5 border text-center text-orange-500">{a.disbursed_s || '-'}</td>
+                        <td className="p-1.5 border text-center text-blue-600">{a.interim_c || '-'}</td>
+                        <td className="p-1.5 border text-center text-orange-500">{a.interim_s || '-'}</td>
+                        <td className="p-1.5 border text-center text-blue-600">{a.final_c || '-'}</td>
+                        <td className="p-1.5 border text-center text-orange-500">{a.final_s || '-'}</td>
+                        <td className="p-1.5 border text-center text-purple-600">{a.appr_amt ? formatAmt(a.appr_amt) : '-'}</td>
+                        <td className="p-1.5 border text-center text-green-700 font-semibold">{a.disb_amt ? formatAmt(a.disb_amt) : '-'}</td>
+                        <td className="p-1.5 border text-center font-semibold">{conv}%</td>
+                      </tr>
+                    );
+                  })}
+                  {/* Totals Row */}
+                  <tr className="bg-slate-100 font-bold">
+                    <td className="p-1.5 border">TOTAL</td>
+                    <td className="p-1.5 border text-center bg-blue-50">{r.totals.files_generated}</td>
+                    <td className="p-1.5 border text-center">{r.totals.in_progress_c}</td>
+                    <td className="p-1.5 border text-center text-blue-600">{r.totals.login_c}</td>
+                    <td className="p-1.5 border text-center text-orange-500">{r.totals.login_s}</td>
+                    <td className="p-1.5 border text-center text-blue-600">{r.totals.approved_c}</td>
+                    <td className="p-1.5 border text-center text-orange-500">{r.totals.approved_s}</td>
+                    <td className="p-1.5 border text-center text-blue-600">{r.totals.disbursed_c}</td>
+                    <td className="p-1.5 border text-center text-orange-500">{r.totals.disbursed_s}</td>
+                    <td className="p-1.5 border text-center text-blue-600">{r.totals.interim_c}</td>
+                    <td className="p-1.5 border text-center text-orange-500">{r.totals.interim_s}</td>
+                    <td className="p-1.5 border text-center text-blue-600">{r.totals.final_c}</td>
+                    <td className="p-1.5 border text-center text-orange-500">{r.totals.final_s}</td>
+                    <td className="p-1.5 border text-center text-purple-600">{formatAmt(r.totals.appr_amt)}</td>
+                    <td className="p-1.5 border text-center text-green-700">{formatAmt(r.totals.disb_amt)}</td>
+                    <td className="p-1.5 border text-center">
+                      {r.totals.files_generated > 0 ? (((r.totals.disbursed_c + r.totals.disbursed_s) / r.totals.files_generated) * 100).toFixed(1) : '0.0'}%
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
-        {/* Initial State */}
-        {!reportData && (
-          <Card>
-            <CardContent className="py-12">
-              <div className="text-center text-slate-500">
-                <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">Select filters and click "Generate Report"</p>
-                <p className="text-sm mt-2">This report shows agent-wise lead statistics and performance metrics</p>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Legend */}
+            <div className="mt-3 text-[9px] text-slate-400 flex flex-wrap gap-x-4 gap-y-0.5">
+              <span><b className="text-blue-600">C</b> = Current (created in period)</span>
+              <span><b className="text-orange-500">S</b> = Spillover (created before, activity in period)</span>
+              <span><b className="text-slate-500">Files Gen.</b> = Leads created in date range</span>
+              <span><b className="text-slate-500">Login</b> = Current status at login or beyond</span>
+              <span><b className="text-slate-500">Conv %</b> = Disbursed / Files Generated</span>
+            </div>
+          </div>
         )}
-      </main>
+      </div>
     </div>
   );
 };

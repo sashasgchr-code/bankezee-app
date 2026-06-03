@@ -300,6 +300,79 @@ async def download_file(
     )
 
 
+
+@router.get("/download-all/{lead_id}")
+async def download_all_documents(
+    lead_id: str,
+    token: str = None,
+    current_user: User = None
+):
+    """Download all documents for a lead as a ZIP file"""
+    import zipfile
+    import io
+
+    # Auth via token query param
+    if not current_user and token:
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            user_id = payload.get("sub")
+            if user_id:
+                user_doc = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
+                if user_doc:
+                    current_user = User(**user_doc)
+        except Exception:
+            pass
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    lead = await db.leads.find_one({"id": lead_id}, {"_id": 0, "full_name": 1, "source_id": 1, "documents": 1})
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+
+    documents = lead.get("documents", [])
+    if not documents:
+        raise HTTPException(status_code=404, detail="No documents found")
+
+    # Get agent/partner name
+    customer_name = (lead.get("full_name") or "Customer").replace(" ", "_")
+    source_id = lead.get("source_id", "")
+    agent_name = "Unknown"
+    if source_id:
+        agent = await db.agents.find_one({"id": source_id}, {"_id": 0, "full_name": 1})
+        if not agent:
+            agent = await db.partners.find_one({"id": source_id}, {"_id": 0, "full_name": 1, "name": 1})
+        if agent:
+            agent_name = (agent.get("full_name") or agent.get("name", "Unknown")).replace(" ", "_")
+
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for doc in documents:
+            file_id = doc.get("file_id")
+            file_name = doc.get("original_name") or doc.get("file_name", f"file_{file_id}")
+            file_doc = await db.files.find_one({"file_id": file_id}, {"_id": 0, "content": 1})
+            if file_doc and file_doc.get("content"):
+                try:
+                    content = base64.b64decode(file_doc["content"])
+                    zf.writestr(file_name, content)
+                except Exception:
+                    pass
+            else:
+                # Try local filesystem
+                file_path = doc.get("file_path", "")
+                local_path = STORAGE_DIR / file_path
+                if local_path.exists():
+                    zf.write(local_path, file_name)
+
+    zip_buffer.seek(0)
+    zip_name = f"{customer_name}-{agent_name}.zip"
+    return Response(
+        content=zip_buffer.getvalue(),
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{zip_name}"'}
+    )
+
+
+
 @router.get("/files/{lead_id}")
 async def list_lead_files(
     lead_id: str,

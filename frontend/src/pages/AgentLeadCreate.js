@@ -32,7 +32,9 @@ const AgentLeadCreate = () => {
     type_of_loan: '',
     cibil_score: '',
     loan_amount_required: '',
-    tenure_required: ''
+    tenure_required: '',
+    has_password_files: '',
+    file_passwords: ''
   });
 
   useEffect(() => {
@@ -80,6 +82,16 @@ const AgentLeadCreate = () => {
       toast.error('Please upload at least one document before submitting');
       return;
     }
+
+    // Validate password protected file field
+    if (!formData.has_password_files) {
+      toast.error('Please select if any file is password protected');
+      return;
+    }
+    if (formData.has_password_files === 'yes' && !formData.file_passwords.trim()) {
+      toast.error('Please enter the file passwords');
+      return;
+    }
     
     setLoading(true);
     
@@ -107,7 +119,9 @@ const AgentLeadCreate = () => {
           type_of_loan: formData.type_of_loan,
           cibil_score: formData.cibil_score,
           loan_amount_required: formData.loan_amount_required,
-          tenure_required: formData.tenure_required
+          tenure_required: formData.tenure_required,
+          has_password_files: formData.has_password_files,
+          file_passwords: formData.file_passwords
         }
       };
       
@@ -368,6 +382,38 @@ const AgentLeadCreate = () => {
                       className="h-11 bg-slate-50"
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Password Protected Files - MANDATORY */}
+              <div className="border-2 border-amber-300 bg-amber-50 rounded-lg p-6">
+                <h3 className="text-lg font-semibold mb-4 text-amber-700">
+                  Password Protected Files? *
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Any password protected file? *</Label>
+                    <Select value={formData.has_password_files || undefined} onValueChange={(v) => setFormData({ ...formData, has_password_files: v, file_passwords: v === 'no' ? '' : formData.file_passwords })}>
+                      <SelectTrigger className="h-11 bg-white" data-testid="password-files-select"><SelectValue placeholder="Select Yes/No" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="yes">Yes</SelectItem>
+                        <SelectItem value="no">No</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {formData.has_password_files === 'yes' && (
+                    <div>
+                      <Label>File Passwords *</Label>
+                      <Input
+                        value={formData.file_passwords}
+                        onChange={(e) => setFormData({ ...formData, file_passwords: e.target.value })}
+                        required
+                        placeholder="e.g., PDF: 1234, Bank Stmt: DOB"
+                        className="h-11 bg-white"
+                        data-testid="file-passwords-input"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 

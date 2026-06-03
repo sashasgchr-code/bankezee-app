@@ -658,6 +658,7 @@ const LeadDetailPage = () => {
               onAddNote={handleAddNote}
               leadId={leadId}
               canEdit={canEdit}
+              additionalData={lead.additional_data}
             />
           </div>
         </div>

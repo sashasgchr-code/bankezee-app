@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { FileText, Upload, Download, Trash2 } from 'lucide-react';
+import { FileText, Upload, Download, Trash2, FolderDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import api from '@/utils/api';
 import { toast } from 'sonner';
@@ -14,7 +14,8 @@ const ActivityLog = ({
   onAddNote,
   leadId,
   canEdit,
-  onDocumentsChange
+  onDocumentsChange,
+  additionalData = {}
 }) => {
   const [uploading, setUploading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -95,12 +96,30 @@ const ActivityLog = ({
       {/* Documents */}
       <Card data-testid="documents-card">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-primary" />
-            Documents ({uploadedFiles.length})
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" />
+              Documents ({uploadedFiles.length})
+            </CardTitle>
+            {uploadedFiles.length > 0 && (
+              <a
+                href={`${api.defaults.baseURL}/storage/download-all/${leadId}?token=${localStorage.getItem('token')}`}
+                download
+              >
+                <Button variant="outline" size="sm" className="h-7 text-xs" data-testid="download-all-docs">
+                  <FolderDown className="w-3.5 h-3.5 mr-1" /> Download All ZIP
+                </Button>
+              </a>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
+          {additionalData.has_password_files === 'yes' && (
+            <div className="mb-3 p-2 bg-amber-50 border border-amber-200 rounded text-sm" data-testid="password-info">
+              <span className="font-semibold text-amber-700">Password Protected Files:</span>{' '}
+              <span className="text-amber-800">{additionalData.file_passwords || 'No passwords provided'}</span>
+            </div>
+          )}
           {uploadedFiles.length === 0 ? (
             <p className="text-center text-slate-500 py-4">No documents uploaded</p>
           ) : (

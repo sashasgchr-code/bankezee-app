@@ -88,3 +88,34 @@ logger = logging.getLogger(__name__)
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
+
+@app.on_event("startup")
+async def seed_bank_policies_if_empty():
+    """Auto-seed bank policies from spreadsheet data if collection is empty."""
+    count = await db.bank_policies.count_documents({})
+    if count > 0:
+        logger.info(f"Bank policies already seeded ({count} found). Skipping.")
+        return
+    logger.info("No bank policies found. Seeding 27 policies from spreadsheet data...")
+    try:
+        from seed_policies import POLICIES
+        import uuid
+        now = datetime.now(timezone.utc).isoformat()
+        for p in POLICIES:
+            doc = {
+                **p,
+                "id": str(uuid.uuid4()),
+                "is_active": True,
+                "loan_types": ["personal_loan"],
+                "merge_consolidation": False,
+                "min_loan_seasoning_months": None,
+                "serviceable_locations": [],
+                "created_at": now,
+                "updated_at": now,
+                "updated_by": "System Import",
+            }
+            await db.bank_policies.insert_one(doc)
+        logger.info(f"Seeded {len(POLICIES)} bank policies successfully.")
+    except Exception as e:
+        logger.error(f"Failed to seed bank policies: {e}")

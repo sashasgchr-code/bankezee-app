@@ -28,6 +28,7 @@ from file_storage import router as file_storage_router
 from hierarchy import router as hierarchy_router
 from reports import router as reports_router
 from bank_policies import router as bank_policies_router
+from document_ai import router as document_ai_router
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -68,6 +69,7 @@ api_router.include_router(file_storage_router, tags=["File Storage"])
 api_router.include_router(hierarchy_router, prefix="/hierarchy", tags=["Hierarchy"])
 api_router.include_router(reports_router, tags=["Reports"])
 api_router.include_router(bank_policies_router, prefix="/bank-policies", tags=["Bank Policies"])
+api_router.include_router(document_ai_router, prefix="/document-ai", tags=["Document AI"])
 
 app.include_router(api_router)
 

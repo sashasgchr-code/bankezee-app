@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import api from '@/utils/api';
-import { ArrowLeft, RefreshCw, ChevronDown, ChevronUp, Building2, AlertTriangle, CheckCircle, XCircle, HelpCircle, Trophy, Upload, FileText, Shield, Clock, Users, Banknote, Printer, History } from 'lucide-react';
+import { ArrowLeft, RefreshCw, ChevronDown, ChevronUp, Building2, AlertTriangle, CheckCircle, XCircle, HelpCircle, Trophy, Upload, FileText, Shield, Clock, Users, Banknote, Printer, History, Sparkles, Loader2 } from 'lucide-react';
 
 const STATUS_CONFIG = {
   eligible: { bg: 'bg-green-50 border-green-300', text: 'text-green-700', icon: CheckCircle, label: 'ELIGIBLE', dot: 'bg-green-500' },
@@ -73,6 +73,10 @@ export default function EligibilityCheck() {
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [showAiParser, setShowAiParser] = useState(false);
+  const [aiParsing, setAiParsing] = useState(false);
+  const [aiResults, setAiResults] = useState(null);
+  const [leadDocs, setLeadDocs] = useState([]);
   const printRef = useRef(null);
 
   const runCheck = async () => {
@@ -94,6 +98,42 @@ export default function EligibilityCheck() {
     } catch (e) {
       toast.error('Failed to load history');
     } finally { setHistoryLoading(false); }
+  };
+
+  const loadLeadDocs = async () => {
+    try {
+      const res = await api.get(`/leads/${leadId}`);
+      setLeadDocs(res.data?.documents || []);
+    } catch (e) { /* ignore */ }
+  };
+
+  const parseDocument = async (docIndex, docType) => {
+    setAiParsing(true);
+    try {
+      const res = await api.post(`/document-ai/parse-document/${leadId}`, {
+        document_index: docIndex,
+        document_type: docType,
+      });
+      setAiResults(res.data);
+      toast.success('Document parsed successfully');
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Failed to parse document');
+    } finally { setAiParsing(false); }
+  };
+
+  const applyParsedData = async () => {
+    if (!aiResults?.parsed_data) return;
+    try {
+      const res = await api.post(`/document-ai/auto-fill-from-parse/${leadId}`, {
+        parsed_data: aiResults.parsed_data,
+        document_type: aiResults.document_type,
+      });
+      toast.success(`Updated ${res.data.fields_updated?.length || 0} fields`);
+      // Re-run eligibility check with updated data
+      runCheck();
+    } catch (e) {
+      toast.error('Failed to apply data');
+    }
   };
 
   useEffect(() => {
@@ -232,6 +272,9 @@ export default function EligibilityCheck() {
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => { setShowHistory(!showHistory); if (!showHistory && history.length === 0) loadHistory(); }} data-testid="history-btn">
                   <History className="w-4 h-4 mr-1" /> History
+                </Button>
+                <Button size="sm" variant="outline" className="border-violet-300 text-violet-700 hover:bg-violet-50" onClick={() => { setShowAiParser(!showAiParser); if (!showAiParser && leadDocs.length === 0) loadLeadDocs(); }} data-testid="ai-parse-btn">
+                  <Sparkles className="w-4 h-4 mr-1" /> AI Parse Docs
                 </Button>
               </>
             )}
@@ -380,6 +423,114 @@ export default function EligibilityCheck() {
                         <span className="text-slate-400">{h.total_policies} policies | Profile: {h.profile_strength}</span>
                       </div>
                     ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* AI Document Parser Panel */}
+          {showAiParser && (
+            <Card className="border-violet-200 bg-violet-50/30" data-testid="ai-parser-panel">
+              <CardContent className="py-4">
+                <h3 className="text-sm font-semibold text-violet-800 mb-3 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" /> AI Document Parser
+                </h3>
+                <p className="text-xs text-violet-600 mb-3">Select a document to extract financial data using AI. Extracted data can auto-fill the lead profile.</p>
+
+                {leadDocs.length === 0 ? (
+                  <p className="text-xs text-slate-400">No documents uploaded for this lead. Upload documents in the lead detail page first.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {leadDocs.map((doc, i) => (
+                      <div key={i} className="flex items-center justify-between p-2 bg-white rounded border text-xs">
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-violet-500" />
+                          <span className="font-medium text-slate-700">{doc.original_name || doc.file_name || `Document ${i+1}`}</span>
+                          <span className="text-slate-400">{doc.document_type || 'general'}</span>
+                        </div>
+                        <div className="flex gap-1">
+                          {['crif', 'salary_slip', 'bank_statement', 'form16'].map(dtype => (
+                            <Button key={dtype} variant="outline" size="sm" className="h-6 text-[10px] px-2"
+                              disabled={aiParsing}
+                              onClick={() => parseDocument(i, dtype)}
+                              data-testid={`parse-${dtype}-${i}`}>
+                              {aiParsing ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                              {dtype === 'crif' ? 'CRIF' : dtype === 'salary_slip' ? 'Salary' : dtype === 'bank_statement' ? 'Bank Stmt' : 'Form 16'}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {aiParsing && (
+                  <div className="mt-3 flex items-center gap-2 text-xs text-violet-600">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Parsing document with AI... This may take 10-30 seconds.
+                  </div>
+                )}
+
+                {aiResults?.parsed_data && !aiResults.parsed_data.error && (
+                  <div className="mt-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-semibold text-violet-700">Extracted Data — {aiResults.document_type?.toUpperCase()}</h4>
+                      <Button size="sm" className="h-7 text-xs bg-violet-600 hover:bg-violet-700" onClick={applyParsedData} data-testid="apply-parsed-data">
+                        <CheckCircle className="w-3 h-3 mr-1" /> Apply to Lead & Re-check
+                      </Button>
+                    </div>
+                    <div className="bg-white rounded border p-3 text-xs space-y-1 max-h-[300px] overflow-y-auto">
+                      {aiResults.document_type === 'crif' && (
+                        <>
+                          <div className="grid grid-cols-3 gap-2">
+                            <div><b>CRIF Score:</b> {aiResults.parsed_data.credit_score || '—'}</div>
+                            <div><b>Active Accounts:</b> {aiResults.parsed_data.active_accounts || '—'}</div>
+                            <div><b>Outstanding:</b> ₹{(aiResults.parsed_data.total_outstanding_balance || 0).toLocaleString()}</div>
+                            <div><b>Monthly EMI:</b> ₹{(aiResults.parsed_data.total_monthly_emi || 0).toLocaleString()}</div>
+                            <div><b>CC Balance:</b> ₹{(aiResults.parsed_data.credit_card_total_balance || 0).toLocaleString()}</div>
+                            <div><b>Credit Util:</b> {aiResults.parsed_data.credit_utilization_pct || '—'}%</div>
+                            <div><b>Defaults:</b> {aiResults.parsed_data.defaults_count || 0}</div>
+                            <div><b>Write-offs:</b> {aiResults.parsed_data.writeoffs_count || 0}</div>
+                            <div><b>Issues:</b> {aiResults.parsed_data.cibil_issues_summary || '—'}</div>
+                          </div>
+                          {aiResults.parsed_data.active_loans?.length > 0 && (
+                            <div className="mt-2">
+                              <b>Active Loans:</b>
+                              {aiResults.parsed_data.active_loans.map((l, i) => (
+                                <div key={i} className="ml-2 text-slate-600">{l.lender} ({l.type}) — Balance: ₹{(l.balance||0).toLocaleString()} {l.emi ? `| EMI: ₹${l.emi.toLocaleString()}` : ''}</div>
+                              ))}
+                            </div>
+                          )}
+                          {aiResults.parsed_data.key_observations && (
+                            <p className="mt-2 text-slate-500 italic">{aiResults.parsed_data.key_observations}</p>
+                          )}
+                        </>
+                      )}
+                      {aiResults.document_type === 'salary_slip' && (
+                        <div className="grid grid-cols-3 gap-2">
+                          <div><b>Net Salary:</b> ₹{(aiResults.parsed_data.net_salary || 0).toLocaleString()}</div>
+                          <div><b>Gross:</b> ₹{(aiResults.parsed_data.gross_salary || 0).toLocaleString()}</div>
+                          <div><b>Employer:</b> {aiResults.parsed_data.employer_name || '—'}</div>
+                          <div><b>Employee:</b> {aiResults.parsed_data.employee_name || '—'}</div>
+                          <div><b>Month:</b> {aiResults.parsed_data.month_year || '—'}</div>
+                          <div><b>Deductions:</b> ₹{(aiResults.parsed_data.total_deductions || 0).toLocaleString()}</div>
+                        </div>
+                      )}
+                      {aiResults.document_type === 'bank_statement' && (
+                        <div className="grid grid-cols-3 gap-2">
+                          <div><b>Salary Credit:</b> ₹{(aiResults.parsed_data.identified_salary_credit || 0).toLocaleString()}</div>
+                          <div><b>Avg Balance:</b> ₹{(aiResults.parsed_data.average_monthly_balance || 0).toLocaleString()}</div>
+                          <div><b>Total EMI:</b> ₹{(aiResults.parsed_data.total_identified_emi || 0).toLocaleString()}</div>
+                          <div><b>Bounces:</b> {aiResults.parsed_data.bounce_count || 0}</div>
+                          <div><b>Bank:</b> {aiResults.parsed_data.bank_name || '—'}</div>
+                          <div><b>Period:</b> {aiResults.parsed_data.statement_period || '—'}</div>
+                        </div>
+                      )}
+                      {!['crif', 'salary_slip', 'bank_statement'].includes(aiResults.document_type) && (
+                        <pre className="text-[10px] whitespace-pre-wrap">{JSON.stringify(aiResults.parsed_data, null, 2)}</pre>
+                      )}
+                    </div>
                   </div>
                 )}
               </CardContent>

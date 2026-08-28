@@ -1,0 +1,24 @@
+{
+  "summary": "Phase 4 (AI Document Parsing via Gemini) end-to-end verified. Backend: 17/17 pytest cases pass in /app/backend/tests/test_document_ai.py — parse-external-document extracts CRIF PDF correctly (credit_score=776 exactly matches expected, customer_name contains 'vinil varayogula', active_accounts within tolerance, total_outstanding_balance>0, all required keys present); auto-fill-from-parse updates lead 4483f4cc-6214-4798-9b0d-aac648a78b11 with CIBIL/EMI/CRIF analysis fields and returns fields_updated list; subsequent POST /bank-policies/check-eligibility reflects the new CIBIL=776; parse-document returns 404 for lead with no documents and 404 for non-existent leads; document-parses returns latest-first history with mongo _id excluded; auth enforcement passes on all 4 endpoints (401 without token). Frontend: navigated as admin to /eligibility-check/{lead_id}; profile summary now shows CIBIL 776, Current EMI ₹16,000, FOIR 26.3%, Net Salary ₹60,867 (auto-filled from CRIF); AI Parse Docs button renders in header (data-testid=ai-parse-btn); clicking it opens AI Document Parser panel (data-testid=ai-parser-panel); when lead has no docs, panel shows 'No documents uploaded for this lead. Upload documents in the lead detail page first.' Success toast 'Eligibility analysis complete' displays.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_document_ai.py",
+    "/app/test_reports/pytest/document_ai_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "document_ai.py parse_document_with_llm(): the JSONDecodeError branch references `full_response` which is only defined after `await chat.send_message`; if `send_message` itself raises, `full_response` won't exist and the except would double-fault. Fine as-is because JSONDecodeError only fires after that line, but consider moving `full_response = ''` above the try.",
+  "parse_external_document creates the httpx client with `async with httpx.AsyncClient() as client_http` but shadows the module-level `client` variable name for the Mongo client. Rename to `http_client` for clarity.",
+  "auto_fill_from_parse builds updates using dotted-path Mongo syntax (`additional_data.cibil_score`) inside a $set — that's correct, but if `additional_data` doesn't exist as an object on the lead doc it will create it. Fine but worth a defensive `$set: {additional_data: ad}` on first-time leads.",
+  "cibil_issues_summary from Gemini is free-text; issue_map only handles exact 'none'/'minor'/'major'. If model returns 'no_issues' or 'moderate' it silently drops. Consider fuzzy mapping or logging unmatched values.",
+  "No rate-limiting or per-user quota on parse-external-document — a URL param + LLM call is expensive; a malicious authed user could burn LLM credits. Consider adding a simple in-memory rate limit."
+  ],
+  "updated_files": ["/app/backend/tests/test_document_ai.py (new)"],
+  "success_rate": {"backend": "100% (17/17)", "frontend": "100%"},
+  "test_credentials": "admin@bankezee.com / admin123",
+  "seed_data_creation": "One transient TEST_DocAI_NoDocs lead created inside pytest and deleted in the same test (no residual data). document_parses collection has ~2 CRIF parse records for lead 4483f4cc-... from the parse-external tests.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend test /app/backend/tests/test_document_ai.py hits real Gemini via emergentintegrations (~35–45s runtime, module-scoped fixture caches the parse). Lead 4483f4cc-6214-4798-9b0d-aac648a78b11 now has CIBIL=776 and crif_analysis stored in additional_data as a side effect of testing. Route paths: eligibility page is /eligibility-check/:leadId (NOT /crm/lead/.../eligibility). Leads CRUD: POST /api/leads/create returns {message, lead_id, assigned_to} (not {id}). check-eligibility is POST not GET."
+}

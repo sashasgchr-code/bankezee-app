@@ -298,6 +298,65 @@ async def bulk_import_policies(
 # ELIGIBILITY ENGINE
 # ============================================================
 
+import re
+
+
+def resolve_emi_and_foir(ad: dict) -> tuple:
+    """Shared helper to resolve EMI and FOIR from lead additional_data.
+    Returns (resolved_emi, emi_source, resolved_foir, foir_source)."""
+    resolved_emi = None
+    emi_source = "CRM Data"
+
+    for field in ["existing_emi", "current_emi", "obligations_emi"]:
+        val = ad.get(field)
+        if val and str(val).strip() and str(val).strip() != "0":
+            try:
+                resolved_emi = float(val)
+                break
+            except (ValueError, TypeError):
+                pass
+
+    if not resolved_emi or resolved_emi == 0:
+        loan_emi_sum = 0
+        loan_count = 0
+        for field in ["existing_loan_1", "existing_loan_2", "existing_loan_3",
+                       "existing_loan_4", "existing_loan_5"]:
+            loan_text = str(ad.get(field, "") or "")
+            if loan_text.strip():
+                numbers = re.findall(r'\d+', loan_text.replace(",", ""))
+                if numbers:
+                    amounts = [int(n) for n in numbers if 100 <= int(n) <= 100000]
+                    if amounts:
+                        loan_emi_sum += max(amounts)
+                        loan_count += 1
+        if loan_emi_sum > 0:
+            resolved_emi = loan_emi_sum
+            emi_source = f"Calculated from {loan_count} loan(s)"
+
+    resolved_foir = None
+    foir_source = "CRM Data"
+    manual_foir = ad.get("foir")
+    if manual_foir:
+        try:
+            fv = float(manual_foir)
+            if fv > 0:
+                resolved_foir = fv
+                foir_source = "Manual Entry"
+        except (ValueError, TypeError):
+            pass
+
+    if not resolved_foir and resolved_emi and ad.get("net_salary"):
+        try:
+            emi_val = float(resolved_emi)
+            salary_val = float(ad["net_salary"])
+            if salary_val > 0 and emi_val > 0:
+                resolved_foir = round((emi_val / salary_val) * 100, 1)
+                foir_source = "Auto-calculated"
+        except (ValueError, TypeError):
+            pass
+
+    return resolved_emi, emi_source, resolved_foir, foir_source
+
 def evaluate_lead_against_policy(lead_data, policy):
     """Evaluate a single lead against a single bank policy. Returns eligibility result."""
     ad = lead_data.get("additional_data", {})
@@ -308,19 +367,22 @@ def evaluate_lead_against_policy(lead_data, policy):
     reasons_fail = []
     reasons_warning = []
 
-    # Resolve EMI from multiple possible field names
-    resolved_emi = ad.get("existing_emi") or ad.get("current_emi") or ad.get("obligations_emi")
+    # Use shared resolver
+    resolved_emi, emi_source, resolved_foir, foir_source = resolve_emi_and_foir(ad)
 
-    # Auto-calculate FOIR if not explicitly set
-    resolved_foir = ad.get("foir")
-    if not resolved_foir and resolved_emi and ad.get("net_salary"):
-        try:
-            emi_val = float(resolved_emi)
-            salary_val = float(ad["net_salary"])
-            if salary_val > 0:
-                resolved_foir = round((emi_val / salary_val) * 100, 1)
-        except (ValueError, TypeError):
-            pass
+    # --- LOAN TYPE AWARENESS ---
+    loan_type = (ad.get("type_of_loan") or lead_data.get("requirement") or "").lower()
+    is_bt_request = any(kw in loan_type for kw in ["balance_transfer", "bt_", "balance transfer"])
+
+    if is_bt_request and not policy.get("bt_allowed", False):
+        reasons_fail.append({
+            "rule": "Balance Transfer Support",
+            "customer": loan_type.replace("_", " ").title(),
+            "required": "BT must be allowed",
+            "result": "FAIL",
+            "source": "Policy Rule"
+        })
+        eligibility = "not_eligible"
 
     def check(rule_name, customer_val, requirement, operator="gte", source="CRM Data", critical=True):
         """Check a rule. critical=True means missing data downgrades eligibility; False means warning only."""
@@ -391,7 +453,6 @@ def evaluate_lead_against_policy(lead_data, policy):
 
     # 4. FOIR check
     foir = resolved_foir
-    foir_source = "CRM Data" if ad.get("foir") else "Auto-calculated"
     if policy.get("max_foir") and foir:
         try:
             foir_val = float(foir)
@@ -557,19 +618,8 @@ async def check_eligibility(lead_id: str, current_user: User = Depends(get_curre
 
     ad = lead.get("additional_data", {})
 
-    # Resolve EMI from multiple possible field names
-    resolved_emi = ad.get("existing_emi") or ad.get("current_emi") or ad.get("obligations_emi")
-
-    # Auto-calculate FOIR if not explicitly set but salary and EMI are available
-    resolved_foir = ad.get("foir")
-    if not resolved_foir and resolved_emi and ad.get("net_salary"):
-        try:
-            emi_val = float(resolved_emi)
-            salary_val = float(ad["net_salary"])
-            if salary_val > 0:
-                resolved_foir = round((emi_val / salary_val) * 100, 1)
-        except (ValueError, TypeError):
-            pass
+    # Use shared resolver for consistent EMI/FOIR across profile and engine
+    resolved_emi, emi_source, resolved_foir, foir_source = resolve_emi_and_foir(ad)
 
     # Collect customer profile summary
     profile = {
@@ -583,6 +633,7 @@ async def check_eligibility(lead_id: str, current_user: User = Depends(get_curre
         "company_type": ad.get("company_type"),
         "age": ad.get("age"),
         "existing_emi": resolved_emi,
+        "emi_source": emi_source,
         "loan_amount_required": ad.get("loan_amount_required"),
         "star_rating": lead.get("star_rating"),
         "star_score": lead.get("star_score"),

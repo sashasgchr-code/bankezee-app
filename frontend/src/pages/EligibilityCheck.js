@@ -335,7 +335,7 @@ export default function EligibilityCheck() {
                 {[
                   { val: p.cibil_score, label: 'CIBIL', fmt: v => v || '—' },
                   { val: p.net_salary, label: 'Net Salary', fmt: v => v ? `₹${Number(v).toLocaleString()}` : '—' },
-                  { val: p.existing_emi, label: 'Current EMI', fmt: v => v ? `₹${Number(v).toLocaleString()}` : '—' },
+                  { val: p.existing_emi, label: p.emi_source === 'CRM Data' ? 'Current EMI' : `EMI (${p.emi_source || 'auto'})`, fmt: v => v ? `₹${Number(v).toLocaleString()}` : '—' },
                   { val: p.foir, label: 'FOIR', fmt: v => v ? `${v}%` : '—' },
                   { val: p.loan_amount_required, label: 'Requested', fmt: v => v ? formatAmt(v) : '—' },
                   { val: p.company_type, label: 'Company', fmt: v => v || '—' },

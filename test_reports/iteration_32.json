@@ -1,0 +1,25 @@
+{
+  "summary": "Backend tests for rules-engine upgrade (smart EMI resolution, FOIR auto-calc, BT loan-type awareness). 10/10 pytest pass in test_smart_emi_and_bt.py. For BT test lead 6e442992-... check-eligibility returns profile.existing_emi=21809, emi_source='Calculated from 3 loan(s)', foir=32.9 (=21809/66280*100), profile_strength='Fair', eligible_count=9, not_eligible_count=18. HDFC is eligible with eligible_amount=1,088,000 (₹10.88L, matches 10-11L spec). Bajaj Finserv is not_eligible and carries a 'Balance Transfer Support' FAIL reason. 13 banks fail on Balance Transfer Support rule (those with bt_allowed=false + BT request). Backward compatibility verified: lead 2ee497ea-... (obligations_emi=12522) resolves EMI=12522 with emi_source='CRM Data'; lead 4483f4cc-... resolves EMI=16000. Priority test: a synthetic lead with obligations_emi='5000' AND existing_loan_1='Bank 3000' correctly picks 5000 (explicit EMI wins over loan-text parsing).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_smart_emi_and_bt.py",
+    "/app/test_reports/pytest/smart_emi_and_bt.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Smart EMI resolution logic is duplicated in evaluate_lead_against_policy() (lines 311-345) and check_eligibility() (lines 620-648). Same regex/loop repeated. Extract into a shared helper resolve_emi_and_foir(ad) to keep behaviour in sync and avoid drift.",
+    "EMI regex re.findall(r'\\d+', loan_text) picks max number per field with threshold >=100. This can pick up an account/policy number embedded in loan text (e.g. 'HDFC A/C 987654 EMI 15837' would resolve to 987654 instead of 15837). Consider looking for an 'EMI' keyword or restricting to numbers <=1_00_000, or prefer the smallest reasonable candidate.",
+    "BT keyword detection uses simple substring check with 'bt' — this will false-positive on any loan_type containing the substring 'bt' (though unlikely with current enum values, still fragile). Prefer word-boundary regex or an explicit whitelist.",
+    "is_bt_request also treats 'top_up' / 'topup' as BT — a pure top-up (same-bank) is not always a balance transfer; check the policy separately for topup_allowed if that flag exists.",
+    "Lead-create endpoint schema requires both 'phone' AND 'mobile' — duplicative field. Consider consolidating in Pydantic model.",
+    "check_eligibility recomputes EMI/FOIR but does not persist resolved_emi back into lead.additional_data. Every re-check re-parses the same loan text. Consider storing computed_emi on the lead for audit/analytics."
+  ],
+  "updated_files": ["/app/backend/tests/test_smart_emi_and_bt.py (new)"],
+  "success_rate": {"backend": "100% (10/10)", "frontend": "not tested (backend-only request)"},
+  "test_credentials": "admin@bankezee.com / admin123",
+  "seed_data_creation": "1 synthetic lead (TEST_EMIPriority) created + eligibility-checked + deleted inside the pytest run (no residual data).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Endpoint: POST /api/bank-policies/check-eligibility/{lead_id}. Login returns key 'token'. Lead create returns key 'lead_id' (not 'id') and requires both 'phone' and 'mobile' fields. Smart EMI/FOIR logic duplicated across evaluate_lead_against_policy() and check_eligibility(); update both when changing."
+}

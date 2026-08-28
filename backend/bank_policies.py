@@ -384,6 +384,42 @@ def evaluate_lead_against_policy(lead_data, policy):
         })
         eligibility = "not_eligible"
 
+    # BT Max Count Check: count customer's existing loans vs bank's max_bt_count
+    if is_bt_request and policy.get("bt_allowed") and policy.get("max_bt_count"):
+        # Count existing loans from individual fields
+        existing_count = 0
+        for field in ["existing_loan_1", "existing_loan_2", "existing_loan_3",
+                       "existing_loan_4", "existing_loan_5"]:
+            if str(ad.get(field, "") or "").strip():
+                existing_count += 1
+
+        # Also check CRIF analysis if available (more accurate)
+        crif = ad.get("crif_analysis")
+        if crif and isinstance(crif, dict):
+            active_loans = crif.get("active_loans", [])
+            if active_loans and len(active_loans) > existing_count:
+                existing_count = len(active_loans)
+
+        if existing_count > 0:
+            max_bt = int(policy["max_bt_count"])
+            if existing_count <= max_bt:
+                reasons_pass.append({
+                    "rule": "BT Count Limit",
+                    "customer": f"{existing_count} loan(s)",
+                    "required": f"≤{max_bt} BTs allowed",
+                    "result": "PASS",
+                    "source": "CRM / CRIF Data"
+                })
+            else:
+                reasons_fail.append({
+                    "rule": "BT Count Limit",
+                    "customer": f"{existing_count} loan(s)",
+                    "required": f"≤{max_bt} BTs allowed",
+                    "result": "FAIL",
+                    "source": "CRM / CRIF Data"
+                })
+                eligibility = "not_eligible"
+
     def check(rule_name, customer_val, requirement, operator="gte", source="CRM Data", critical=True):
         """Check a rule. critical=True means missing data downgrades eligibility; False means warning only."""
         nonlocal eligibility, confidence

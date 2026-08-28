@@ -4,11 +4,148 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime, timezone
 import os
 import uuid
+import logging
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 client = AsyncIOMotorClient(os.environ['MONGO_URL'])
 db = client[os.environ.get('DB_NAME', 'test_database')]
+
+
+async def get_historical_bank_stats():
+    """Aggregate historical approval/disbursal data from all leads to learn which banks
+    approve which profiles. Returns a dict keyed by bank name (lowercase)."""
+    leads = await db.leads.find(
+        {"eligibilities": {"$exists": True, "$ne": []}},
+        {"eligibilities": 1, "additional_data": 1, "status": 1, "_id": 0}
+    ).to_list(5000)
+
+    bank_stats = {}  # bank_name_lower -> { approved: [...profiles], disbursed: [...], total_logins: N }
+
+    for lead in leads:
+        ad = lead.get("additional_data", {})
+        salary = None
+        cibil = None
+        try:
+            salary = float(ad.get("net_salary") or 0)
+        except (ValueError, TypeError):
+            pass
+        try:
+            cibil = float(ad.get("cibil_score") or 0)
+        except (ValueError, TypeError):
+            pass
+
+        company_type = (ad.get("company_type") or "").lower()
+
+        for elig in lead.get("eligibilities", []):
+            bank_name = (elig.get("bank_name") or "").strip().lower()
+            if not bank_name:
+                continue
+
+            if bank_name not in bank_stats:
+                bank_stats[bank_name] = {
+                    "total_eligible": 0, "total_logins": 0,
+                    "total_approved": 0, "total_disbursed": 0,
+                    "approved_profiles": [], "disbursed_profiles": [],
+                    "avg_approved_amount": 0, "amounts": [],
+                }
+
+            stats = bank_stats[bank_name]
+
+            is_eligible = elig.get("is_eligible") in ["yes", True, "Yes"]
+            is_login = elig.get("login_done") in ["yes", True, "Yes"]
+            is_approved = elig.get("approved_amount") and float(elig.get("approved_amount", 0) or 0) > 0
+            is_disbursed = elig.get("disbursed") in ["yes", True, "Yes"]
+
+            if is_eligible:
+                stats["total_eligible"] += 1
+            if is_login:
+                stats["total_logins"] += 1
+            if is_approved:
+                stats["total_approved"] += 1
+                amt = float(elig.get("approved_amount", 0) or 0)
+                stats["amounts"].append(amt)
+                stats["approved_profiles"].append({
+                    "salary": salary, "cibil": cibil, "company": company_type,
+                    "amount": amt,
+                })
+            if is_disbursed:
+                stats["total_disbursed"] += 1
+                stats["disbursed_profiles"].append({
+                    "salary": salary, "cibil": cibil, "company": company_type,
+                    "amount": float(elig.get("disbursed_amount") or elig.get("approved_amount") or 0),
+                })
+
+    # Calculate averages
+    for bank, stats in bank_stats.items():
+        if stats["amounts"]:
+            stats["avg_approved_amount"] = round(sum(stats["amounts"]) / len(stats["amounts"]))
+        del stats["amounts"]  # Don't need raw list anymore
+
+    return bank_stats
+
+
+def match_historical_cases(bank_name, lead_salary, lead_cibil, lead_company, historical_stats):
+    """Find historical matches for a specific bank given lead's profile.
+    Returns a dict with match info or None."""
+    bank_key = bank_name.strip().lower()
+
+    # Try exact match first, then fuzzy
+    stats = historical_stats.get(bank_key)
+    if not stats:
+        # Try partial matching (e.g., "hdfc" matches "hdfc bank ltd")
+        for key in historical_stats:
+            if bank_key in key or key in bank_key:
+                stats = historical_stats[key]
+                break
+
+    if not stats or (stats["total_approved"] == 0 and stats["total_logins"] == 0):
+        return None
+
+    # Count similar profile matches
+    similar_approved = 0
+    similar_disbursed = 0
+    salary_range = 0.3  # Within 30% of lead's salary
+    cibil_range = 50  # Within 50 points
+
+    for p in stats["approved_profiles"]:
+        is_similar = True
+        if lead_salary and p["salary"]:
+            if abs(p["salary"] - lead_salary) / max(lead_salary, 1) > salary_range:
+                is_similar = False
+        if lead_cibil and p["cibil"]:
+            if abs(p["cibil"] - lead_cibil) > cibil_range:
+                is_similar = False
+        if is_similar:
+            similar_approved += 1
+
+    for p in stats["disbursed_profiles"]:
+        is_similar = True
+        if lead_salary and p["salary"]:
+            if abs(p["salary"] - lead_salary) / max(lead_salary, 1) > salary_range:
+                is_similar = False
+        if lead_cibil and p["cibil"]:
+            if abs(p["cibil"] - lead_cibil) > cibil_range:
+                is_similar = False
+        if is_similar:
+            similar_disbursed += 1
+
+    # Calculate approval rate
+    approval_rate = None
+    if stats["total_logins"] > 0:
+        approval_rate = min(100, round((stats["total_approved"] / stats["total_logins"]) * 100))
+
+    return {
+        "total_cases": stats["total_eligible"],
+        "total_logins": stats["total_logins"],
+        "total_approved": stats["total_approved"],
+        "total_disbursed": stats["total_disbursed"],
+        "similar_approved": similar_approved,
+        "similar_disbursed": similar_disbursed,
+        "approval_rate": approval_rate,
+        "avg_approved_amount": stats["avg_approved_amount"],
+    }
 
 # Bank Policy schema fields
 POLICY_FIELDS = [
@@ -451,16 +588,9 @@ async def check_eligibility(lead_id: str, current_user: User = Depends(get_curre
         "star_score": lead.get("star_score"),
     }
 
-    # Determine overall profile strength
+    # Determine overall profile strength — hybrid: star_score + eligibility results
+    # (Will be recalculated after eligibility evaluation below)
     score = lead.get("star_score", 0)
-    if score >= 75:
-        profile_strength = "Strong"
-    elif score >= 45:
-        profile_strength = "Moderate"
-    elif score > 0:
-        profile_strength = "Weak"
-    else:
-        profile_strength = "Insufficient Data"
 
     # Evaluate against each policy
     results = []
@@ -471,6 +601,40 @@ async def check_eligibility(lead_id: str, current_user: User = Depends(get_curre
     # Sort: eligible first (sorted by amount desc), then possibly_eligible, then not_eligible
     order = {"eligible": 0, "possibly_eligible": 1, "not_eligible": 2}
     results.sort(key=lambda r: (order.get(r["eligibility"], 3), -(r["eligible_amount"] or 0)))
+
+    # Count eligibility
+    eligible_count = len([r for r in results if r["eligibility"] == "eligible"])
+    possibly_count = len([r for r in results if r["eligibility"] == "possibly_eligible"])
+    not_eligible_count = len([r for r in results if r["eligibility"] == "not_eligible"])
+
+    # Smart profile strength: combine star_score with actual eligibility results
+    if eligible_count >= 20 or score >= 75:
+        profile_strength = "Strong"
+    elif eligible_count >= 10 or score >= 45:
+        profile_strength = "Moderate"
+    elif eligible_count >= 5 or (eligible_count + possibly_count >= 10) or score > 0:
+        profile_strength = "Fair"
+    elif eligible_count > 0 or possibly_count > 0:
+        profile_strength = "Weak"
+    else:
+        profile_strength = "Not Eligible"
+
+    # Historical Case Learning: match against past approved/disbursed cases
+    try:
+        historical_stats = await get_historical_bank_stats()
+        lead_salary = float(ad.get("net_salary") or 0)
+        lead_cibil = float(ad.get("cibil_score") or 0)
+        lead_company = (ad.get("company_type") or "").lower()
+
+        for r in results:
+            match = match_historical_cases(
+                r["bank_name"], lead_salary, lead_cibil, lead_company, historical_stats
+            )
+            r["historical"] = match  # None if no data, else dict with stats
+    except Exception as e:
+        logger.warning(f"Historical matching failed: {e}")
+        for r in results:
+            r["historical"] = None
 
     # Assign ranking
     eligible_results = [r for r in results if r["eligibility"] == "eligible"]
@@ -494,9 +658,9 @@ async def check_eligibility(lead_id: str, current_user: User = Depends(get_curre
         "results": results,
         "missing_info": missing_info,
         "total_policies": len(policies),
-        "eligible_count": len([r for r in results if r["eligibility"] == "eligible"]),
-        "possibly_eligible_count": len([r for r in results if r["eligibility"] == "possibly_eligible"]),
-        "not_eligible_count": len([r for r in results if r["eligibility"] == "not_eligible"]),
+        "eligible_count": eligible_count,
+        "possibly_eligible_count": possibly_count,
+        "not_eligible_count": not_eligible_count,
         "generated_by": current_user.full_name,
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }

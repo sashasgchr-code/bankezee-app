@@ -326,7 +326,9 @@ export default function EligibilityCheck() {
                 <span className={`text-sm font-bold px-3 py-1 rounded-full ${
                   data.profile_strength === 'Strong' ? 'bg-green-100 text-green-700 border border-green-200' :
                   data.profile_strength === 'Moderate' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
-                  data.profile_strength === 'Weak' ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-slate-100 text-slate-500'
+                  data.profile_strength === 'Fair' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
+                  data.profile_strength === 'Weak' ? 'bg-orange-100 text-orange-700 border border-orange-200' :
+                  data.profile_strength === 'Not Eligible' ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-slate-100 text-slate-500'
                 }`} data-testid="profile-strength">{data.profile_strength} Profile</span>
               </div>
               <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
@@ -672,6 +674,21 @@ function BankCard({ r, expanded, onToggle }) {
               <QuickTag positive={r.bt_info?.topup_allowed} label={`Top-up: ${r.bt_info?.topup_text || (r.bt_info?.topup_allowed ? 'Yes' : 'No')}`} />
               {r.bachelor_accommodation !== undefined && <QuickTag positive={r.bachelor_accommodation} label={`Bachelor: ${r.bachelor_accommodation ? 'Yes' : 'No'}`} />}
               {r.hostel_accommodation !== undefined && <QuickTag positive={r.hostel_accommodation} label={`Hostel: ${r.hostel_accommodation ? 'Yes' : 'No'}`} />}
+              {/* Historical case learning badge */}
+              {r.historical && r.historical.total_approved > 0 && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded border bg-blue-50 text-blue-700 border-blue-200 font-medium">
+                  {r.historical.similar_approved > 0
+                    ? `${r.historical.similar_approved} similar case${r.historical.similar_approved > 1 ? 's' : ''} approved`
+                    : `${r.historical.total_approved} past approval${r.historical.total_approved > 1 ? 's' : ''}`}
+                  {r.historical.approval_rate ? ` (${r.historical.approval_rate}% rate)` : ''}
+                </span>
+              )}
+              {r.historical && r.historical.total_disbursed > 0 && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded border bg-emerald-50 text-emerald-700 border-emerald-200 font-medium">
+                  {r.historical.total_disbursed} disbursed
+                  {r.historical.avg_approved_amount > 0 ? ` (avg ₹${(r.historical.avg_approved_amount / 100000).toFixed(1)}L)` : ''}
+                </span>
+              )}
             </div>
           </div>
           <div className="ml-2 mt-1">
@@ -707,6 +724,30 @@ function BankCard({ r, expanded, onToggle }) {
                   <InfoPill label="App Loan BT" value={r.bt_info?.bt_app_loans_text} />
                   <InfoPill label="CC BT" value={r.bt_info?.cc_bt_allowed ? 'Yes' : 'No'} />
                   <InfoPill label="Top-up" value={r.bt_info?.topup_text} />
+                </div>
+              </div>
+            )}
+
+            {/* Historical Case Learning */}
+            {r.historical && (r.historical.total_approved > 0 || r.historical.total_logins > 0) && (
+              <div className="p-3 bg-blue-50/60 rounded-lg border border-blue-100">
+                <h4 className="text-xs font-semibold text-blue-700 mb-1.5 flex items-center gap-1">
+                  <History className="w-3.5 h-3.5" /> HISTORICAL CASE DATA
+                </h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                  <div><span className="text-slate-500">Total Cases:</span> <b>{r.historical.total_cases}</b></div>
+                  <div><span className="text-slate-500">Logins:</span> <b>{r.historical.total_logins}</b></div>
+                  <div><span className="text-slate-500">Approved:</span> <b className="text-green-700">{r.historical.total_approved}</b></div>
+                  <div><span className="text-slate-500">Disbursed:</span> <b className="text-emerald-700">{r.historical.total_disbursed}</b></div>
+                  {r.historical.approval_rate !== null && (
+                    <div><span className="text-slate-500">Approval Rate:</span> <b className="text-blue-700">{r.historical.approval_rate}%</b></div>
+                  )}
+                  {r.historical.avg_approved_amount > 0 && (
+                    <div><span className="text-slate-500">Avg Approved:</span> <b>{formatAmt(r.historical.avg_approved_amount)}</b></div>
+                  )}
+                  {r.historical.similar_approved > 0 && (
+                    <div className="col-span-2"><span className="text-slate-500">Similar profiles approved:</span> <b className="text-blue-700">{r.historical.similar_approved}</b></div>
+                  )}
                 </div>
               </div>
             )}

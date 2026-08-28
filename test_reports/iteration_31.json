@@ -1,0 +1,23 @@
+{
+  "summary": "Verified both new features end-to-end. Backend: 6/6 pytest pass in test_historical_and_strength.py. For lead 2ee497ea-... check-eligibility returns profile_strength='Strong' with eligible_count=25 (spec >=20 satisfied). Every result has a 'historical' field (null or dict). HDFC shows historical={total_cases:4, total_logins:2, total_approved:3, total_disbursed:2, similar_approved:2, similar_disbursed:2, approval_rate:100, avg_approved_amount:483333} — matches spec (total_approved>0 and similar_approved>0). approval_rate capped at 100 across all banks. Banks with no history correctly return historical:null. A newly created lead with salary=5000/CIBIL=500 returns profile_strength='Not Eligible' (0 eligible, 0 possibly). Frontend: at /eligibility-check/2ee497ea-..., header shows green 'Strong Profile' badge; HDFC bank card shows both historical badges — blue '2 similar cases approved (100% rate)' and green '2 disbursed (avg ₹4.8L)'. Expanded HDFC card displays the 'HISTORICAL CASE DATA' section with the full stats grid (Total Cases 4, Logins 2, Approved 3, Disbursed 2, Approval Rate 100%, Avg Approved ₹4.83 L, Similar profiles approved 2). All spec assertions pass.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_historical_and_strength.py",
+    "/app/test_reports/pytest/historical_and_strength.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "bank_policies.get_historical_bank_stats() fetches up to 5000 leads and iterates all their eligibilities on every /check-eligibility call. This is O(N leads × M eligibilities) per request. Consider caching (in-memory TTL 5-10 min) or pre-aggregating into a bank_stats collection updated on lead update.",
+    "match_historical_cases() uses substring bank-name matching ('hdfc' in 'hdfc bank ltd'). Risk: 'axis' would match 'axis' but also any bank containing 'axis'; short prefixes could collide (e.g. 'IDBI' vs 'IDBI Bank'). It stops at first match — order of dict iteration determines the pick. Consider stronger normalization (strip 'bank', 'ltd', 'limited', 'financial services') and prefer exact match, fall back to token-based match.",
+    "Aggregation counts an eligibility as 'approved' only if approved_amount>0 AND treats approved_amount fields loosely. If UI records approvals via a status flag (not amount), those will be missed. Also disbursed_amount fallback uses approved_amount when disbursed is yes but disbursed_amount missing — this can inflate disbursed averages if approved_amount was tentative.",
+    "get_historical_bank_stats does not filter by lead status (does not exclude rejected/cancelled/duplicate leads). Historical stats may include cancelled leads."
+  ],
+  "updated_files": ["/app/backend/tests/test_historical_and_strength.py (new)"],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "100%"},
+  "test_credentials": "admin@bankezee.com / admin123",
+  "seed_data_creation": "One TEST_LowStrength lead created + eligibility-checked + deleted inside a single pytest run (no residual data).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Endpoint is POST /api/bank-policies/check-eligibility/{lead_id} (mounted with prefix /bank-policies). Login response returns 'token' key (not 'access_token'). Lead create endpoint is POST /api/leads/create and requires employment_type. Historical aggregation covers all leads with eligibilities in db.leads. HDFC currently has 4 cases/3 approved/2 disbursed and 2 similar-profile approvals for the test lead."
+}

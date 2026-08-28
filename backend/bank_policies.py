@@ -171,6 +171,20 @@ def evaluate_lead_against_policy(lead_data, policy):
     reasons_fail = []
     reasons_warning = []
 
+    # Resolve EMI from multiple possible field names
+    resolved_emi = ad.get("existing_emi") or ad.get("current_emi") or ad.get("obligations_emi")
+
+    # Auto-calculate FOIR if not explicitly set
+    resolved_foir = ad.get("foir")
+    if not resolved_foir and resolved_emi and ad.get("net_salary"):
+        try:
+            emi_val = float(resolved_emi)
+            salary_val = float(ad["net_salary"])
+            if salary_val > 0:
+                resolved_foir = round((emi_val / salary_val) * 100, 1)
+        except (ValueError, TypeError):
+            pass
+
     def check(rule_name, customer_val, requirement, operator="gte", source="CRM Data"):
         nonlocal eligibility, confidence
         if customer_val is None or customer_val == "" or customer_val == 0:
@@ -238,7 +252,8 @@ def evaluate_lead_against_policy(lead_data, policy):
         check("Maximum Age", age, policy["max_age"], "lte", "Calculated")
 
     # 4. FOIR check
-    foir = ad.get("foir")
+    foir = resolved_foir
+    foir_source = "CRM Data" if ad.get("foir") else "Auto-calculated"
     if policy.get("max_foir") and foir:
         try:
             foir_val = float(foir)
@@ -246,12 +261,12 @@ def evaluate_lead_against_policy(lead_data, policy):
             if foir_val <= max_foir:
                 reasons_pass.append({
                     "rule": "FOIR", "customer": f"{foir_val}%",
-                    "required": f"≤{max_foir}%", "result": "PASS", "source": "CRM Data"
+                    "required": f"≤{max_foir}%", "result": "PASS", "source": foir_source
                 })
             else:
                 reasons_fail.append({
                     "rule": "FOIR", "customer": f"{foir_val}%",
-                    "required": f"≤{max_foir}%", "result": "FAIL", "source": "CRM Data"
+                    "required": f"≤{max_foir}%", "result": "FAIL", "source": foir_source
                 })
                 eligibility = "not_eligible"
         except (ValueError, TypeError):
@@ -312,7 +327,7 @@ def evaluate_lead_against_policy(lead_data, policy):
     try:
         salary = float(net_salary or 0)
         max_foir_pct = float(policy.get("max_foir") or 60) / 100
-        existing_emi = float(ad.get("existing_emi") or ad.get("current_emi") or 0)
+        existing_emi = float(resolved_emi or 0)
         roi = float(policy.get("roi_min") or 12) / 100 / 12  # monthly rate
         max_tenure_months = int(policy.get("max_tenure") or 60)
 
@@ -406,6 +421,20 @@ async def check_eligibility(lead_id: str, current_user: User = Depends(get_curre
 
     ad = lead.get("additional_data", {})
 
+    # Resolve EMI from multiple possible field names
+    resolved_emi = ad.get("existing_emi") or ad.get("current_emi") or ad.get("obligations_emi")
+
+    # Auto-calculate FOIR if not explicitly set but salary and EMI are available
+    resolved_foir = ad.get("foir")
+    if not resolved_foir and resolved_emi and ad.get("net_salary"):
+        try:
+            emi_val = float(resolved_emi)
+            salary_val = float(ad["net_salary"])
+            if salary_val > 0:
+                resolved_foir = round((emi_val / salary_val) * 100, 1)
+        except (ValueError, TypeError):
+            pass
+
     # Collect customer profile summary
     profile = {
         "full_name": lead.get("full_name"),
@@ -414,10 +443,10 @@ async def check_eligibility(lead_id: str, current_user: User = Depends(get_curre
         "net_salary": ad.get("net_salary"),
         "cibil_score": ad.get("cibil_score"),
         "cibil_issues": ad.get("cibil_issues"),
-        "foir": ad.get("foir"),
+        "foir": resolved_foir,
         "company_type": ad.get("company_type"),
         "age": ad.get("age"),
-        "existing_emi": ad.get("existing_emi") or ad.get("current_emi"),
+        "existing_emi": resolved_emi,
         "loan_amount_required": ad.get("loan_amount_required"),
         "star_rating": lead.get("star_rating"),
         "star_score": lead.get("star_score"),

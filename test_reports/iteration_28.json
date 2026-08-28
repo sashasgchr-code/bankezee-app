@@ -1,0 +1,33 @@
+{
+  "summary": "Verified the EMI/FOIR eligibility engine bug fix. Backend: created /app/backend/tests/test_emi_foir_bugfix.py with 8 tests — ALL PASS. Confirms (1) engine now reads obligations_emi field, (2) FOIR auto-calculates as (EMI/Salary)*100 when not explicit, (3) FOIR rule source correctly reports 'Auto-calculated' vs 'CRM Data', (4) eligible_amount deducts obligations_emi properly, (5) backward compat with existing_emi still works, (6) explicit foir on lead overrides auto-calc. Frontend: after supervisorctl restart (needed to clear a stale visual-edits Babel plugin error), UI verified for both test leads — Test EMI Lead shows Current EMI ₹16,000 and FOIR 26.3%; Raju Bhai shows Current EMI ₹20,000 and FOIR 20%. Both leads show Net Salary correctly. 27 policies evaluated. All expected bug-fix outcomes verified end-to-end.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_emi_foir_bugfix.py",
+    "/app/test_reports/pytest/emi_foir_bugfix_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "evaluate_lead_against_policy() and check_eligibility() duplicate the exact same EMI/FOIR resolution block (lines 174-186 vs 424-436). Extract to a helper (e.g., resolve_emi_and_foir(ad)) to keep the two callers in sync going forward.",
+    "In eligible_amount calc (line 349), the FAIL message uses the reset value '₹0' rather than the original computed amount because eligible_amount is reassigned before the f-string is built. Minor cosmetic bug in the failure reason text (customer field shows ₹0 instead of the sub-minimum amount).",
+    "resolved_emi/resolved_foir accept string values from Mongo ('16000') but the auto-FOIR arithmetic already handles floats — OK. However the profile.existing_emi is returned as a string when the source was a string; consider normalising to number for consistent frontend formatting.",
+    "bank_policies.py is now ~520 lines and mixes CRUD + engine — consider splitting engine into eligibility_engine.py for maintainability."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_emi_foir_bugfix.py (new)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "admin@bankezee.com / admin123",
+  "seed_data_creation": "Two temporary TEST_ prefixed leads created and deleted within pytest fixtures (TEST_BackwardCompat_EMI, TEST_ExplicitFOIR). No residual data.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Bug fix in /app/backend/bank_policies.py (resolved_emi via obligations_emi/existing_emi/current_emi + auto-FOIR) is fully verified. Test file at /app/backend/tests/test_emi_foir_bugfix.py can be re-run any time. Note: The visual-edits Babel plugin (plugins/visual-edits/babel-metadata-plugin.js) can throw stale 'Cannot read properties of null (reading traverse)' errors during hot-reload after multiple edits — resolved by `sudo supervisorctl restart frontend`. Not caused by the bug fix.",
+  "rca of the issue": "Original bug: agent lead creation form saves EMI under key 'obligations_emi', but eligibility engine only inspected 'existing_emi' / 'current_emi', so profile.existing_emi came out null → FOIR auto-calc branch was skipped → profile summary showed '—' for both EMI and FOIR and eligible_amount was computed with existing_emi=0 (over-estimating loan capacity). Fix: resolve EMI via chained fallback ad.get('existing_emi') or ad.get('current_emi') or ad.get('obligations_emi'); compute FOIR = round(emi/salary*100, 1) when foir is absent; tag rule source 'Auto-calculated'. Verified via 8 pytest cases and UI screenshots."
+}

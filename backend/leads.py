@@ -367,16 +367,16 @@ async def export_disbursed_leads(
                 disbursement_info["disbursed_bank"] = elig.get("bank_name", "")
                 try:
                     disbursement_info["disbursed_amount"] = float(elig.get("disbursed_amount", 0) or 0)
-                except:
+                except Exception:
                     disbursement_info["disbursed_amount"] = 0
                 disbursement_info["disbursed_roi"] = elig.get("disbursed_roi", "")
                 try:
                     disbursement_info["commission_percentage"] = float(elig.get("commission_percentage", 0) or 0)
-                except:
+                except Exception:
                     disbursement_info["commission_percentage"] = 0
                 try:
                     disbursement_info["commission_amount"] = float(elig.get("commission_amount", 0) or 0)
-                except:
+                except Exception:
                     disbursement_info["commission_amount"] = 0
                 break
         

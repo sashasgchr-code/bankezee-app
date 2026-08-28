@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { ArrowLeft, Save, Edit2, UserCheck } from 'lucide-react';
+import { ArrowLeft, Save, Edit2, UserCheck, Building2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 
@@ -428,6 +428,14 @@ const LeadDetailPage = () => {
             />
           </div>
         )}
+        <Button
+          size="sm"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white ml-3"
+          onClick={() => navigate(`/eligibility-check/${leadId}`)}
+          data-testid="check-eligibility-btn"
+        >
+          <Building2 className="w-4 h-4 mr-1" /> Check Bank Eligibility
+        </Button>
       </nav>
 
       <div className="px-6 md:px-12 lg:px-24 py-12">

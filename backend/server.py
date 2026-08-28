@@ -27,6 +27,7 @@ from google_drive import router as google_drive_router
 from file_storage import router as file_storage_router
 from hierarchy import router as hierarchy_router
 from reports import router as reports_router
+from bank_policies import router as bank_policies_router
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -66,6 +67,7 @@ api_router.include_router(google_drive_router, tags=["Google Drive"])
 api_router.include_router(file_storage_router, tags=["File Storage"])
 api_router.include_router(hierarchy_router, prefix="/hierarchy", tags=["Hierarchy"])
 api_router.include_router(reports_router, tags=["Reports"])
+api_router.include_router(bank_policies_router, prefix="/bank-policies", tags=["Bank Policies"])
 
 app.include_router(api_router)
 

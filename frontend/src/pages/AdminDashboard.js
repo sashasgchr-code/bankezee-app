@@ -1486,6 +1486,16 @@ const AdminDashboard = () => {
             Quality Report
           </Button>
           <Button
+            onClick={() => navigate('/bank-policy-master')}
+            variant="outline"
+            size="sm"
+            className="text-emerald-600 border-emerald-300 hover:bg-emerald-50"
+            data-testid="policy-master-btn"
+          >
+            <Building2 className="w-4 h-4 mr-1" />
+            Policy Master
+          </Button>
+          <Button
             onClick={() => setShowExportModal(true)}
             variant="outline"
             size="sm"

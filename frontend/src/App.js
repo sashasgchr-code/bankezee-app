@@ -23,6 +23,8 @@ import RejectedCasesReport from './pages/RejectedCasesReport';
 import AgentPerformanceReport from './pages/AgentPerformanceReport';
 import SalesOperationsReport from './pages/SalesOperationsReport';
 import QualityReport from './pages/QualityReport';
+import BankPolicyMaster from './pages/BankPolicyMaster';
+import EligibilityCheck from './pages/EligibilityCheck';
 
 function ProtectedRoute({ children, allowedRoles }) {
   const token = localStorage.getItem('token');
@@ -189,6 +191,22 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin', 'operations']}>
                 <QualityReport />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bank-policy-master"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <BankPolicyMaster />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/eligibility-check/:leadId"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'operations', 'sales_agent', 'partner', 'manager', 'team_leader']}>
+                <EligibilityCheck />
               </ProtectedRoute>
             }
           />

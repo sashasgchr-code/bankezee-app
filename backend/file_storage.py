@@ -169,25 +169,28 @@ async def upload_public_file(
         
         file_id = str(uuid.uuid4())
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        
-        # Store in id_cards directory
-        file_dir = STORAGE_DIR / "id_cards"
-        file_dir.mkdir(parents=True, exist_ok=True)
-        
         safe_name = f"{document_type}_{timestamp}_{file_id}{file_ext}"
-        file_path = file_dir / safe_name
         
-        with open(file_path, "wb") as f:
-            f.write(content)
-        
-        relative_path = str(file_path.relative_to(STORAGE_DIR))
+        # Store in MongoDB (primary) for persistence across deployments
+        encoded_content = base64.b64encode(content).decode('utf-8')
+        await db.files.insert_one({
+            "file_id": file_id,
+            "file_name": safe_name,
+            "original_name": file.filename,
+            "content_type": file.content_type,
+            "content": encoded_content,
+            "size": len(content),
+            "document_type": document_type,
+            "uploaded_at": datetime.now(timezone.utc).isoformat(),
+            "is_public": True
+        })
         
         return {
             "success": True,
             "file_id": file_id,
             "file_name": safe_name,
-            "file_path": relative_path,
-            "file_url": f"/api/storage/public/{relative_path}",
+            "file_path": f"id_cards/{safe_name}",
+            "file_url": f"/api/storage/download/{file_id}",
             "size": len(content)
         }
         

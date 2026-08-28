@@ -165,7 +165,7 @@ async def get_daily_report(
                         if start_date <= activity_date <= end_date:
                             leads.append(lead)
                             break
-                    except:
+                    except Exception:
                         pass
     
     # Get all agents and partners for lookup
@@ -261,7 +261,7 @@ async def get_daily_report(
                     activity_date = datetime.fromisoformat(ts.replace("Z", "+00:00"))
                     if start_date <= activity_date <= end_date:
                         activities_in_range.append(activity)
-                except:
+                except Exception:
                     pass
         
         # Determine last status before date range and current status
@@ -278,7 +278,7 @@ async def get_daily_report(
                         action = activity.get("action", "")
                         if "to " in action.lower():
                             last_status = action.split("to ")[-1].split()[0].strip()
-                except:
+                except Exception:
                     pass
         
         # Extract eligibility summary
@@ -333,7 +333,7 @@ async def get_daily_report(
                     try:
                         if elig.get("eligible_amount"):
                             total_eligible_amount += float(elig.get("eligible_amount", 0))
-                    except:
+                    except Exception:
                         pass
                     # Add to login bank details
                     login_bank_details.append({
@@ -346,14 +346,14 @@ async def get_daily_report(
                 try:
                     if elig.get("approved_amount"):
                         total_approved_amount += float(elig.get("approved_amount", 0))
-                except:
+                except Exception:
                     pass
                     
                 # Sum disbursed amounts
                 try:
                     if elig.get("disbursed_amount"):
                         total_disbursed_amount += float(elig.get("disbursed_amount", 0))
-                except:
+                except Exception:
                     pass
                 
                 # Collect ALL rejection reasons
@@ -528,7 +528,7 @@ async def get_daily_report(
                 try:
                     date_str = ts[:10]  # YYYY-MM-DD
                     daily_activity_counts[date_str] = daily_activity_counts.get(date_str, 0) + 1
-                except:
+                except Exception:
                     pass
     
     # Calculate totals (total_eligible is only where login=Yes)
@@ -602,7 +602,7 @@ async def get_rejected_cases_report(
                     if start_date <= activity_date <= end_date:
                         has_activity_in_range = True
                         break
-                except:
+                except Exception:
                     pass
         
         # Check if lead was created in date range
@@ -613,7 +613,7 @@ async def get_rejected_cases_report(
                 created_date = datetime.fromisoformat(created.replace("Z", "+00:00"))
                 if start_date <= created_date <= end_date:
                     created_in_range = True
-            except:
+            except Exception:
                 pass
         
         # Include lead if it has activity OR was created in the date range
@@ -801,7 +801,7 @@ async def get_agent_performance_report(
         try:
             dt = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
             return start_date <= dt <= end_date
-        except:
+        except Exception:
             return False
 
     def is_created_in_range(created_at):

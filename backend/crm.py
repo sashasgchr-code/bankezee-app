@@ -673,7 +673,7 @@ async def update_eligibilities(
                         elig_dict['disbursed_at'] = parsed.isoformat()
                     else:
                         elig_dict['disbursed_at'] = user_disbursed_at  # Already ISO format
-                except:
+                except Exception:
                     elig_dict['disbursed_at'] = now
             else:
                 elig_dict['disbursed_at'] = now
@@ -688,7 +688,7 @@ async def update_eligibilities(
                         elig_dict['disbursed_at'] = parsed.isoformat()
                     else:
                         elig_dict['disbursed_at'] = user_disbursed_at
-                except:
+                except Exception:
                     elig_dict['disbursed_at'] = existing_elig.get('disbursed_at') or now
             else:
                 elig_dict['disbursed_at'] = existing_elig.get('disbursed_at') or now
@@ -890,7 +890,7 @@ async def get_system_earnings(current_user: User = Depends(get_current_user)):
                 comm_date = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
                 if comm_date >= current_month_start:
                     monthly_earnings += c.get("amount", 0)
-            except:
+            except Exception:
                 pass
     
     return {
@@ -922,7 +922,7 @@ async def get_total_eligible(current_user: User = Depends(get_current_user)):
                 try:
                     amount = float(elig.get("eligible_amount", 0) or 0)
                     total_eligible += amount
-                except:
+                except (ValueError, TypeError):
                     pass
     
     return {

@@ -434,3 +434,159 @@ async def get_document_parses(lead_id: str, current_user: User = Depends(get_cur
         {"lead_id": lead_id}, {"_id": 0}
     ).sort("parsed_at", -1).to_list(50)
     return parses
+
+
+
+@router.post("/auto-parse-all/{lead_id}")
+async def auto_parse_all_documents(lead_id: str, current_user: User = Depends(get_current_user)):
+    """Auto-detect and parse all documents for a lead. Guesses document type from filename.
+    Skips documents already parsed. Returns all parsed results and auto-fills lead profile."""
+    lead = await db.leads.find_one({"id": lead_id})
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+
+    documents = lead.get("documents", [])
+    if not documents:
+        return {"message": "No documents to parse", "parsed": [], "fields_updated": []}
+
+    # Check which docs are already parsed
+    existing_parses = await db.document_parses.find(
+        {"lead_id": lead_id}, {"document_index": 1, "_id": 0}
+    ).to_list(100)
+    parsed_indices = {p.get("document_index") for p in existing_parses}
+
+    all_results = []
+    all_fields_updated = []
+
+    for i, doc in enumerate(documents):
+        if i in parsed_indices:
+            continue  # Skip already-parsed documents
+
+        fname = (doc.get("original_name") or doc.get("file_name") or "").lower()
+        mime = doc.get("mime_type") or "application/pdf"
+
+        # Only parse PDFs
+        if "pdf" not in mime and not fname.endswith(".pdf"):
+            continue
+
+        # Auto-detect document type from filename
+        doc_type = "general"
+        if any(kw in fname for kw in ["crif", "cibil", "credit", "bureau", "experian", "equifax"]):
+            doc_type = "crif"
+        elif any(kw in fname for kw in ["salary", "payslip", "pay_slip", "pay slip"]):
+            doc_type = "salary_slip"
+        elif any(kw in fname for kw in ["bank", "statement", "transaction", "optransaction"]):
+            doc_type = "bank_statement"
+        elif any(kw in fname for kw in ["form16", "form 16", "form-16", "itr"]):
+            doc_type = "form16"
+
+        # Skip general documents (likely ID proofs, photos etc.)
+        if doc_type == "general":
+            continue
+
+        file_id = doc.get("file_id") or doc.get("id")
+        file_record = await db.file_storage.find_one({"file_id": file_id})
+        if not file_record or not file_record.get("content"):
+            continue
+
+        try:
+            file_bytes = base64.b64decode(file_record["content"])
+            parsed_data = await parse_document_with_llm(file_bytes, mime, doc_type)
+
+            parse_result = {
+                "id": str(uuid.uuid4()),
+                "lead_id": lead_id,
+                "document_index": i,
+                "document_name": doc.get("original_name") or doc.get("file_name", ""),
+                "document_type": doc_type,
+                "parsed_data": parsed_data,
+                "parsed_by": current_user.full_name,
+                "parsed_at": datetime.now(timezone.utc).isoformat(),
+            }
+            await db.document_parses.insert_one({**parse_result})
+            parse_result.pop("_id", None)
+            all_results.append(parse_result)
+
+            # Auto-fill from this parse
+            if not parsed_data.get("error"):
+                fill_result = await _auto_fill_from_parsed(lead_id, parsed_data, doc_type, current_user)
+                all_fields_updated.extend(fill_result)
+
+        except Exception as e:
+            logger.error(f"Auto-parse failed for doc {i} ({fname}): {e}")
+            continue
+
+    return {
+        "message": f"Parsed {len(all_results)} documents",
+        "parsed": all_results,
+        "fields_updated": all_fields_updated,
+    }
+
+
+async def _auto_fill_from_parsed(lead_id: str, parsed_data: dict, doc_type: str, current_user) -> list:
+    """Internal helper to auto-fill lead from parsed data. Returns list of updated field descriptions."""
+    lead = await db.leads.find_one({"id": lead_id})
+    if not lead:
+        return []
+
+    ad = lead.get("additional_data", {})
+    updates = {}
+    fields_updated = []
+
+    if doc_type == "crif":
+        if parsed_data.get("credit_score"):
+            updates["additional_data.cibil_score"] = str(parsed_data["credit_score"])
+            fields_updated.append(f"CIBIL Score: {parsed_data['credit_score']}")
+        total_emi = parsed_data.get("total_monthly_emi")
+        if not total_emi:
+            active_loans = parsed_data.get("active_loans", [])
+            total_emi = sum(l.get("emi", 0) or 0 for l in active_loans)
+        if total_emi:
+            updates["additional_data.obligations_emi"] = str(int(total_emi))
+            fields_updated.append(f"Monthly EMI: ₹{int(total_emi):,}")
+        if parsed_data.get("cibil_issues_summary"):
+            issue_map = {"none": "no_issues", "minor": "minor", "major": "major"}
+            mapped = issue_map.get(parsed_data["cibil_issues_summary"].lower(), "")
+            if mapped:
+                updates["additional_data.cibil_issues"] = mapped
+                fields_updated.append(f"CIBIL Issues: {mapped}")
+        updates["additional_data.crif_analysis"] = {
+            "score": parsed_data.get("credit_score"),
+            "total_accounts": parsed_data.get("total_accounts"),
+            "active_accounts": parsed_data.get("active_accounts"),
+            "total_outstanding": parsed_data.get("total_outstanding_balance"),
+            "credit_utilization": parsed_data.get("credit_utilization_pct"),
+            "defaults": parsed_data.get("defaults_count", 0),
+            "writeoffs": parsed_data.get("writeoffs_count", 0),
+            "active_loans": parsed_data.get("active_loans", []),
+            "active_credit_cards": parsed_data.get("active_credit_cards", []),
+            "key_observations": parsed_data.get("key_observations"),
+            "parsed_at": datetime.now(timezone.utc).isoformat(),
+        }
+        fields_updated.append("Full CRIF Analysis saved")
+    elif doc_type == "salary_slip":
+        if parsed_data.get("net_salary"):
+            updates["additional_data.net_salary"] = str(int(parsed_data["net_salary"]))
+            fields_updated.append(f"Net Salary: ₹{int(parsed_data['net_salary']):,}")
+        if parsed_data.get("employer_name"):
+            updates["additional_data.company_name"] = parsed_data["employer_name"]
+            fields_updated.append(f"Company: {parsed_data['employer_name']}")
+    elif doc_type == "bank_statement":
+        if parsed_data.get("identified_salary_credit") and not ad.get("net_salary"):
+            updates["additional_data.net_salary"] = str(int(parsed_data["identified_salary_credit"]))
+            fields_updated.append(f"Net Salary: ₹{int(parsed_data['identified_salary_credit']):,}")
+        if parsed_data.get("total_identified_emi"):
+            updates["additional_data.obligations_emi"] = str(int(parsed_data["total_identified_emi"]))
+            fields_updated.append(f"EMI: ₹{int(parsed_data['total_identified_emi']):,}")
+
+    if updates:
+        await db.leads.update_one({"id": lead_id}, {"$set": updates})
+        activity = {
+            "type": "ai_document_parse",
+            "message": f"AI auto-parsed {doc_type}. Updated: {', '.join(fields_updated)}",
+            "by": current_user.full_name,
+            "at": datetime.now(timezone.utc).isoformat(),
+        }
+        await db.leads.update_one({"id": lead_id}, {"$push": {"activities": activity}})
+
+    return fields_updated

@@ -185,14 +185,15 @@ def evaluate_lead_against_policy(lead_data, policy):
         except (ValueError, TypeError):
             pass
 
-    def check(rule_name, customer_val, requirement, operator="gte", source="CRM Data"):
+    def check(rule_name, customer_val, requirement, operator="gte", source="CRM Data", critical=True):
+        """Check a rule. critical=True means missing data downgrades eligibility; False means warning only."""
         nonlocal eligibility, confidence
         if customer_val is None or customer_val == "" or customer_val == 0:
             reasons_warning.append({
                 "rule": rule_name, "customer": "Not available",
                 "required": str(requirement), "result": "UNKNOWN", "source": source
             })
-            if eligibility == "eligible":
+            if critical and eligibility == "eligible":
                 eligibility = "possibly_eligible"
             if confidence == "high":
                 confidence = "medium"
@@ -237,7 +238,7 @@ def evaluate_lead_against_policy(lead_data, policy):
     if policy.get("min_cibil"):
         check("CIBIL Score", cibil, policy["min_cibil"], "gte", "CRM Data")
 
-    # 3. Age check
+    # 3. Age check (non-critical: missing age doesn't downgrade eligibility)
     age = ad.get("age")
     if not age and ad.get("dob"):
         try:
@@ -247,9 +248,9 @@ def evaluate_lead_against_policy(lead_data, policy):
         except Exception:
             pass
     if policy.get("min_age") and age:
-        check("Minimum Age", age, policy["min_age"], "gte", "Calculated")
+        check("Minimum Age", age, policy["min_age"], "gte", "Calculated", critical=False)
     if policy.get("max_age") and age:
-        check("Maximum Age", age, policy["max_age"], "lte", "Calculated")
+        check("Maximum Age", age, policy["max_age"], "lte", "Calculated", critical=False)
 
     # 4. FOIR check
     foir = resolved_foir
@@ -292,18 +293,16 @@ def evaluate_lead_against_policy(lead_data, policy):
             "rule": "Company Category", "customer": "Not specified",
             "required": ", ".join(allowed_categories), "result": "UNKNOWN", "source": "Policy Rule"
         })
-        if eligibility == "eligible":
-            eligibility = "possibly_eligible"
         confidence = "medium"
 
-    # 6. Employment vintage
+    # 6. Employment vintage (non-critical: missing employment data doesn't downgrade eligibility)
     if policy.get("min_present_employment_months"):
         emp_months = ad.get("present_employment_months")
-        check("Present Employment", emp_months, policy["min_present_employment_months"], "gte", "CRM Data")
+        check("Present Employment", emp_months, policy["min_present_employment_months"], "gte", "CRM Data", critical=False)
 
     if policy.get("min_total_employment_months"):
         total_emp = ad.get("total_employment_months")
-        check("Total Employment", total_emp, policy["min_total_employment_months"], "gte", "CRM Data")
+        check("Total Employment", total_emp, policy["min_total_employment_months"], "gte", "CRM Data", critical=False)
 
     # 7. CIBIL Issues
     cibil_issues = ad.get("cibil_issues", "").lower()

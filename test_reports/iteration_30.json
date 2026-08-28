@@ -1,0 +1,36 @@
+{
+  "summary": "Verified both bug fixes end-to-end (backend + frontend). Backend pytest 8/8 pass in /app/backend/tests/test_eligibility_and_auto_parse.py. For test lead 2ee497ea-... (salary=42970, CIBIL=755, company=listed, EMI=12522, missing employment months): HDFC now shows ELIGIBLE (was POSSIBLY ELIGIBLE); 25/27 banks are ELIGIBLE (spec said 20+, only 2 not_eligible); critical checks still work — a low-salary/low-CIBIL lead (5000/500) returns 27/27 not_eligible. POST /api/document-ai/auto-parse-all/{lead_id} returns {message, parsed:[], fields_updated:[]} for lead with no docs, 404 for unknown lead, requires auth. Frontend: navigated to /eligibility-check/{lead_id}; page displays HDFC card with 'ELIGIBLE' status badge; 25 Eligible / 0 Possible / 2 Not Eligible counts render correctly; profile summary shows CIBIL 755, Net Salary ₹42,970, EMI ₹12,522, FOIR 29.1%; auto-parse-all endpoint was auto-fired via useEffect (1 network call captured, no user click); AI Parse Docs button visible in header and opens the AI Parser panel on click. Missing-data warnings (Total Employment, Present Employment) render in amber alert but do NOT downgrade any bank to POSSIBLY ELIGIBLE.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Eligibility Check header", "issues": ["'Profile Strength' still reads 'Insufficient Data Profile' even when 25 banks are eligible — the star_score-based strength calc feels disconnected from the actual eligibility outcome (informational, not blocking)."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_eligibility_and_auto_parse.py",
+    "/app/test_reports/pytest/eligibility_bugfix_results.xml"
+  ],
+  "action_items": [
+    "(Optional) Reconcile 'Insufficient Data Profile' badge — when 25/27 banks are eligible, showing 'Insufficient Data' is misleading. Consider deriving profile strength from eligibility counts or filled additional_data fields."
+  ],
+  "critical_code_review_comments": [
+    "bank_policies.py check(): treats customer_val == 0 the same as None — so a legitimate age=0 or EMI=0 will be marked 'Not available'. For EMI, 0 is a valid value (means no obligations); today because of `not resolved_foir and resolved_emi` guard elsewhere, an EMI of 0 with a valid salary won't auto-compute FOIR (falsy). This masks a legitimately clean profile. Consider distinguishing None vs 0 explicitly.",
+    "bank_policies.py evaluate_lead_against_policy: the eligibility-amount calculation uses roi_min for the affordability formula but the returned roi_range shows min-max. If a bank uses a much higher roi_max for actual customers, eligible_amount is overly optimistic. Consider using midpoint or roi_max for conservative estimate.",
+    "document_ai.py auto_parse_all_documents: filename keyword detection may miscategorise. e.g. a 'salary_transaction.pdf' matches 'salary' before 'transaction' → routes to salary_slip. Order matters; and there is no confidence check. Consider running general parse first then classifying from content.",
+    "document_ai.py auto_parse_all_documents runs sequentially; for a lead with 4 PDFs it will block the request for ~2 minutes (Gemini ~30s each). Should be a background task with status polling — currently the frontend fires it via useEffect and just waits; on a slow lead the recheck won't fire until all parses complete.",
+    "Frontend babel visual-edits plugin at /app/frontend/plugins/visual-edits/babel-metadata-plugin.js:876 dereferences importPath.parentPath.parentPath without null-check. Was crashing compilation for 4 files (EligibilityCheck.js, BankPolicyMaster.js, SalesOperationsReport.js, EditableField.jsx). I patched it with an optional-chain fallback so the app compiles — E1 should verify this doesn't affect visual-edits functionality; the plugin author should add a proper null-check upstream."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_eligibility_and_auto_parse.py (new)",
+    "/app/frontend/plugins/visual-edits/babel-metadata-plugin.js (null-safe traverse fallback around line 876 to unblock compilation)"
+  ],
+  "success_rate": {"backend": "100% (8/8)", "frontend": "100%"},
+  "test_credentials": "admin@bankezee.com / admin123",
+  "seed_data_creation": "One TEST_LowSalary Critical lead created & deleted inside a single pytest run (no residual data). Two eligibility snapshots and one document_parse-empty response recorded against lead 2ee497ea-... in the course of testing.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Test lead 2ee497ea-72a8-43d6-b200-fb0555e05f12 currently yields 25 eligible / 0 possible / 2 not_eligible banks — HDFC is in the eligible set. auto-parse-all endpoint path is POST /api/document-ai/auto-parse-all/{lead_id}. For the auth token, the login endpoint returns access_token (also aliased as token in some envs). Frontend routes: /eligibility-check/:leadId. IMPORTANT: I had to patch /app/frontend/plugins/visual-edits/babel-metadata-plugin.js to fix a null-deref that was blocking webpack; if you see 'Cannot read properties of null (reading traverse)' in supervisor logs, that patch is needed.",
+  "rca of the issue": "Bug 1 RCA: In bank_policies.evaluate_lead_against_policy, the check() helper originally downgraded eligibility to 'possibly_eligible' on ANY missing (None/empty/0) customer value. Since the test lead had no present/total employment months populated, HDFC's employment vintage rules produced warnings that downgraded status. Fix (verified): check() now accepts critical=True/False; employment and age checks pass critical=False so they still generate a warning entry but leave eligibility='eligible'. Salary and CIBIL checks remain critical=True. Bug 2 RCA: Previously parsing required a manual button click. Fix (verified): EligibilityCheck.js now runs autoParseDocuments() via useEffect on mount (2s delay), which POSTs to /api/document-ai/auto-parse-all/{lead_id}; the endpoint auto-detects doc type from filename keywords (crif/cibil/credit → crif; salary/payslip → salary_slip; bank/statement → bank_statement; form16/itr → form16), skips non-PDF and already-parsed docs, and auto-fills lead profile fields via _auto_fill_from_parsed."
+}

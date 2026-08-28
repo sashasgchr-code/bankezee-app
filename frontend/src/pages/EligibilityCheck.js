@@ -76,7 +76,9 @@ export default function EligibilityCheck() {
   const [showAiParser, setShowAiParser] = useState(false);
   const [aiParsing, setAiParsing] = useState(false);
   const [aiResults, setAiResults] = useState(null);
+  const [aiAutoResults, setAiAutoResults] = useState(null);
   const [leadDocs, setLeadDocs] = useState([]);
+  const autoParseTriggered = useRef(false);
   const printRef = useRef(null);
 
   const runCheck = async () => {
@@ -136,8 +138,32 @@ export default function EligibilityCheck() {
     }
   };
 
+  // Auto-parse documents in the background
+  const autoParseDocuments = async () => {
+    if (autoParseTriggered.current) return;
+    autoParseTriggered.current = true;
+    try {
+      const res = await api.post(`/document-ai/auto-parse-all/${leadId}`);
+      if (res.data.parsed?.length > 0) {
+        setAiAutoResults(res.data);
+        setShowAiParser(true);
+        toast.success(`AI parsed ${res.data.parsed.length} document(s) — ${res.data.fields_updated.length} fields updated`);
+        // Re-run eligibility with the updated data
+        runCheck();
+      }
+    } catch (e) {
+      // Silently fail auto-parse - not critical
+      console.log('Auto-parse skipped:', e.response?.data?.detail);
+    }
+  };
+
   useEffect(() => {
-    if (leadId) runCheck();
+    if (leadId) {
+      runCheck();
+      // Trigger auto-parse in background after a short delay
+      const timer = setTimeout(() => autoParseDocuments(), 2000);
+      return () => clearTimeout(timer);
+    }
   }, [leadId]); // eslint-disable-line
 
   const toggle = (id) => setExpandedCards(prev => ({ ...prev, [id]: !prev[id] }));
@@ -436,7 +462,19 @@ export default function EligibilityCheck() {
                 <h3 className="text-sm font-semibold text-violet-800 mb-3 flex items-center gap-2">
                   <Sparkles className="w-4 h-4" /> AI Document Parser
                 </h3>
-                <p className="text-xs text-violet-600 mb-3">Select a document to extract financial data using AI. Extracted data can auto-fill the lead profile.</p>
+                <p className="text-xs text-violet-600 mb-3">Documents are auto-parsed when you open eligibility check. You can also manually parse individual documents below.</p>
+
+                {/* Auto-parse results */}
+                {aiAutoResults?.fields_updated?.length > 0 && (
+                  <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded text-xs">
+                    <div className="flex items-center gap-1 text-green-700 font-semibold mb-1">
+                      <CheckCircle className="w-3.5 h-3.5" /> AI Auto-Parsed {aiAutoResults.parsed?.length} document(s)
+                    </div>
+                    <div className="text-green-600">
+                      {aiAutoResults.fields_updated.map((f, i) => <span key={i} className="inline-block mr-2">• {f}</span>)}
+                    </div>
+                  </div>
+                )}
 
                 {leadDocs.length === 0 ? (
                   <p className="text-xs text-slate-400">No documents uploaded for this lead. Upload documents in the lead detail page first.</p>

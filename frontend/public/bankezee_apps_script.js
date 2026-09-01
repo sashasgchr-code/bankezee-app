@@ -38,7 +38,16 @@ function fetchCollection(token, collection) {
     headers: { "Authorization": "Bearer " + token },
     muteHttpExceptions: true
   });
-  return JSON.parse(resp.getContentText());
+  if (resp.getResponseCode() !== 200) {
+    Logger.log("  ⚠ HTTP " + resp.getResponseCode() + " for " + collection + " — skipping");
+    return { error: "HTTP " + resp.getResponseCode(), headers: [], rows: [], count: 0 };
+  }
+  try {
+    return JSON.parse(resp.getContentText());
+  } catch (e) {
+    Logger.log("  ⚠ JSON parse error for " + collection + " — skipping");
+    return { error: e.message, headers: [], rows: [], count: 0 };
+  }
 }
 
 function exportAll() {

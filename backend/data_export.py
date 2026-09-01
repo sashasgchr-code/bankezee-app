@@ -12,7 +12,7 @@ router = APIRouter()
 client = AsyncIOMotorClient(os.environ['MONGO_URL'])
 db = client[os.environ.get('DB_NAME', 'test_database')]
 
-EXPORTABLE = ["leads", "users", "agents", "bank_policies", "commissions", "files"]
+EXPORTABLE = ["leads", "users", "agents", "bank_policies", "commissions", "files", "file_storage"]
 
 # Fields to strip from export (binary blobs, internal mongo ids)
 STRIP_FIELDS = {"_id", "content", "password", "hashed_password"}
@@ -52,7 +52,10 @@ async def export_collection(
     if collection not in EXPORTABLE:
         return {"error": f"Collection not exportable. Choose from: {EXPORTABLE}"}
 
-    docs = await db[collection].find({}, {"_id": 0}).to_list(10000)
+    # Exclude heavy binary fields at DB level to avoid timeouts
+    projection = {"_id": 0, "content": 0, "password": 0, "hashed_password": 0}
+
+    docs = await db[collection].find({}, projection).to_list(10000)
     cleaned = [clean_doc(d) for d in docs]
 
     # Collect all unique keys across all docs

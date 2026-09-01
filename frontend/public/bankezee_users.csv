@@ -1,0 +1,29 @@
+Full Name,Email,Role,Phone,Is Approved,Password (hashed),Created At,Notes
+Admin User,admin@bankezee.com,admin,+1234567890,True,$2b$12$Ymo....9EpGa,2026-02-05T15:28:18,admin123
+John Partner,partner_d1abdf10@bankezee.com,partner,+919876543211,True,$2b$12$23i...XsYvd.,2026-02-05T15:44:06,OTP login (mock OTP: 123456)
+Sasha,partner_813e276f@bankezee.com,partner,+,True,$2b$12$23i...XsYvd.,2026-02-07T09:25:29,OTP login (mock OTP: 123456)
+SASHA lucas,partner_8963a82d@bankezee.com,partner,+919985432000,True,$2b$12$23i...XsYvd.,2026-02-07T09:31:58,OTP login (mock OTP: 123456)
+SAMUDRALA KRISHNA,rama.saffronglobal@gmail.com,sales_agent,+919390066837,False,$2b$12$sDn...t3cDQO,2026-02-07T09:36:53,OTP login (mock OTP: 123456)
+SASHA lucas,sasha.sgch@gmail.com,sales_agent,+919581809000,False,$2b$12$wjI...xnrCVW,2026-02-07T09:48:46,OTP login (mock OTP: 123456)
+SASHA lucas,sasha.sgchr@gmail.com,sales_agent,+919581802000,False,$2b$12$n73...S9JZja,2026-02-07T10:18:01,OTP login (mock OTP: 123456)
+Test Agent,testagent@bankezee.com,sales_agent,+919999999999,False,$2b$12$PgM...Coc7Bi,2026-02-07T10:20:44,OTP login (mock OTP: 123456)
+Test New Agent,newagent.test@bankezee.com,sales_agent,+918888888888,False,$2b$12$57Q...Ag83za,2026-02-07T10:33:47,OTP login (mock OTP: 123456)
+Test Agent,test_agent_d7d27692@test.com,sales_agent,+912274797935,False,$2b$12$4Al...hovsYu,2026-02-07T10:37:33,OTP login (mock OTP: 123456)
+Test Agent,test_agent_8a58a012@test.com,sales_agent,+915340905059,False,$2b$12$cS/...7Xuyfu,2026-02-07T10:42:26,OTP login (mock OTP: 123456)
+Operations Manager,ops@bankezee.com,operations,+919000000001,True,$2b$12$ed5...dSbEde,2026-02-07T10:50:55,ops123
+Test Agent,test_agent_cf53818f@test.com,sales_agent,+912544305916,False,$2b$12$dpE...EBZ.Aa,2026-02-07T11:00:22,OTP login (mock OTP: 123456)
+Test Ops Login User,testops_login_1770551576@test.com,operations,,True,$2b$12$wjb...pvwFyC,2026-02-08T11:52:56,
+UI Test Ops User,uitest_1770551679@test.com,operations,+1234567890,True,$2b$12$EW8...G2YKPW,2026-02-08T11:54:40,
+teja,teja@bankezee.com,operations,,True,$2b$12$ka....6P2R3u,2026-02-08T11:57:02,
+Test Partner 20260211071950,testpartner_20260211071950@example.com,partner,+912026021107,True,$2b$12$da2...fNMN9W,2026-02-11T07:19:51,OTP login (mock OTP: 123456)
+Test Agent 20260211071950,testagent_20260211071950@example.com,sales_agent,+9120260211071,,$2b$12$c0/...sjjMgy,2026-02-11T07:19:51,OTP login (mock OTP: 123456)
+Duplicate Partner,testpartner_20260211072123@example.com,partner,+919999999999,False,$2b$12$6Gp...q6RugG,2026-02-11T07:21:23,OTP login (mock OTP: 123456)
+Test Agent 20260211072123,testagent_20260211072123@example.com,sales_agent,+9120260211071,True,$2b$12$0e4...LJ0nNW,2026-02-11T07:21:24,OTP login (mock OTP: 123456)
+Test Partner d00e4a2c,testpartner_d00e4a2c@example.com,partner,+911770794533,True,$2b$12$UiB...fJrzuS,2026-02-11T07:22:13,OTP login (mock OTP: 123456)
+Test Agent d00e4a2c,testagent_d00e4a2c@example.com,sales_agent,+911770794534,True,$2b$12$rLE...LVu0qC,2026-02-11T07:22:14,OTP login (mock OTP: 123456)
+UI Test Partner 70794565,uitest_partner_70794565@example.com,partner,+917079456512,False,$2b$12$t7d...dQMW6.,2026-02-11T07:22:46,OTP login (mock OTP: 123456)
+UI Test Agent 70794590,uitest_agent_70794590@example.com,sales_agent,+917079459034,False,$2b$12$/Dn...ki8Gmq,2026-02-11T07:23:11,OTP login (mock OTP: 123456)
+Pending Test 70794684,pending_test_70794684@example.com,partner,+917079468499,False,$2b$12$Tdl...GLbcbO,2026-02-11T07:24:46,OTP login (mock OTP: 123456)
+Test Agent Account,agent.test@bankezee.com,sales_agent,,True,$2b$12$mi7...6WYGQ6,2026-02-16T06:06:50,OTP login (mock OTP: 123456)
+Test Manager Updated,test.manager@bankezee.com,manager,9876543210,True,$2b$12$8ZP...o.w0QC,2026-03-09T12:22:40,manager123
+Test Team Leader,test.teamlead@bankezee.com,team_leader,+919876543211,True,$2b$12$Mxj...GDMkKW,2026-03-09T12:22:47,teamlead123

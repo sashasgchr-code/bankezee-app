@@ -8,7 +8,7 @@
 // 3. Delete the default code and paste this ENTIRE script
 // 4. Click ▶ Run → select "exportAll" → Run
 // 5. First time: approve permissions when prompted
-// 6. Wait 1-2 minutes — all 6 sheets will be populated
+// 6. Wait 1-2 minutes — all 8 sheets will be populated
 //
 // ============================================================
 
@@ -18,7 +18,16 @@ var ADMIN_EMAIL = "admin@bankezee.com";
 var ADMIN_PASSWORD = "admin123";
 // =========================================
 
-var COLLECTIONS = ["leads", "users", "agents", "bank_policies", "commissions", "files"];
+var COLLECTIONS = [
+  "leads",
+  "activity_log",    // One row per activity entry (dates for stats)
+  "eligibilities",   // One row per bank eligibility entry
+  "users",
+  "agents",
+  "bank_policies",
+  "commissions",
+  "files"
+];
 
 function getToken() {
   var resp = UrlFetchApp.fetch(BASE_URL + "/api/auth/login", {
@@ -55,13 +64,16 @@ function exportAll() {
   var token = getToken();
   Logger.log("Logged in successfully");
 
+  var summary = [];
+
   for (var i = 0; i < COLLECTIONS.length; i++) {
     var name = COLLECTIONS[i];
     Logger.log("Exporting: " + name + "...");
 
     var data = fetchCollection(token, name);
     if (data.error) {
-      Logger.log("ERROR on " + name + ": " + data.error);
+      Logger.log("  ⚠ ERROR on " + name + ": " + data.error);
+      summary.push(name + ": ERROR — " + data.error);
       continue;
     }
 
@@ -91,13 +103,17 @@ function exportAll() {
       }
     }
 
+    // Freeze header row
+    sheet.setFrozenRows(1);
+
     // Auto-resize first 10 columns
-    var maxCols = Math.min(data.headers.length, 10);
+    var maxCols = Math.min(data.headers ? data.headers.length : 0, 10);
     for (var c = 1; c <= maxCols; c++) {
       sheet.autoResizeColumn(c);
     }
 
     Logger.log("  → " + data.count + " rows exported to sheet: " + name);
+    summary.push(name + ": " + data.count + " rows");
   }
 
   // Delete the default Sheet1 if it exists and is empty
@@ -106,7 +122,9 @@ function exportAll() {
     ss.deleteSheet(defaultSheet);
   }
 
-  SpreadsheetApp.getUi().alert("Export complete!\n\n" + COLLECTIONS.length + " sheets created.");
+  SpreadsheetApp.getUi().alert(
+    "Export complete!\n\n" + summary.join("\n")
+  );
 }
 
 // Add a custom menu to the spreadsheet
